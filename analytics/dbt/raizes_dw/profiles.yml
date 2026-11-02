@@ -1,0 +1,9 @@
+# Perfil do dbt para o DuckDB local. Sem segredos: apenas caminhos.
+# O caminho vem de DW_DUCKDB_PATH (relativo ao diretório de trabalho ou absoluto).
+raizes_dw:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DW_DUCKDB_PATH', 'data/warehouse/raizes.duckdb') }}"
+      threads: 1

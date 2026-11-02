@@ -79,6 +79,14 @@ sequenceDiagram
     R-->>C: HTTP response (JSON ou problem+json)
 ```
 
+## Camada analítica
+
+Além da API transacional, o projeto tem uma camada analítica (Data Warehouse com margem para
+Lakehouse: DuckDB + Parquet, outbox, Kimball e dbt). Ela é alimentada por eventos de domínio
+gravados na `outbox_eventos` na mesma transação dos casos de uso e vive em `analytics/`, fora das
+camadas da API. Detalhes em [docs/dados/](../dados/README.md) e nos
+[ADR 0007](adr/0007-visao-analitica.md) e [ADR 0008](adr/0008-plataforma-analitica.md).
+
 ## Preocupações transversais já presentes
 
 - **Configuração por ambiente (12-factor):** variáveis de ambiente lidas por `pydantic-settings`;
@@ -89,3 +97,6 @@ sequenceDiagram
   validação e falhas inesperadas.
 - **Health checks:** `GET /health/live` (processo) e `GET /health/ready` (checa o banco via porta).
 - **Migrações Alembic:** aplicadas na inicialização do contêiner; URL do banco vinda das settings.
+- **Outbox de eventos de domínio:** `DomainEvent` (domínio), porta `OutboxWriter` (aplicação) e
+  `SqlAlchemyOutboxWriter` (infraestrutura) gravam eventos na tabela `outbox_eventos` dentro da
+  transação do caso de uso, para alimentar o analítico. Eventos não carregam dados pessoais em claro.

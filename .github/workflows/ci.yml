@@ -84,8 +84,33 @@ jobs:
       - run: alembic upgrade head
       - run: pytest -m integration
 
+  analytics:
+    runs-on: ubuntu-latest
+    env:
+      PYTHONPATH: analytics
+      DW_DUCKDB_PATH: ${{ github.workspace }}/data/warehouse/raizes.duckdb
+      DW_LAKE_PATH: ${{ github.workspace }}/data/lake
+      DBT_PROJECT_DIR: analytics/dbt/raizes_dw
+      DBT_PROFILES_DIR: analytics/dbt/raizes_dw
+      DBT_SEND_ANONYMOUS_USAGE_STATS: "False"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: analytics/requirements.lock
+      - run: pip install -r analytics/requirements.lock
+      - run: mkdir -p data/lake data/warehouse
+      - run: pytest analytics/tests
+      # Bronze vazio: o extrator cria apenas o Parquet de esquema (sem acessar o banco).
+      - run: python -m ingestao.extrair_outbox --somente-esquema
+      - run: dbt seed
+      - run: dbt build
+
   docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: docker build --target runtime -t raizes-api:ci .
+      - run: docker build -t raizes-analytics:ci analytics

@@ -12,8 +12,13 @@ RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" api
 LOCK_IMAGE := python:3.14.10-slim
 PIP_TOOLS_VERSION := 7.6.2
 
+# Pipeline analítico (DW): serviço "analytics" do compose (profile opcional, não sobe no `make up`).
+DW_RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" analytics
+DW_RUN_DB := $(COMPOSE) run --rm --entrypoint "" analytics
+DBT := dbt
+
 .PHONY: help setup up down logs ps shell test test-integration test-all lint format typecheck \
-	migrate revision secrets lock clean
+	migrate revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -73,6 +78,39 @@ lock: ## Regenera requirements*.lock dentro de um contêiner
 			-o requirements.lock pyproject.toml && \
 		python -m piptools compile --quiet --strip-extras --no-emit-index-url --extra dev \
 			-o requirements-dev.lock pyproject.toml'
+
+# --- Data Warehouse (DuckDB + Parquet + dbt) -------------------------------------------------
+
+dw-dirs:
+	@mkdir -p data/lake data/warehouse
+
+dw-ingest: dw-dirs ## DW: extrai eventos novos da outbox para o bronze (Parquet)
+	$(DW_RUN_DB) python -m ingestao.extrair_outbox
+
+dw-build: dw-dirs ## DW: dbt seed + build (silver e gold, com testes)
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
+	$(DW_RUN) $(DBT) seed
+	$(DW_RUN) $(DBT) build
+
+dw-test: dw-dirs ## DW: testes Python do pipeline + testes de dados do dbt
+	$(DW_RUN) pytest -p no:cacheprovider analytics/tests
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
+	$(DW_RUN) $(DBT) seed
+	$(DW_RUN) $(DBT) run
+	$(DW_RUN) $(DBT) test
+
+dw-docs: dw-dirs ## DW: gera a documentação do dbt (analytics/dbt/raizes_dw/target)
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
+	$(DW_RUN) $(DBT) seed
+	$(DW_RUN) $(DBT) docs generate
+
+dw: dw-ingest dw-build ## DW: pipeline completo (ingestão + build)
+
+dw-lock: ## Regenera analytics/requirements.lock dentro de um contêiner
+	docker run --rm -u $(HOST_UID) -e HOME=/tmp -e PIP_NO_WARN_SCRIPT_LOCATION=1 -v "$(CURDIR)":/work -w /work $(LOCK_IMAGE) sh -c '\
+		python -m pip install --quiet --user pip-tools==$(PIP_TOOLS_VERSION) && \
+		python -m piptools compile --quiet --strip-extras --no-emit-index-url \
+			-o analytics/requirements.lock analytics/requirements.in'
 
 clean: ## Remove contêineres E o volume do banco (apaga os dados locais!)
 	@echo "ATENÇÃO: isto apaga o volume do banco de dados local."

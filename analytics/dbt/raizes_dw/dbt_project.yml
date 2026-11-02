@@ -1,0 +1,39 @@
+name: raizes_dw
+version: "0.1.0"
+config-version: 2
+profile: raizes_dw
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+flags:
+  send_anonymous_usage_stats: false
+  use_colors: false
+
+vars:
+  # Definição de negócio a validar pelo autor: período em que os produtos juninos são vendidos.
+  # Formato MM-DD (inclusivo nas duas pontas). Padrão proposto: 01/06 a 31/07.
+  periodo_junino_inicio: "06-01"
+  periodo_junino_fim: "07-31"
+  # Intervalo da dimensão de tempo.
+  dim_tempo_data_inicial: "2024-01-01"
+  dim_tempo_data_final: "2030-12-31"
+
+models:
+  raizes_dw:
+    staging:
+      +materialized: table
+      +schema: silver
+    marts:
+      +materialized: table
+      +schema: gold
+
+seeds:
+  raizes_dw:
+    +schema: silver
+    feriados_nacionais:
+      +column_types:
+        data: date
+        nome_feriado: varchar

@@ -1,0 +1,48 @@
+version: 2
+
+models:
+  - name: dim_tempo
+    description: >
+      Dimensão de tempo (calendário diário, 2024-01-01 a 2030-12-31), data civil em
+      America/Recife. `dia_semana` segue ISO (1 = segunda ... 7 = domingo).
+    columns:
+      - name: data_key
+        description: Chave da dimensão no formato AAAAMMDD.
+        data_tests:
+          - unique
+          - not_null
+      - name: data
+        data_tests:
+          - unique
+          - not_null
+      - name: ano
+        data_tests:
+          - not_null
+      - name: trimestre
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4]
+                quote: false
+      - name: mes
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+                quote: false
+      - name: dia_semana
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5, 6, 7]
+                quote: false
+      - name: eh_fim_de_semana
+        data_tests:
+          - not_null
+      - name: eh_feriado_nacional
+        data_tests:
+          - not_null
+      - name: eh_periodo_junino
+        description: Definição de negócio a validar pelo autor (vars do dbt).
+        data_tests:
+          - not_null

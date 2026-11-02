@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Arquivos Parquet brutos do lake (camada bronze), gravados pelo extrator incremental
+      (analytics/ingestao/extrair_outbox.py). Imutáveis e append-only, particionados por `dt`.
+    meta:
+      # O extrator mantém sempre ao menos um Parquet com 0 linhas e o esquema correto
+      # (dt=1970-01-01/_esquema_vazio.parquet), então o glob nunca fica sem arquivos.
+      external_location: >-
+        read_parquet('{{ env_var('DW_LAKE_PATH', 'data/lake') }}/bronze/{name}/*/*.parquet',
+        hive_partitioning = true, union_by_name = true)
+    tables:
+      - name: outbox_eventos
+        description: Eventos de domínio capturados da outbox do PostgreSQL (um por linha).

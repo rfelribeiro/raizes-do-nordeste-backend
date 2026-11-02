@@ -38,5 +38,27 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  # Pipeline analítico (DW). Fora do `make up`: só roda via `make dw*` (profile "analytics").
+  analytics:
+    profiles: ["analytics"]
+    build:
+      context: ./analytics
+      args:
+        UID: ${HOST_UID:-1000}
+    env_file: .env
+    environment:
+      # Dentro da rede do compose o banco é alcançado pelo nome do serviço.
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      # Caminhos absolutos dentro do contêiner (o ./data do host é montado em /app/data).
+      DW_DUCKDB_PATH: /app/data/warehouse/raizes.duckdb
+      DW_LAKE_PATH: /app/data/lake
+    volumes:
+      - ./data:/app/data
+      - ./analytics:/app/analytics
+    depends_on:
+      db:
+        condition: service_healthy
+
 volumes:
   pgdata:

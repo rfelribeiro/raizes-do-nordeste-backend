@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: stg_outbox_eventos
+    description: >
+      Silver dos eventos de domínio: tipada e deduplicada por `id_evento`. Datas em UTC.
+      Não contém dado pessoal em claro (regra dos eventos; ver docs/dados/README.md).
+    columns:
+      - name: id_evento
+        description: Identificador único do evento (UUID4 gerado pelo domínio).
+        data_tests:
+          - unique
+          - not_null
+      - name: tipo_evento
+        description: Nome estável do evento (ex. pedido_criado).
+        data_tests:
+          - not_null
+      - name: versao_schema
+        description: Versão do formato do payload.
+        data_tests:
+          - not_null
+      - name: tipo_agregado
+        data_tests:
+          - not_null
+      - name: id_agregado
+        data_tests:
+          - not_null
+      - name: payload
+        description: Conteúdo do evento (JSON), sem PII em claro.
+      - name: ocorrido_em
+        description: Instante do fato de negócio (UTC).
+        data_tests:
+          - not_null
+      - name: registrado_em
+        description: Instante em que a outbox registrou o evento (UTC).
+        data_tests:
+          - not_null
+      - name: id_sequencial
+        description: Marca d'água da outbox (ordem de captura).
+        data_tests:
+          - not_null
+      - name: data_particao
+        description: Data (UTC) da partição do bronze em que o evento chegou.

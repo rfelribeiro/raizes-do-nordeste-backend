@@ -6,6 +6,7 @@ cardápios e estoques distintos, programa de fidelidade com conformidade à LGPD
 gateway externo, relatórios para a matriz e alta disponibilidade em horário de pico.
 
 **Stack:** Python 3.14, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 17, Docker Compose.
+**Analítico:** Data Warehouse com margem para Lakehouse (DuckDB, Parquet, dbt-core, Kimball).
 **Arquitetura:** aplicação única em 4 camadas (API, Aplicação, Domínio, Infraestrutura).
 
 > Estado atual: fundação transversal (configuração, logs, erros RFC 9457, health checks,
@@ -52,10 +53,25 @@ Observações:
 - O `.env` é gerado localmente e **nunca é versionado**. Se apagá-lo, gere outro com `make setup`
   e rode `make clean` (apaga o volume do banco, pois a senha antiga ficou gravada nele).
 - Versões travadas: imagens (`python:3.14.10-slim`, `postgres:17.11-alpine`) e dependências
-  (`requirements.lock`, `requirements-dev.lock`). Para atualizar dependências: edite o
+  (`requirements.lock`, `requirements-dev.lock`, `analytics/requirements.lock`). Para atualizar dependências: edite o
   `pyproject.toml` e rode `make lock`.
 - Migrações: aplicadas automaticamente ao iniciar o contêiner da API; manualmente com
   `make migrate`; nova migração com `make revision m="descrição"`.
+
+## Data Warehouse
+
+Camada analítica opcional (DuckDB + Parquet + dbt), alimentada pela outbox de eventos de domínio.
+Não sobe no `make up`; rode depois dele:
+
+```bash
+make dw           # extrai eventos da outbox para o bronze e roda dbt (silver + gold + testes)
+make dw-ingest    # só a ingestão          make dw-build   # só o dbt (seed + build)
+make dw-test      # testes do pipeline     make dw-docs    # docs do dbt
+```
+
+Os arquivos gerados ficam em `data/` (fora do git). Sem eventos na outbox o pipeline também
+funciona (bronze vazio). Detalhes: [analytics/README.md](analytics/README.md) e
+[docs/dados/](docs/dados/README.md).
 
 ## Estrutura de pastas
 
@@ -67,7 +83,9 @@ src/raizes/
   infrastructure/  # camada Infraestrutura: config, logs, banco (implementa as portas)
   main.py          # create_app(): composição da aplicação
 migrations/        # migrações Alembic
+analytics/         # pipeline do Data Warehouse (ingestão, dbt, testes)
 tests/             # unit/, architecture/ (regra de camadas), integration/
+data/              # (gerado, fora do git) lake Parquet e warehouse DuckDB
 scripts/           # setup_env.py, verificar_segredos.py, git-hooks/
 docs/              # documentação do projeto
 .github/workflows/ # CI
@@ -79,6 +97,7 @@ docs/              # documentação do projeto
 - [Decisões de arquitetura (ADRs)](docs/arquitetura/adr/)
 - [Requisitos](docs/requisitos/README.md)
 - [Modelagem](docs/modelagem/README.md)
+- [Arquitetura de dados (DW)](docs/dados/README.md) e [matriz de barramento](docs/dados/matriz-de-barramento.md)
 - [Testes](docs/testes/README.md)
 - [API](docs/api/README.md)
 

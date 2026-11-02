@@ -4,6 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from raizes.infrastructure.config import get_settings
+from raizes.infrastructure.db import models  # noqa: F401  (registra os modelos no metadata)
 from raizes.infrastructure.db.base import Base
 
 target_metadata = Base.metadata
