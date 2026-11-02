@@ -1,0 +1,94 @@
+# Raízes do Nordeste - API back-end
+
+Projeto acadêmico (Projeto Multidisciplinar, trilha Back-end): API para a rede de lanchonetes
+"Raízes do Nordeste", com pedidos multicanal (app, totem, balcão e pick-up), unidades com
+cardápios e estoques distintos, programa de fidelidade com conformidade à LGPD, pagamento por
+gateway externo, relatórios para a matriz e alta disponibilidade em horário de pico.
+
+**Stack:** Python 3.14, FastAPI, SQLAlchemy 2, Alembic, PostgreSQL 17, Docker Compose.
+**Arquitetura:** aplicação única em 4 camadas (API, Aplicação, Domínio, Infraestrutura).
+
+> Estado atual: fundação transversal (configuração, logs, erros RFC 9457, health checks,
+> migrações, testes, CI). Os módulos de negócio ainda serão implementados.
+
+## Como reproduzir
+
+O Docker é o ambiente canônico: o que roda no seu computador é o mesmo que roda na CI.
+
+**Pré-requisitos:** Docker Engine com Docker Compose v2, `make`, `git` e `python3` (apenas para
+os scripts auxiliares `setup` e `secrets`, que usam só a biblioteca padrão).
+
+```bash
+git clone <url-do-repositorio> raizes && cd raizes
+
+make setup   # cria o .env (senha aleatória do banco) e ativa o hook de pre-commit
+make up      # constrói a imagem, sobe banco + API e aplica as migrações
+```
+
+Depois de `make up`:
+
+| Recurso            | URL                                        |
+|--------------------|--------------------------------------------|
+| Swagger (OpenAPI)  | `http://localhost:${API_PORT}/docs`        |
+| OpenAPI JSON       | `http://localhost:${API_PORT}/openapi.json`|
+| Liveness           | `http://localhost:${API_PORT}/health/live` |
+| Readiness (banco)  | `http://localhost:${API_PORT}/health/ready`|
+
+`API_PORT` vem do `.env` (padrão do modelo: `8080`). Se a porta estiver ocupada na sua máquina,
+edite `API_PORT` / `DB_HOST_PORT` no `.env` e rode `make up` novamente.
+
+```bash
+make test              # testes unitários + arquitetura (sem banco)
+make test-integration  # testes contra o PostgreSQL real do compose
+make lint              # ruff (check + format --check)
+make typecheck         # mypy
+make secrets           # verificação de segredos em todo o repositório
+make down              # para os contêineres (mantém os dados)
+make help              # lista todos os alvos
+```
+
+Observações:
+
+- O `.env` é gerado localmente e **nunca é versionado**. Se apagá-lo, gere outro com `make setup`
+  e rode `make clean` (apaga o volume do banco, pois a senha antiga ficou gravada nele).
+- Versões travadas: imagens (`python:3.14.10-slim`, `postgres:17.11-alpine`) e dependências
+  (`requirements.lock`, `requirements-dev.lock`). Para atualizar dependências: edite o
+  `pyproject.toml` e rode `make lock`.
+- Migrações: aplicadas automaticamente ao iniciar o contêiner da API; manualmente com
+  `make migrate`; nova migração com `make revision m="descrição"`.
+
+## Estrutura de pastas
+
+```
+src/raizes/
+  api/             # camada API: HTTP (routers, schemas, dependências, erros, middleware)
+  application/     # camada Aplicação: casos de uso e portas (Protocols)
+  domain/          # camada Domínio: regras de negócio, sem frameworks
+  infrastructure/  # camada Infraestrutura: config, logs, banco (implementa as portas)
+  main.py          # create_app(): composição da aplicação
+migrations/        # migrações Alembic
+tests/             # unit/, architecture/ (regra de camadas), integration/
+scripts/           # setup_env.py, verificar_segredos.py, git-hooks/
+docs/              # documentação do projeto
+.github/workflows/ # CI
+```
+
+## Documentação
+
+- [Visão geral da arquitetura](docs/arquitetura/visao-geral.md)
+- [Decisões de arquitetura (ADRs)](docs/arquitetura/adr/)
+- [Requisitos](docs/requisitos/README.md)
+- [Modelagem](docs/modelagem/README.md)
+- [Testes](docs/testes/README.md)
+- [API](docs/api/README.md)
+
+## Segurança e dados pessoais
+
+Nenhuma credencial é versionada: o `.env` é ignorado pelo git, o `.env.example` contém apenas
+valores fictícios, e um verificador de segredos roda no pre-commit e na CI
+(ver [ADR 0005](docs/arquitetura/adr/0005-protecao-de-credenciais-e-dados-pessoais.md)).
+
+## Uso de IA
+
+Este projeto foi desenvolvido com apoio de IA, e o uso é registrado de forma transparente
+(conversas e decisões humano × IA). Veja [docs/uso-de-ia/README.md](docs/uso-de-ia/README.md).

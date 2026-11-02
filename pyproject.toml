@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "raizes-api"
+version = "0.1.0"
+description = "API back-end da rede Raízes do Nordeste (projeto acadêmico)."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "pydantic-settings>=2.7,<3",
+  "sqlalchemy>=2.0,<3",
+  "psycopg[binary]>=3.2,<4",
+  "alembic>=1.14,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+  "httpx>=0.28,<1",
+  "ruff>=0.9",
+  "mypy>=1.14",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests", "scripts"]
+# tools/ (registro de IA) e init/ têm ciclo e estilo próprios; este lint cobre o código da API.
+extend-exclude = ["tools", "init", "docs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["raizes"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+cache_dir = "/tmp/pytest_cache"
+addopts = "-ra"
+markers = [
+  "integration: testes que exigem o PostgreSQL real do docker compose",
+]
+
+[tool.mypy]
+python_version = "3.14"
+files = ["src"]
+plugins = ["pydantic.mypy"]
+strict = true
+# "Strict moderado": strict ligado, exceto o que não traz valor nesta fase.
+disallow_any_generics = false
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = "migrations.*"
+ignore_errors = true

@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.14"
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/verificar_segredos.py --todos
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - run: pip install -r requirements-dev.lock
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+        env:
+          PYTHONPATH: src
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - run: pip install -r requirements-dev.lock
+      - run: pytest -m "not integration"
+        env:
+          PYTHONPATH: src
+
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17.11-alpine
+        env:
+          # Credenciais fictícias, válidas apenas dentro deste job efêmero de CI.
+          POSTGRES_DB: raizes_ci
+          POSTGRES_USER: raizes_ci
+          POSTGRES_PASSWORD: ci_ficticio_sem_valor
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U raizes_ci -d raizes_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      APP_ENV: ci
+      POSTGRES_DB: raizes_ci
+      POSTGRES_USER: raizes_ci
+      POSTGRES_PASSWORD: ci_ficticio_sem_valor
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      PYTHONPATH: src
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dev.lock
+      - run: pip install -r requirements-dev.lock
+      - run: alembic upgrade head
+      - run: pytest -m integration
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --target runtime -t raizes-api:ci .

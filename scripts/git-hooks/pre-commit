@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Bloqueia o commit se houver segredos ou dados sensíveis nos arquivos staged.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+exec python3 scripts/verificar_segredos.py --staged
