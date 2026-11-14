@@ -47,4 +47,4 @@ Atualize a coluna **Revisão humana** à medida que revisar cada item.
 | `.claude/settings.json`, `.gitignore`, este README, `decisoes.md` | Opus 5.5 | Humano | ⏳ pendente |
 | Estrutura inicial da API, docs de arquitetura, ADRs 0001–0006, verificador de segredos e CI | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Opus 5.5, com as decisões do humano | ⏳ pendente |
 | Fundação analítica: outbox, `analytics/`, dbt, `docs/dados/`, ADRs 0007–0008 | Subagente Sonnet 5.5 | Opus 5.5, com as decisões do humano (D-017 a D-021) | ⏳ pendente |
-| `docs/dados/matriz-de-barramento.md`: só a estrutura e os insumos; o **conteúdo é do humano** | Subagente Sonnet 5.5 (estrutura) | Humano (D-022) | ✍️ a preencher pelo humano |
+| `docs/dados/matriz-de-barramento.md`: só a estrutura e os insumos; o **conteúdo é do humano** | Subagente Sonnet 5.5 (estrutura) | Humano (D-022) | ✅ preenchida: escolhas do humano (D-028, D-029) e boas práticas definidas pela IA a pedido dele (D-030 a D-032) |
