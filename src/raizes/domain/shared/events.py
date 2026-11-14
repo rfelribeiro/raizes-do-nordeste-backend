@@ -1,7 +1,7 @@
 """Evento de domínio: fato de negócio já ocorrido, base da captura OLTP -> analítico (outbox).
 
 REGRA DE PRIVACIDADE (LGPD): eventos NÃO carregam dados pessoais em claro. Use identificadores
-internos (ex.: `id_cliente`), nunca nome, CPF, e-mail, telefone, endereço ou data de nascimento.
+internos (ex.: `customer_id`), nunca nome, CPF, e-mail, telefone, endereço ou data de nascimento.
 Quando a análise precisar de um atributo derivado (ex.: faixa etária), o evento carrega o
 atributo já derivado, não o dado bruto. O payload é gravado na outbox e copiado para o lake
 (bronze, imutável), então o que entra no evento é, na prática, permanente.
@@ -31,7 +31,7 @@ class DomainEvent:
     """Base imutável dos eventos de domínio.
 
     `event_type` é um nome estável usado pelo analítico: por padrão, o nome da classe em
-    snake_case (`PedidoCriado` -> `pedido_criado`); pode ser fixado na subclasse. Renomear a
+    snake_case (`OrderCreated` -> `order_created`); pode ser fixado na subclasse. Renomear a
     classe NÃO deve mudar o nome do evento já publicado: fixe `event_type` explicitamente.
     Mudanças incompatíveis no payload exigem aumentar `schema_version`.
     """

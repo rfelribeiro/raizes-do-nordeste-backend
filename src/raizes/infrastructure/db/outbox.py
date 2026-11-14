@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from sqlalchemy.orm import Session
 
 from raizes.domain.shared.events import DomainEvent
-from raizes.infrastructure.db.models.outbox import OutboxEvento
+from raizes.infrastructure.db.models.outbox import OutboxEvent
 
 
 class SqlAlchemyOutboxWriter:
@@ -16,14 +16,14 @@ class SqlAlchemyOutboxWriter:
 
     def add(self, events: Sequence[DomainEvent]) -> None:
         self._session.add_all(
-            OutboxEvento(
-                id_evento=event.event_id,
-                tipo_evento=event.event_type,
-                versao_schema=event.schema_version,
-                tipo_agregado=event.aggregate_type,
-                id_agregado=event.aggregate_id,
+            OutboxEvent(
+                event_id=event.event_id,
+                event_type=event.event_type,
+                schema_version=event.schema_version,
+                aggregate_type=event.aggregate_type,
+                aggregate_id=event.aggregate_id,
                 payload=event.payload(),
-                ocorrido_em=event.occurred_at,
+                occurred_at=event.occurred_at,
             )
             for event in events
         )

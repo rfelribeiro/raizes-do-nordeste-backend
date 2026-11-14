@@ -104,7 +104,7 @@ jobs:
       - run: mkdir -p data/lake data/warehouse
       - run: pytest analytics/tests
       # Bronze vazio: o extrator cria apenas o Parquet de esquema (sem acessar o banco).
-      - run: python -m ingestao.extrair_outbox --somente-esquema
+      - run: python -m ingestion.extract_outbox --schema-only
       - run: dbt seed
       - run: dbt build
 

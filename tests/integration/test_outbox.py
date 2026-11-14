@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from raizes.domain.shared.events import DomainEvent
-from raizes.infrastructure.db.models.outbox import OutboxEvento
+from raizes.infrastructure.db.models.outbox import OutboxEvent
 from raizes.infrastructure.db.outbox import SqlAlchemyOutboxWriter
 from raizes.infrastructure.db.session import get_engine
 
@@ -14,44 +14,44 @@ pytestmark = pytest.mark.integration
 
 
 @dataclass(frozen=True, kw_only=True)
-class EventoDeTeste(DomainEvent):
-    valor: int = 0
+class FakeEvent(DomainEvent):
+    value: int = 0
 
     def payload(self) -> dict[str, Any]:
-        return {"valor": self.valor}
+        return {"value": self.value}
 
 
-def _evento(valor: int = 1) -> EventoDeTeste:
-    return EventoDeTeste(aggregate_type="teste", aggregate_id="a-1", valor=valor)
+def _event(value: int = 1) -> FakeEvent:
+    return FakeEvent(aggregate_type="test", aggregate_id="a-1", value=value)
 
 
-def test_grava_e_le_evento_na_mesma_transacao() -> None:
-    evento = _evento(5)
+def test_writes_and_reads_event_in_same_transaction() -> None:
+    event = _event(5)
     # A transação externa nunca é confirmada: nada fica gravado no banco após o teste.
     with get_engine().connect() as connection, connection.begin() as transaction:
         with Session(bind=connection) as session:
-            SqlAlchemyOutboxWriter(session).add([evento])
+            SqlAlchemyOutboxWriter(session).add([event])
             session.flush()
-            linha = session.scalars(
-                select(OutboxEvento).where(OutboxEvento.id_evento == evento.event_id)
+            row = session.scalars(
+                select(OutboxEvent).where(OutboxEvent.event_id == event.event_id)
             ).one()
-            assert linha.tipo_evento == "evento_de_teste"
-            assert linha.payload == {"valor": 5}
-            assert linha.versao_schema == 1
-            assert linha.ocorrido_em == evento.occurred_at
-            assert linha.registrado_em is not None
-            assert linha.id_sequencial > 0
+            assert row.event_type == "fake_event"
+            assert row.payload == {"value": 5}
+            assert row.schema_version == 1
+            assert row.occurred_at == event.occurred_at
+            assert row.recorded_at is not None
+            assert row.sequence_id > 0
         transaction.rollback()
 
 
-def test_rollback_descarta_o_evento() -> None:
-    evento = _evento()
+def test_rollback_discards_event() -> None:
+    event = _event()
     with get_engine().connect() as connection:
         with Session(bind=connection) as session:
-            SqlAlchemyOutboxWriter(session).add([evento])
+            SqlAlchemyOutboxWriter(session).add([event])
             session.flush()
             session.rollback()
-        total = connection.execute(
-            select(OutboxEvento.id_evento).where(OutboxEvento.id_evento == evento.event_id)
+        found = connection.execute(
+            select(OutboxEvent.event_id).where(OutboxEvent.event_id == event.event_id)
         ).all()
-        assert total == []
+        assert found == []

@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raizes.example/contracts/events/outbox_event_envelope.schema.json",
+  "title": "OutboxEventEnvelope",
+  "description": "Envelope de um evento de domínio gravado na tabela outbox_events (PostgreSQL) e copiado, sem alterações, para o bronze do lake. Versão do contrato: ver outbox_events.contract.yaml.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "event_id",
+    "event_type",
+    "schema_version",
+    "aggregate_type",
+    "aggregate_id",
+    "payload",
+    "occurred_at",
+    "recorded_at",
+    "sequence_id"
+  ],
+  "properties": {
+    "event_id": {
+      "description": "Identificador único do evento (UUID versão 4 gerado pelo domínio). Chave de deduplicação no DW.",
+      "type": "string",
+      "format": "uuid"
+    },
+    "event_type": {
+      "description": "Nome estável do evento em snake_case, no padrão <entidade>_<fato_no_passado> em inglês (ex.: order_created, payment_approved). Nunca renomear um tipo já publicado.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
+      "maxLength": 100
+    },
+    "schema_version": {
+      "description": "Versão do formato do payload para este event_type (inteiro >= 1). Muda a cada alteração aditiva do payload.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "aggregate_type": {
+      "description": "Tipo do agregado de negócio dono do evento, em snake_case (ex.: order, customer).",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
+    },
+    "aggregate_id": {
+      "description": "Identificador do agregado, como texto. Identificador interno: nunca um dado pessoal em claro.",
+      "type": "string",
+      "minLength": 1
+    },
+    "payload": {
+      "description": "Conteúdo específico do evento. Objeto JSON sem PII em claro (sem nome, CPF, e-mail, telefone, endereço ou data de nascimento).",
+      "type": "object"
+    },
+    "occurred_at": {
+      "description": "Instante do fato de negócio, em UTC (ISO-8601).",
+      "type": "string",
+      "format": "date-time"
+    },
+    "recorded_at": {
+      "description": "Instante em que a outbox registrou o evento, em UTC (ISO-8601). Atribuído pelo banco; deve ser >= occurred_at.",
+      "type": "string",
+      "format": "date-time"
+    },
+    "sequence_id": {
+      "description": "Ordem de captura na outbox (identidade do banco, crescente). Usado como marca d'água pela extração incremental.",
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

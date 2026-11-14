@@ -1,6 +1,6 @@
 # Matriz de barramento e modelagem dimensional
 
-**Autoria:** o **autor (humano)** escolheu os processos de negócio, as dimensões, os grãos e as interseções da matriz, numa sessão guiada em que a IA apresentou opções com o conceito de cada uma. A pedido do autor ("defina de acordo com boas práticas de mercado"), a **IA** definiu as dimensões dos consentimentos, as estratégias de SCD, os membros especiais, o tratamento sazonal e as medidas. Cada seção indica a origem com a legenda de [`docs/uso-de-ia`](../uso-de-ia/README.md#legenda-de-origem). Registro: decisões D-028 a D-032 em [`decisoes.md`](../uso-de-ia/decisoes.md).
+**Autoria:** o **autor (humano)** escolheu os processos de negócio, as dimensões, os grãos e as interseções da matriz, numa sessão guiada em que a IA apresentou opções com o conceito de cada uma. A pedido do autor ("defina de acordo com boas práticas de mercado"), a **IA** definiu as dimensões dos consentimentos, as estratégias de SCD, os membros especiais, o tratamento sazonal e as medidas. Cada seção indica a origem com a legenda de [`docs/uso-de-ia`](../uso-de-ia/README.md#legenda-de-origem). Registro: decisões D-028 a D-032 em [`decisoes.md`](../uso-de-ia/decisoes.md). **Nomenclatura:** os nomes técnicos dos objetos estão em inglês (D-033, [ADR-0009](../arquitetura/adr/0009-nomenclatura-e-contratos-de-dados.md)); o conteúdo conceitual e a autoria permanecem os mesmos. Os cabeçalhos da matriz abaixo ficam em português por serem texto; a correspondência com as tabelas está na seção de dimensões.
 
 ## Método
 
@@ -58,15 +58,15 @@ Citações literais de `init/roteiro.md` relevantes para análise (número da li
 
 | # | Processo | Tabela fato | Tipo | Grão (uma linha representa...) |
 |---|---|---|---|---|
-| 1 | Itens de pedido | `fct_item_pedido` | Transacional | um item (produto) dentro de um pedido |
-| 2 | Pedidos | `fct_pedido` | Transacional | um pedido no estado final |
-| 3 | Ciclo de vida do pedido | `fct_ciclo_pedido` | Snapshot acumulativo | um pedido, com os marcos atualizados a cada etapa |
-| 4 | Pagamentos | `fct_pagamento` | Transacional | uma tentativa de pagamento no gateway externo, com o resultado |
-| 5 | Movimentação de estoque | `fct_movimentacao_estoque` | Transacional | um movimento de um produto numa unidade (entrada, venda, perda, ajuste) |
-| 6 | Saldo de estoque | `fct_saldo_estoque_diario` | Snapshot periódico | produto × unidade × dia (saldo no fechamento) |
-| 7 | Fidelidade | `fct_movimento_pontos` | Transacional | um movimento de pontos de um cliente (acúmulo, resgate, expiração, estorno) |
-| 8 | Operações sensíveis | `fct_operacao_sensivel` | Transacional | um cancelamento, desconto ou ajuste |
-| 9 | Consentimentos LGPD | `fct_consentimento_diario` | Snapshot periódico sem medida | cliente × finalidade × dia, com o status vigente |
+| 1 | Itens de pedido | `fct_order_item` | Transacional | um item (produto) dentro de um pedido |
+| 2 | Pedidos | `fct_order` | Transacional | um pedido no estado final |
+| 3 | Ciclo de vida do pedido | `fct_order_lifecycle` | Snapshot acumulativo | um pedido, com os marcos atualizados a cada etapa |
+| 4 | Pagamentos | `fct_payment_attempt` | Transacional | uma tentativa de pagamento no gateway externo, com o resultado |
+| 5 | Movimentação de estoque | `fct_inventory_movement` | Transacional | um movimento de um produto numa unidade (entrada, venda, perda, ajuste) |
+| 6 | Saldo de estoque | `fct_inventory_daily_snapshot` | Snapshot periódico | produto × unidade × dia (saldo no fechamento) |
+| 7 | Fidelidade | `fct_loyalty_points_movement` | Transacional | um movimento de pontos de um cliente (acúmulo, resgate, expiração, estorno) |
+| 8 | Operações sensíveis | `fct_sensitive_operation` | Transacional | um cancelamento, desconto ou ajuste |
+| 9 | Consentimentos LGPD | `fct_consent_daily_snapshot` | Snapshot periódico sem medida | cliente × finalidade × dia, com o status vigente |
 
 Pontos conceituais destas escolhas:
 
@@ -77,9 +77,9 @@ Pontos conceituais destas escolhas:
 
 ## Matriz de barramento — 🧑 autor (dimensão Finalidade: 🤖 IA)
 
-Legenda: **X** = dimensão presente · **RP** = role-playing (várias datas com papéis diferentes) · **D** = número do pedido como dimensão degenerada.
+Legenda: **X** = dimensão presente · **RP** = role-playing (várias datas com papéis diferentes) · **D** = número do pedido (`order_number`) como dimensão degenerada.
 
-| Processo | Tempo | Hora | Unidade | Produto | Canal | Cliente | Forma pgto | Campanha | Colaborador | Status | Motivo | Finalidade | Nº pedido |
+| Processo | Tempo | Hora | Unidade | Produto | Canal | Cliente | Forma pgto | Campanha | Colaborador | Status | Motivo | Finalidade | Nº pedido (`order_number`) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 1. Itens de pedido | X | X | X | X | X | X | | X | | | | | D |
 | 2. Pedidos | X | X | X | | X | X | | X | X | X | | | D |
@@ -91,6 +91,8 @@ Legenda: **X** = dimensão presente · **RP** = role-playing (várias datas com 
 | 8. Operações sensíveis | X | X | X | X | X | | | X | X | | X | | D |
 | 9. Consentimentos LGPD | X | | | | X | X | | | | | | X | |
 
+Correspondência dos cabeçalhos com as tabelas: Tempo = `dim_date`, Hora = `dim_time_of_day`, Unidade = `dim_store`, Produto = `dim_product`, Canal = `dim_channel`, Cliente = `dim_customer`, Forma pgto = `dim_payment_method`, Campanha = `dim_campaign`, Colaborador = `dim_employee`, Status = `dim_order_status`, Motivo = `dim_reason`, Finalidade = `dim_processing_purpose`.
+
 **Dimensões conformadas** (aparecem em 3 ou mais processos): Tempo, Unidade, Canal, Cliente, Produto, Hora, Campanha, Motivo e Colaborador. Elas precisam ser construídas uma única vez e reutilizadas por todos os fatos.
 
 A **dimensão Finalidade** não estava na lista inicial. A IA a acrescentou porque o grão escolhido para os consentimentos ("por finalidade") não fecha sem ela.
@@ -99,20 +101,20 @@ A **dimensão Finalidade** não estava na lista inicial. A IA a acrescentou porq
 
 | Dimensão | Principais atributos | SCD | Justificativa |
 |---|---|---|---|
-| `dim_tempo` | data, ano, trimestre, mês, dia da semana, feriado, período junino | 0 | O calendário não muda. É gerada (date spine), e não extraída. |
-| `dim_hora` | hora, minuto, faixa (café da manhã, almoço, tarde, noite), pico | 0 | Separar hora de data evita multiplicar a `dim_tempo` por 1.440 minutos. |
-| `dim_unidade` | nome, cidade, UF, região, **formato** (cozinha completa ou reduzida), data de inauguração | **2** em formato, região e status; **1** em nome | Uma reforma de formato precisa preservar o formato antigo nas vendas antigas, para comparar antes e depois. |
-| `dim_produto` | nome, descrição, categoria, **eh_sazonal**, temporada, variante regional | **2** em categoria, sazonalidade e variante; **1** em nome e descrição (correções) | Correção de digitação não deve gerar versão. O **preço não fica na dimensão**: o preço praticado é medida do fato. |
-| `dim_canal` | canal (app, totem, balcão, pick-up), tipo (digital ou presencial) | 1 | Lista pequena de referência. |
-| `dim_cliente` | chave pseudonimizada (HMAC), faixa etária, perfil de consumo, cidade/UF, data de adesão à fidelidade | **2** em faixa etária e perfil; **1** em flag de consentimento vigente | Segmentar pelo perfil que o cliente tinha na data da compra. **Sem nome, CPF, e-mail ou telefone.** |
-| `dim_forma_pagamento` | forma (pix, crédito, débito, vale-refeição, pontos), grupo | 1 | Lista de referência. |
-| `dim_campanha` | nome, tipo (desconto, pontos bônus), público-alvo (segmento), início e fim | 1 | Uma campanha não muda depois de lançada; ajustes são correções. |
-| `dim_colaborador` | identificador pseudonimizado, **papel** (atendente, cozinheiro, gerente), unidade de lotação | **2** em papel e lotação | A auditoria precisa saber o papel e a lotação **na data da operação**. Sem dados pessoais. |
-| `dim_status_pedido` | status, ordem no fluxo, eh_final | 1 | Lista de referência. |
-| `dim_motivo` | motivo, tipo (cancelamento, desconto, ajuste de estoque, perda, negativa de pagamento, movimento de pontos), exige aprovação | 1 | Padroniza o texto livre em categorias auditáveis. Uma única dimensão com atributo de tipo evita várias minidimensões. |
-| `dim_finalidade` | finalidade (marketing, campanhas segmentadas, análise de perfil, comunicação transacional), **base legal LGPD** | 1 | Liga cada uso de dado à base legal correspondente. |
+| `dim_date` | `full_date`, `year`, `quarter`, `month`, `day_of_week`, `holiday_name`, `is_festa_junina_season` | 0 | O calendário não muda. É gerada (date spine), e não extraída. |
+| `dim_time_of_day` | `hour`, `minute`, `day_part` (café da manhã, almoço, tarde, noite), `is_peak` | 0 | Separar hora de data evita multiplicar a `dim_date` por 1.440 minutos. |
+| `dim_store` | `store_name`, `city`, `state_code`, `region`, **`store_format`** (cozinha completa ou reduzida), `opened_date` | **2** em formato, região e status; **1** em nome | Uma reforma de formato precisa preservar o formato antigo nas vendas antigas, para comparar antes e depois. |
+| `dim_product` | `product_name`, `description`, `category`, **`is_seasonal`**, `season`, `regional_variant` | **2** em categoria, sazonalidade e variante; **1** em nome e descrição (correções) | Correção de digitação não deve gerar versão. O **preço não fica na dimensão**: o preço praticado é medida do fato. |
+| `dim_channel` | `channel_name` (app, totem, balcão, pick-up), `channel_type` (digital ou presencial) | 1 | Lista pequena de referência. |
+| `dim_customer` | `customer_id` pseudonimizado (HMAC), `age_band`, `consumption_profile`, `city`, `state_code`, `loyalty_joined_date` | **2** em faixa etária e perfil; **1** em flag de consentimento vigente | Segmentar pelo perfil que o cliente tinha na data da compra. **Sem nome, CPF, e-mail ou telefone.** |
+| `dim_payment_method` | `payment_method_name` (pix, crédito, débito, vale-refeição, pontos), `payment_method_group` | 1 | Lista de referência. |
+| `dim_campaign` | `campaign_name`, `campaign_type` (desconto, pontos bônus), `target_segment`, `start_date`, `end_date` | 1 | Uma campanha não muda depois de lançada; ajustes são correções. |
+| `dim_employee` | `employee_id` pseudonimizado, **`role`** (atendente, cozinheiro, gerente), `home_store_id` (unidade de lotação) | **2** em papel e lotação | A auditoria precisa saber o papel e a lotação **na data da operação**. Sem dados pessoais. |
+| `dim_order_status` | `order_status_name`, `flow_order`, `is_final` | 1 | Lista de referência. |
+| `dim_reason` | `reason_name`, `reason_type` (cancelamento, desconto, ajuste de estoque, perda, negativa de pagamento, movimento de pontos), `requires_approval` | 1 | Padroniza o texto livre em categorias auditáveis. Uma única dimensão com atributo de tipo evita várias minidimensões. |
+| `dim_processing_purpose` | `purpose_name` (marketing, campanhas segmentadas, análise de perfil, comunicação transacional), **`legal_basis`** (base legal LGPD) | 1 | Liga cada uso de dado à base legal correspondente. |
 
-Convenções de SCD tipo 2: colunas `valido_de`, `valido_ate` (9999-12-31 na versão vigente) e `eh_atual`, e chave substituta por versão (`sk_*`), diferente da chave natural. No dbt, a implementação usa **snapshots** (estratégia `check` sobre os atributos versionados).
+Convenções de SCD tipo 2: colunas `valid_from`, `valid_to` (9999-12-31 na versão vigente) e `is_current`, e chave substituta por versão (`<entity>_sk`), diferente da chave natural (`<entity>_id`). Convenções completas em [`dicionario-de-dados.md`](dicionario-de-dados.md). No dbt, a implementação usa **snapshots** (estratégia `check` sobre os atributos versionados).
 
 ### Membros especiais
 
@@ -127,17 +129,17 @@ As chaves estrangeiras dos fatos **nunca são nulas**: uma ausência aponta para
 
 | Fato | Medidas | Aditividade |
 |---|---|---|
-| `fct_item_pedido` | quantidade, valor_bruto, valor_desconto, valor_liquido | aditivas |
-| | preco_unitario | não aditiva (média ponderada pela quantidade) |
-| `fct_pedido` | valor_bruto, valor_desconto, valor_liquido, qtd_itens | aditivas (o ticket médio é derivado: valor_liquido ÷ nº de pedidos) |
-| `fct_ciclo_pedido` | marcos (`sk_data_*` e timestamps): criado, pago, em_preparo, pronto, entregue, cancelado; duracao_espera_pagamento_s, duracao_preparo_s, duracao_total_s | durações: aditivas, analisadas por média e percentis (p50/p95) |
-| `fct_pagamento` | valor_solicitado, valor_aprovado | aditivas |
-| | latencia_gateway_ms; resultado (aprovado, negado, erro, timeout) como atributo degenerado | latência não aditiva (percentis) |
-| `fct_movimentacao_estoque` | quantidade (com sinal: + entrada, − saída) | aditiva |
-| `fct_saldo_estoque_diario` | quantidade_saldo, quantidade_minima, eh_ruptura | **semi-aditivas**: somam entre produtos e unidades, mas **não** ao longo dos dias (usa-se o último valor ou a média) |
-| `fct_movimento_pontos` | pontos (com sinal) | aditiva (saldo do cliente = soma) |
-| `fct_operacao_sensivel` | valor_impactado | aditiva (a contagem de operações = nº de linhas) |
-| `fct_consentimento_diario` | eh_consentido | sem medida (factless); analisa-se por contagem |
+| `fct_order_item` | `quantity_qty`, `gross_amount`, `discount_amount`, `net_amount` | aditivas |
+| | `unit_price_amount` | não aditiva (média ponderada pela quantidade) |
+| `fct_order` | `gross_amount`, `discount_amount`, `net_amount`, `items_qty` | aditivas (o ticket médio é derivado: net_amount ÷ nº de pedidos) |
+| `fct_order_lifecycle` | marcos (`*_date_sk` e `*_at`): criado, pago, em preparo, pronto, entregue, cancelado; `payment_wait_seconds`, `preparation_seconds`, `total_seconds` | durações: aditivas, analisadas por média e percentis (p50/p95) |
+| `fct_payment_attempt` | `requested_amount`, `approved_amount` | aditivas |
+| | `gateway_latency_ms`; `result` (aprovado, negado, erro, timeout) como atributo degenerado | latência não aditiva (percentis) |
+| `fct_inventory_movement` | `movement_qty` (com sinal: + entrada, − saída) | aditiva |
+| `fct_inventory_daily_snapshot` | `on_hand_qty`, `min_qty`, `is_stockout` | **semi-aditivas**: somam entre produtos e unidades, mas **não** ao longo dos dias (usa-se o último valor ou a média) |
+| `fct_loyalty_points_movement` | `points` (com sinal) | aditiva (saldo do cliente = soma) |
+| `fct_sensitive_operation` | `impacted_amount` | aditiva (a contagem de operações = nº de linhas) |
+| `fct_consent_daily_snapshot` | `is_consented` | sem medida (factless); analisa-se por contagem |
 
 ## Cliente não identificado — 🧑 autor
 
@@ -145,6 +147,6 @@ Pedidos sem cliente cadastrado, ou de cliente sem consentimento para uso analít
 
 ## Atributos sazonais — 🤖 IA (boas práticas, a pedido do autor)
 
-- **No produto:** `eh_sazonal` e `temporada` (ex.: "junina") são atributos SCD tipo 2 da `dim_produto`. A disponibilidade do produto por unidade e período pertence ao OLTP (cardápio); o DW registra o que foi vendido.
-- **No calendário:** `eh_periodo_junino` fica na `dim_tempo`, e não no produto. O período é uma propriedade da data e vale para todos os fatos, permitindo comparar vendas, estoque e fidelidade dentro e fora do período.
-- **Definição do período:** um calendário comercial governado pela área de negócio (seed `calendario_comercial`) é a prática recomendada, em vez de uma regra fixa no código. O padrão provisório continua sendo de 01/06 a 31/07 (São João em 24/06, São Pedro em 29/06 e festejos que se estendem por julho em várias praças), parametrizado em `dbt_project.yml`.
+- **No produto:** `is_seasonal` e `season` (ex.: "junina") são atributos SCD tipo 2 da `dim_product`. A disponibilidade do produto por unidade e período pertence ao OLTP (cardápio); o DW registra o que foi vendido.
+- **No calendário:** `is_festa_junina_season` fica na `dim_date`, e não no produto. O período é uma propriedade da data e vale para todos os fatos, permitindo comparar vendas, estoque e fidelidade dentro e fora do período.
+- **Definição do período:** um calendário comercial governado pela área de negócio (seed `commercial_calendar`) é a prática recomendada, em vez de uma regra fixa no código. O padrão provisório continua sendo de 01/06 a 31/07 (São João em 24/06, São Pedro em 29/06 e festejos que se estendem por julho em várias praças), parametrizado em `dbt_project.yml`.

@@ -1,6 +1,6 @@
 # ADR 0008 - Plataforma analítica: DuckDB + Parquet, Outbox, Kimball e dbt-core
 
-- **Status:** aceita (item "nomes de objetos de banco em português": proposta, pendente de validação humana)
+- **Status:** aceita (item de nomenclatura em português substituído pelo [ADR 0009](0009-nomenclatura-e-contratos-de-dados.md))
 - **Data:** 2026-11-02
 
 ## Contexto
@@ -17,7 +17,7 @@ Para cada item a IA recomendou uma opção e o humano escolheu explicitamente:
 | Tema | Escolha do humano | Observação |
 |---|---|---|
 | Motor e formato | **DuckDB + Parquet** em arquitetura medallion (bronze/silver/gold) | Embutido, sem servidor; lê e escreve Parquet nativamente. |
-| Captura OLTP -> analítico | **Outbox de eventos de domínio** | Tabela `outbox_eventos` gravada na MESMA transação do caso de uso; extrator incremental por marca d'água (`id_sequencial`). |
+| Captura OLTP -> analítico | **Outbox de eventos de domínio** | Tabela `outbox_events` gravada na MESMA transação do caso de uso; extrator incremental por marca d'água (`sequence_id`). |
 | Modelagem do gold | **Kimball (esquema estrela)** | Dimensões `dim_*` e fatos `fct_*`, chaves substitutas, membro desconhecido -1. |
 | Transformações | **dbt-core** (adapter dbt-duckdb) | SQL versionado, testes de dados, documentação e linhagem. |
 
@@ -41,7 +41,9 @@ dbt-duckdb 1.11.1, duckdb 1.5.6, psycopg 3.3.6. Imagem `analytics`: **Python 3.1
   compete por recursos com a API e não treina o caminho para o lake) e ClickHouse (excelente
   desempenho analítico, mas é um servidor adicional a operar, excessivo para o volume do projeto).
 
-### Decisão da IA, pendente de validação humana: nomes em português
+### Nomes em português (histórico)
+
+> **Nomenclatura substituída pelo [ADR 0009](0009-nomenclatura-e-contratos-de-dados.md):** o humano rejeitou esta proposta (D-023) e decidiu por nomes em inglês (D-033). O texto abaixo é mantido apenas como registro histórico.
 
 Objetos de banco (tabelas, colunas, modelos dbt) em **português, `snake_case`, sem acento**
 (`outbox_eventos`, `id_evento`, `dim_tempo`, `fct_*`). Identificadores de código Python ficam em
@@ -53,11 +55,11 @@ analítico é gente de negócio. Esta decisão ainda **não foi validada pelo au
 - (+) Ambiente 100% local e reprodutível (`make dw`); formatos abertos; dbt agnóstico ao motor.
 - (+) A outbox dá atomicidade (evento só existe se o negócio foi confirmado) e histórico imutável.
 - (-) A outbox exige disciplina: todo caso de uso relevante precisa publicar seus eventos.
-- (-) A extração por `id_sequencial` pode perder eventos de transações longas que confirmam fora
-  de ordem; mitigado por uma defasagem de segurança (padrão 5 s), com risco residual documentado.
+- (-) A extração por `sequence_id` pode perder eventos de transações longas que confirmam fora
+  de ordem; mitigado por um atraso de segurança (padrão 5 s), com risco residual documentado.
 - (-) DuckDB é embutido e de escritor único: serve a análise local, não a concorrência de produção
   (resolvida nas fases 2 e 3 do roadmap).
 - (-) Eventos são permanentes no bronze: a regra "sem PII em claro no payload" é inegociável (ver docs/dados/README.md).
 
 **Autoria da decisão:** **conjunta.** A IA recomendou cada item e o humano escolheu explicitamente.
-Nomes de objetos de banco em português: decisão da IA, pendente de validação.
+Nomes de objetos de banco em português: proposta da IA, rejeitada pelo humano e substituída pelo ADR 0009.

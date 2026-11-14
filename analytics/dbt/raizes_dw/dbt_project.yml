@@ -15,11 +15,11 @@ flags:
 vars:
   # Definição de negócio a validar pelo autor: período em que os produtos juninos são vendidos.
   # Formato MM-DD (inclusivo nas duas pontas). Padrão proposto: 01/06 a 31/07.
-  periodo_junino_inicio: "06-01"
-  periodo_junino_fim: "07-31"
-  # Intervalo da dimensão de tempo.
-  dim_tempo_data_inicial: "2024-01-01"
-  dim_tempo_data_final: "2030-12-31"
+  festa_junina_season_start: "06-01"
+  festa_junina_season_end: "07-31"
+  # Intervalo da dimensão de data (dim_date).
+  dim_date_start_date: "2024-01-01"
+  dim_date_end_date: "2030-12-31"
 
 models:
   raizes_dw:
@@ -33,7 +33,8 @@ models:
 seeds:
   raizes_dw:
     +schema: silver
-    feriados_nacionais:
+    national_holidays:
       +column_types:
-        data: date
-        nome_feriado: varchar
+        holiday_date: date
+        holiday_name: varchar
+        holiday_type: varchar

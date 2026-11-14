@@ -83,6 +83,7 @@ src/raizes/
   infrastructure/  # camada Infraestrutura: config, logs, banco (implementa as portas)
   main.py          # create_app(): composição da aplicação
 migrations/        # migrações Alembic
+contracts/         # contratos de dados (esquemas JSON e contratos no estilo ODCS)
 analytics/         # pipeline do Data Warehouse (ingestão, dbt, testes)
 tests/             # unit/, architecture/ (regra de camadas), integration/
 data/              # (gerado, fora do git) lake Parquet e warehouse DuckDB
@@ -98,6 +99,7 @@ docs/              # documentação do projeto
 - [Requisitos](docs/requisitos/README.md)
 - [Modelagem](docs/modelagem/README.md)
 - [Arquitetura de dados (DW)](docs/dados/README.md) e [matriz de barramento](docs/dados/matriz-de-barramento.md)
+- [Dicionário de dados](docs/dados/dicionario-de-dados.md) e [contratos de dados](contracts/README.md)
 - [Testes](docs/testes/README.md)
 - [API](docs/api/README.md)
 

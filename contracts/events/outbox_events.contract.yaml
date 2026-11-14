@@ -1,0 +1,78 @@
+# Contrato de dados no estilo do Open Data Contract Standard (ODCS), simplificado.
+# Referência: https://bitol-io.github.io/open-data-contract-standard/
+apiVersion: v3.0.0
+kind: DataContract
+id: raizes.outbox_events
+name: Eventos de domínio da outbox
+version: 1.0.0
+status: active
+description:
+  purpose: >
+    Eventos de domínio (fatos de negócio já ocorridos) gravados na mesma transação do caso de uso e
+    consumidos pelo Data Warehouse (bronze, silver e gold).
+  limitations: >
+    Entrega ao menos uma vez; o consumidor deduplica por event_id. Eventos podem chegar fora de
+    ordem de occurred_at (a ordem de captura é sequence_id).
+owner: Plataforma de dados (autor do projeto)
+producer:
+  name: API raizes
+  system: src/raizes (SqlAlchemyOutboxWriter, tabela PostgreSQL outbox_events)
+consumers:
+  - name: DW (extrator incremental + dbt)
+    system: analytics/ingestion/extract_outbox.py e analytics/dbt/raizes_dw
+schema:
+  format: json-schema
+  ref: outbox_event_envelope.schema.json
+  physical_table: outbox_events
+  silver_model: stg_outbox_events
+  fields:
+    - {name: event_id, type: uuid, required: true, unique: true}
+    - {name: event_type, type: string, required: true}
+    - {name: schema_version, type: integer, required: true}
+    - {name: aggregate_type, type: string, required: true}
+    - {name: aggregate_id, type: string, required: true}
+    - {name: payload, type: object, required: true}
+    - {name: occurred_at, type: timestamp, required: true, timezone: UTC}
+    - {name: recorded_at, type: timestamp, required: true, timezone: UTC}
+    - {name: sequence_id, type: integer, required: true}
+semantics:
+  event_type_format: snake_case, padrão <entidade>_<fato_no_passado> em inglês (ex. order_created)
+  occurred_at: instante do fato de negócio (UTC)
+  recorded_at: instante em que o banco registrou o evento (UTC), atribuído pelo banco
+  sequence_id: ordem de captura; marca d'água da extração incremental
+sla:
+  freshness:
+    description: >
+      Atraso máximo entre recorded_at e a disponibilidade no bronze. A extração é incremental e
+      ignora eventos registrados há menos de DW_EXTRACTION_LAG_SECONDS.
+    max_delay: DW_EXTRACTION_LAG_SECONDS + intervalo de extração
+    defaults:
+      DW_EXTRACTION_LAG_SECONDS: 5
+      extraction_interval: definido pelo agendamento da extração (hoje, execução sob demanda via make dw-ingest)
+quality:
+  - rule: event_id único
+    check: "unique(event_id)"
+    enforced_by: chave primária no PostgreSQL; teste unique no dbt (stg_outbox_events)
+  - rule: occurred_at <= recorded_at
+    check: "occurred_at <= recorded_at"
+    enforced_by: contrato; a verificar com teste de dados no dbt quando houver eventos reais
+    note: >
+      recorded_at usa now() do PostgreSQL (início da transação); um evento criado depois do início
+      da transação pode ter occurred_at ligeiramente maior. Validar com eventos reais.
+  - rule: schema_version >= 1
+    check: "schema_version >= 1"
+    enforced_by: DomainEvent (domínio) e JSON Schema
+  - rule: envelope válido
+    check: validação contra outbox_event_envelope.schema.json
+    enforced_by: tests/unit/test_event_contract.py
+privacy:
+  contains_pii: false
+  rule: >
+    O payload não carrega dados pessoais em claro (nome, CPF, e-mail, telefone, endereço, data de
+    nascimento). Usar identificadores internos e atributos derivados.
+  legal_basis: LGPD; eventos são permanentes no bronze (imutável), por isso a regra é inegociável
+versioning:
+  policy: >
+    Mudança aditiva: mesmo event_type, incrementa schema_version. Mudança incompatível: novo
+    event_type ou novo major. Nunca remover nem renomear campo sem novo major.
+  details: ../README.md

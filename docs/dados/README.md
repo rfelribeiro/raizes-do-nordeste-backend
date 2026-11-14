@@ -1,7 +1,8 @@
 # Arquitetura de dados
 
 Visão da camada analítica do projeto: um Data Warehouse com margem para virar Lakehouse
-([ADR 0007](../arquitetura/adr/0007-visao-analitica.md) e [ADR 0008](../arquitetura/adr/0008-plataforma-analitica.md)).
+([ADR 0007](../arquitetura/adr/0007-visao-analitica.md), [ADR 0008](../arquitetura/adr/0008-plataforma-analitica.md) e [ADR 0009](../arquitetura/adr/0009-nomenclatura-e-contratos-de-dados.md)).
+Nomes e tipos dos objetos: [dicionário de dados](dicionario-de-dados.md). Contratos de dados: [`contracts/`](../../contracts/README.md).
 Como rodar: [analytics/README.md](../../analytics/README.md).
 
 > Convenção de autoria deste documento: as seções marcadas com
@@ -19,7 +20,7 @@ arquiteto escolhido para a solução.
 **Fora do escopo desta entrega:** dashboards/BI prontos, orquestrador (Airflow etc.), streaming,
 object storage em nuvem, modelos de ML, modelagem dimensional de negócio (autoria humana, a fazer)
 e qualquer dado real de clientes. A entrega é a **fundação**: outbox, ingestão, camadas, dbt e a
-dimensão de tempo.
+dimensão de data (`dim_date`).
 
 ## OLTP × OLAP: por que separar
 
@@ -37,16 +38,16 @@ lado com a tecnologia adequada.
 
 ```mermaid
 flowchart LR
-    A["Caso de uso da API"] -->|"mesma transação"| B[("outbox_eventos<br/>PostgreSQL")]
+    A["Caso de uso da API"] -->|"mesma transação"| B[("outbox_events<br/>PostgreSQL")]
     B -->|"extrator incremental<br/>(marca d'água)"| C["Bronze<br/>Parquet por data<br/>imutável, append-only"]
-    C -->|"dbt: tipar e<br/>deduplicar por id_evento"| D["Silver<br/>stg_*"]
+    C -->|"dbt: tipar e<br/>deduplicar por event_id"| D["Silver<br/>stg_*"]
     D -->|"dbt: modelagem<br/>Kimball"| E["Gold<br/>dim_* e fct_*"]
     E --> F["Consumo<br/>BI / SQL"]
 ```
 
-1. O caso de uso confirma o negócio e grava o evento de domínio na `outbox_eventos` **na mesma
+1. O caso de uso confirma o negócio e grava o evento de domínio na `outbox_events` **na mesma
    transação**: ou ambos existem, ou nenhum.
-2. O extrator (`analytics/ingestao/extrair_outbox.py`) lê as linhas com `id_sequencial` maior que a
+2. O extrator (`analytics/ingestion/extract_outbox.py`) lê as linhas com `sequence_id` maior que a
    marca d'água e grava Parquet no bronze; só então avança a marca d'água.
 3. O dbt lê o bronze, tipa e deduplica (silver) e modela a estrela (gold).
 4. O consumo é SQL sobre o arquivo DuckDB (`data/warehouse/raizes.duckdb`) ou BI conectado a ele.
@@ -59,25 +60,26 @@ Tudo o que é gerado (`data/`) fica fora do git.
 
 | Camada | O que é | Onde | Nomes |
 |---|---|---|---|
-| Bronze | arquivos brutos, imutáveis, append-only, particionados por data de captura (UTC) | `data/lake/bronze/<tabela>/dt=AAAA-MM-DD/<id_execucao>.parquet` | nome da tabela de origem |
+| Bronze | arquivos brutos, imutáveis, append-only, particionados por data de captura (UTC) | `data/lake/bronze/<tabela>/dt=AAAA-MM-DD/<run_id>.parquet` | nome da tabela de origem |
 | Silver | dado tipado, deduplicado, sem PII em claro | schema `silver` do DuckDB | `stg_*` (e `int_*` se houver etapa intermediária) |
 | Gold | modelo dimensional (estrela Kimball) pronto para consumo | schema `gold` | `dim_*` e `fct_*` |
 
-- **Português, `snake_case`, sem acento** em tabelas, colunas e modelos (ver ADR 0008).
+- **Inglês, `snake_case`** em tabelas, colunas, modelos dbt, seeds, campos de eventos e variáveis de ambiente (ADR 0009, decisão D-033); a documentação segue em português e os **valores** dos dados (ex.: "Natal", "janeiro") também. Convenções completas e glossário pt → en em [dicionario-de-dados.md](dicionario-de-dados.md).
 - **Chaves substitutas:** as dimensões de negócio têm chave substituta inteira própria
-  (`<dimensao>_key`), independente da chave de origem; as fatos referenciam só chaves substitutas.
-  `dim_tempo` usa `data_key` no formato AAAAMMDD (chave inteligente, usual em calendário).
+  (`<entidade>_sk`), independente da chave natural (`<entidade>_id`); as fatos referenciam só chaves
+  substitutas (`<dimensão>_sk`). `dim_date` usa `date_key` no formato AAAAMMDD (chave inteligente,
+  usual em calendário).
 - **Membro desconhecido (-1):** toda dimensão de negócio tem a linha `-1` ("desconhecido / não
   informado"). A fato nunca guarda chave nula: o que não for resolvido aponta para -1. Isso
-  mantém `inner join` seguro e torna a falta de dado visível em vez de silenciosa. `dim_tempo` não
+  mantém `inner join` seguro e torna a falta de dado visível em vez de silenciosa. `dim_date` não
   precisa do -1: a data é obrigatória e coberta pelo intervalo (um teste `relationships` na fato
   deve garantir isso).
 - **Datas:** o armazenamento (outbox, bronze, silver) guarda instantes em **UTC**, o que evita
   ambiguidade de horário de verão/fuso e permite reprocessar de qualquer lugar. A **dimensão de
-  tempo usa a data civil em America/Recife**, porque o negócio pensa em "vendas de hoje" no horário
+  data usa a data civil em America/Recife**, porque o negócio pensa em "vendas de hoje" no horário
   das unidades (a meia-noite de Recife ocorre às 03:00 UTC). A conversão acontece ao carregar a
-  fato: `cast(ocorrido_em at time zone 'America/Recife' as date)`.
-- **Eventos:** nome estável em `snake_case` (`pedido_criado`), `schema_version` inteiro; mudança
+  fato: `cast(occurred_at at time zone 'America/Recife' as date)`.
+- **Eventos:** nome estável em `snake_case` (`order_created`), `schema_version` inteiro; mudança
   incompatível de payload exige nova versão.
 
 ## LGPD no analítico
@@ -88,7 +90,7 @@ Princípio da diretoria: "Conhecer o cliente é importante, mas respeitar sua pr
 
 - **Nenhum dado pessoal direto em silver/gold** (nome, CPF, e-mail, telefone, endereço, data de nascimento).
 - **Pseudonimização do cliente:** a chave de cliente no analítico é
-  `HMAC-SHA256(ANALYTICS_PSEUDONYM_KEY, id_cliente)`. A chave é gerada localmente por `make setup`,
+  `HMAC-SHA256(ANALYTICS_PSEUDONYM_KEY, customer_id)`. A chave é gerada localmente por `make setup`,
   fica só no `.env` e **nunca é versionada**. Sem a chave não se refaz o vínculo; trocar a chave
   desfaz o vínculo de todos os registros (útil como "botão de anonimização total").
 - **Idade -> faixa etária:** o analítico guarda a faixa (ex.: 18-24), nunca a data de nascimento.
@@ -101,7 +103,7 @@ Princípio da diretoria: "Conhecer o cliente é importante, mas respeitar sua pr
   evento seria permanente no lake. A regra está na docstring de `DomainEvent`.
 - **Direito de eliminação:** o analítico só guarda dado pseudonimizado, e a pseudonimização é
   determinística. Para eliminar um titular: (a) apagar/anonimizar o cliente no OLTP; (b) calcular o
-  HMAC do `id_cliente` e localizar seus registros; (c) expurgar esses registros do bronze,
+  HMAC do `customer_id` e localizar seus registros; (c) expurgar esses registros do bronze,
   reescrevendo apenas os arquivos afetados; (d) reprocessar silver e gold. Isso só é viável porque
   silver e gold são **reconstruíveis a partir do bronze** (`dbt build` do zero). O expurgo é a
   única exceção legítima à imutabilidade do bronze e deve ser auditado. Alternativamente, a rotação
@@ -123,4 +125,4 @@ Princípio da diretoria: "Conhecer o cliente é importante, mas respeitar sua pr
 Iceberg é um padrão aberto; (2) dbt é agnóstico ao motor: os modelos são SQL e o motor é só o
 adapter configurado no perfil; (3) bronze imutável: o que veio da origem nunca é alterado, então
 qualquer camada nova pode ser reconstruída do zero a partir dele; (4) o contrato de eventos
-(`event_type` + `schema_version`) independe de como são transportados.
+(`event_type` + `schema_version`, formalizado em [`contracts/`](../../contracts/README.md)) independe de como são transportados.
