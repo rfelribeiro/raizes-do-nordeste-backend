@@ -1,6 +1,6 @@
-"""Gera `seeds/national_holidays.csv` (feriados nacionais do Brasil, 2024-2030).
+"""Gera `seeds/feriados_nacionais.csv` (feriados nacionais do Brasil, 2024-2030).
 
-Colunas: holiday_date, holiday_name, holiday_type (sempre "national" por ora).
+Colunas: data_feriado, nome_feriado, tipo_feriado (sempre "nacional" por ora).
 
 Fixos + móveis calculados a partir da Páscoa (algoritmo gregoriano anônimo / Meeus-Jones-Butcher):
 Carnaval (segunda e terça, 48 e 47 dias antes), Sexta-feira Santa (-2) e Corpus Christi (+60).
@@ -8,7 +8,7 @@ Carnaval é ponto facultativo pela lei federal, mas é tratado como feriado no c
 ou remova conforme a definição de negócio do autor.
 
 Uso (a partir da raiz do repositório):
-    python analytics/ingestion/generate_holidays.py
+    python analytics/ingestao/gerar_feriados.py
 """
 
 import csv
@@ -17,9 +17,9 @@ from pathlib import Path
 
 START_YEAR = 2024
 END_YEAR = 2030
-HOLIDAY_TYPE = "national"
+HOLIDAY_TYPE = "nacional"
 TARGET = (
-    Path(__file__).resolve().parents[1] / "dbt" / "raizes_dw" / "seeds" / "national_holidays.csv"
+    Path(__file__).resolve().parents[1] / "dbt" / "raizes_dw" / "seeds" / "feriados_nacionais.csv"
 )
 
 FIXED_HOLIDAYS: tuple[tuple[int, int, str], ...] = (
@@ -70,7 +70,7 @@ def main() -> None:
     TARGET.parent.mkdir(parents=True, exist_ok=True)
     with TARGET.open("w", encoding="utf-8", newline="") as file:
         writer = csv.writer(file, lineterminator="\n")
-        writer.writerow(["holiday_date", "holiday_name", "holiday_type"])
+        writer.writerow(["data_feriado", "nome_feriado", "tipo_feriado"])
         for day, name in generate():
             writer.writerow([day.isoformat(), name, HOLIDAY_TYPE])
     print(f"Gerado: {TARGET}")

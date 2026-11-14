@@ -1,37 +1,37 @@
 version: 2
 
 models:
-  - name: stg_outbox_events
+  - name: stg_outbox_eventos
     description: >
-      Silver dos eventos de domínio: tipada e deduplicada por `event_id`. Datas em UTC.
+      Silver dos eventos de domínio: tipada e deduplicada por `id_evento`. Datas em UTC.
       Não contém dado pessoal em claro (regra dos eventos; ver docs/dados/README.md e o
-      contrato contracts/events/outbox_events.contract.yaml).
+      contrato contracts/events/outbox_eventos.contract.yaml).
     config:
       contract:
         enforced: true
     columns:
-      - name: event_id
+      - name: id_evento
         description: Identificador único do evento (UUID4 gerado pelo domínio).
         data_type: uuid
         data_tests:
           - unique
           - not_null
-      - name: event_type
-        description: Nome estável do evento em snake_case (ex. order_created).
+      - name: tipo_evento
+        description: Nome estável do evento em snake_case (ex. pedido_criado).
         data_type: varchar
         data_tests:
           - not_null
-      - name: schema_version
+      - name: versao_schema
         description: Versão do formato do payload (inteiro >= 1).
         data_type: integer
         data_tests:
           - not_null
-      - name: aggregate_type
-        description: Tipo do agregado de negócio ao qual o evento pertence (ex. order).
+      - name: tipo_agregado
+        description: Tipo do agregado de negócio ao qual o evento pertence (ex. pedido).
         data_type: varchar
         data_tests:
           - not_null
-      - name: aggregate_id
+      - name: id_agregado
         description: Identificador do agregado, como texto.
         data_type: varchar
         data_tests:
@@ -39,21 +39,21 @@ models:
       - name: payload
         description: Conteúdo do evento (JSON), sem PII em claro.
         data_type: json
-      - name: occurred_at
+      - name: ocorrido_em
         description: Instante do fato de negócio (UTC).
         data_type: timestamp with time zone
         data_tests:
           - not_null
-      - name: recorded_at
+      - name: registrado_em
         description: Instante em que a outbox registrou o evento (UTC).
         data_type: timestamp with time zone
         data_tests:
           - not_null
-      - name: sequence_id
+      - name: id_sequencial
         description: Marca d'água da outbox (ordem de captura).
         data_type: bigint
         data_tests:
           - not_null
-      - name: partition_date
+      - name: data_particao
         description: Data (UTC) da partição do bronze em que o evento chegou.
         data_type: date

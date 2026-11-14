@@ -27,6 +27,8 @@ class RequestIdMiddleware:
         incoming = Headers(scope=scope).get(HEADER_NAME)
         request_id = incoming if incoming and _VALID_ID.match(incoming) else uuid.uuid4().hex
         token = request_id_var.set(request_id)
+        # Disponível em request.state (inclusive para o handler do 500, que roda fora deste escopo).
+        scope.setdefault("state", {})["request_id"] = request_id
         started = time.perf_counter()
         status_code = 500
 

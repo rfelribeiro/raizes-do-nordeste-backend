@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
 from raizes.api.dependencies import get_database_health_check
-from raizes.api.errors import problem_response
+from raizes.api.errors import erro_response
 from raizes.application.ports.health import DatabaseHealthCheck
 
 router = APIRouter(prefix="/health", tags=["Saúde"])
@@ -24,4 +24,4 @@ def ready(
 ) -> dict[str, str] | JSONResponse:
     if database.is_available():
         return {"status": "ready"}
-    return problem_response(request, 503, "Serviço indisponível", "O banco de dados não respondeu.")
+    return erro_response(request, 503, "SERVICO_INDISPONIVEL", "O banco de dados não respondeu.")

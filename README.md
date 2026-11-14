@@ -1,7 +1,7 @@
 # Raízes do Nordeste - API back-end
 
 Projeto acadêmico (Projeto Multidisciplinar, trilha Back-end): API para a rede de lanchonetes
-"Raízes do Nordeste", com pedidos multicanal (app, totem, balcão e pick-up), unidades com
+"Raízes do Nordeste", com pedidos multicanal (app, totem, balcão, pick-up e web), unidades com
 cardápios e estoques distintos, programa de fidelidade com conformidade à LGPD, pagamento por
 gateway externo, relatórios para a matriz e alta disponibilidade em horário de pico.
 
@@ -9,7 +9,7 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 **Analítico:** Data Warehouse com margem para Lakehouse (DuckDB, Parquet, dbt-core, Kimball).
 **Arquitetura:** aplicação única em 4 camadas (API, Aplicação, Domínio, Infraestrutura).
 
-> Estado atual: fundação transversal (configuração, logs, erros RFC 9457, health checks,
+> Estado atual: fundação transversal (configuração, logs, formato de erro padronizado, health checks,
 > migrações, testes, CI). Os módulos de negócio ainda serão implementados.
 
 ## Como reproduzir

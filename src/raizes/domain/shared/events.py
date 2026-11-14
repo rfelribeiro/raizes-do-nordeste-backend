@@ -1,7 +1,7 @@
 """Evento de domínio: fato de negócio já ocorrido, base da captura OLTP -> analítico (outbox).
 
 REGRA DE PRIVACIDADE (LGPD): eventos NÃO carregam dados pessoais em claro. Use identificadores
-internos (ex.: `customer_id`), nunca nome, CPF, e-mail, telefone, endereço ou data de nascimento.
+internos (ex.: `cliente_id`), nunca nome, CPF, e-mail, telefone, endereço ou data de nascimento.
 Quando a análise precisar de um atributo derivado (ex.: faixa etária), o evento carrega o
 atributo já derivado, não o dado bruto. O payload é gravado na outbox e copiado para o lake
 (bronze, imutável), então o que entra no evento é, na prática, permanente.
@@ -30,10 +30,13 @@ def _now_utc() -> datetime:
 class DomainEvent:
     """Base imutável dos eventos de domínio.
 
-    `event_type` é um nome estável usado pelo analítico: por padrão, o nome da classe em
-    snake_case (`OrderCreated` -> `order_created`); pode ser fixado na subclasse. Renomear a
-    classe NÃO deve mudar o nome do evento já publicado: fixe `event_type` explicitamente.
-    Mudanças incompatíveis no payload exigem aumentar `schema_version`.
+    `event_type` é um nome estável usado pelo analítico (coluna `tipo_evento`). O padrão de
+    nomenclatura é snake_case em português, `<entidade>_<particípio>` (ex.: `pedido_criado`,
+    `pagamento_aprovado`; ADR 0010). Como as classes são em inglês (`OrderCreated`), cada evento
+    de negócio deve DECLARAR `event_type` explicitamente como atributo de classe; o derivado do
+    nome da classe (`OrderCreated` -> `order_created`) é só um valor de reserva. Renomear a classe
+    NÃO deve mudar o nome do evento já publicado. Mudanças incompatíveis no payload exigem
+    aumentar `schema_version`.
     """
 
     event_type: ClassVar[str] = ""

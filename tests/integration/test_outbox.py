@@ -15,6 +15,7 @@ pytestmark = pytest.mark.integration
 
 @dataclass(frozen=True, kw_only=True)
 class FakeEvent(DomainEvent):
+    event_type = "evento_falso"
     value: int = 0
 
     def payload(self) -> dict[str, Any]:
@@ -22,7 +23,7 @@ class FakeEvent(DomainEvent):
 
 
 def _event(value: int = 1) -> FakeEvent:
-    return FakeEvent(aggregate_type="test", aggregate_id="a-1", value=value)
+    return FakeEvent(aggregate_type="teste", aggregate_id="a-1", value=value)
 
 
 def test_writes_and_reads_event_in_same_transaction() -> None:
@@ -35,7 +36,7 @@ def test_writes_and_reads_event_in_same_transaction() -> None:
             row = session.scalars(
                 select(OutboxEvent).where(OutboxEvent.event_id == event.event_id)
             ).one()
-            assert row.event_type == "fake_event"
+            assert row.event_type == "evento_falso"
             assert row.payload == {"value": 5}
             assert row.schema_version == 1
             assert row.occurred_at == event.occurred_at

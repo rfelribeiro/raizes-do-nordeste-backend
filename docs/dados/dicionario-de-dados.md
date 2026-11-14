@@ -1,7 +1,9 @@
 # Dicionário de dados
 
-Catálogo dos objetos de banco e de dados do projeto: convenções de nomes, glossário de negócio
-(português -> inglês) e a descrição de cada objeto implementado. Decisão: [ADR 0009](../arquitetura/adr/0009-nomenclatura-e-contratos-de-dados.md).
+Catálogo dos objetos de banco e de dados do projeto e do contrato da API: convenções de nomes,
+glossário de negócio (ponte português -> inglês para integrações) e a descrição de cada objeto
+implementado. Decisão: [ADR 0010](../arquitetura/adr/0010-idioma-portugues.md) (tudo em
+português; o dicionário e os contratos de dados do [ADR 0009](../arquitetura/adr/0009-nomenclatura-e-contratos-de-dados.md) seguem válidos).
 
 > **Fonte de verdade.** O catálogo vivo é o **`dbt docs`** (`make dw-docs`, gera
 > `analytics/dbt/raizes_dw/target/`). Para os objetos implementados, as **descrições escritas nos
@@ -11,140 +13,167 @@ Catálogo dos objetos de banco e de dados do projeto: convenções de nomes, glo
 
 ## Convenções
 
-Objetos em inglês, `snake_case`. Documentação e **valores** dos dados (ex.: "Natal", "janeiro")
-permanecem em português.
+Tudo em **português**: contrato da API (rotas, campos JSON, enums) e objetos de banco, DW e eventos
+(`snake_case`, sem acento). Os **valores** dos dados (ex.: "Natal", "janeiro") também ficam em
+português.
+
+**Exceções (decisão D-034, ADR 0010), mantidas em inglês:** identificadores de código Python
+(classes, funções, variáveis, atributos) e variáveis de ambiente (convenção operacional; as
+`POSTGRES_*` são fixas das imagens), por exemplo `DW_EXTRACTION_LAG_SECONDS`.
 
 | Regra | Convenção | Exemplo |
 |---|---|---|
-| Tabelas | singular nas dimensões e fatos; prefixos `stg_` (silver), `int_` (intermediária), `dim_`, `fct_` | `stg_outbox_events`, `dim_date`, `fct_order_item` |
-| Chave substituta | `<entidade>_sk` | `store_sk`, `product_sk` |
-| Chave natural | `<entidade>_id` | `store_id`, `customer_id` |
-| Chave estrangeira no fato | `<dimensão>_sk` | `fct_order_item.product_sk` |
-| Timestamps | `*_at`, UTC, `timestamptz` | `occurred_at`, `recorded_at` |
-| Datas | `*_date` | `holiday_date`, `opened_date` |
-| Booleanos | `is_*` / `has_*` | `is_weekend`, `has_discount` |
-| Valores monetários | `*_amount`, `numeric(12,2)`, BRL | `net_amount` |
-| Quantidades | `*_qty` | `on_hand_qty` |
-| Durações | `*_seconds` ou `*_ms` | `preparation_seconds`, `gateway_latency_ms` |
-| SCD tipo 2 | `valid_from`, `valid_to` (9999-12-31 na vigente), `is_current` | |
-| Membros especiais | `-1` desconhecido / não se aplica; `-2` anonimizado (LGPD) | `customer_sk = -2` |
+| Tabelas | singular nas dimensões e fatos; prefixos `stg_` (silver), `int_` (intermediária), `dim_`, `fct_` | `stg_outbox_eventos`, `dim_tempo`, `fct_item_pedido` |
+| Chave substituta | `sk_<entidade>` | `sk_unidade`, `sk_produto` |
+| Chave natural | `id_<entidade>` | `id_unidade`, `id_cliente` |
+| Chave estrangeira no fato | `sk_<dimensão>` | `fct_item_pedido.sk_produto` |
+| Timestamps | `*_em`, UTC, `timestamptz` | `ocorrido_em`, `registrado_em` |
+| Datas | `data_*` | `data_feriado`, `data_abertura` |
+| Booleanos | `eh_*` / `tem_*` | `eh_fim_de_semana`, `tem_desconto` |
+| Valores monetários | `valor_*`, `numeric(12,2)`, BRL | `valor_liquido` |
+| Quantidades | `qtd_*` | `qtd_saldo` |
+| Durações | `duracao_*_s` ou `*_ms` | `duracao_preparo_s`, `latencia_gateway_ms` |
+| SCD tipo 2 | `valido_de`, `valido_ate` (9999-12-31 na vigente), `eh_atual` | |
+| Membros especiais | `-1` não identificado / não se aplica; `-2` anonimizado (LGPD) | `sk_cliente = -2` |
 
-Exceção: `dim_date` usa `date_key` (inteiro AAAAMMDD, chave inteligente usual em calendário) no
-lugar de `date_sk`. Variáveis de ambiente: `DW_*` e `ANALYTICS_*`, em maiúsculas, em inglês
-(ex.: `DW_EXTRACTION_LAG_SECONDS`).
+Exceção de chave: `dim_tempo` usa `sk_data` (inteiro AAAAMMDD, chave inteligente usual em
+calendário), e não um sequencial.
 
-## Glossário de negócio (português -> inglês)
+## Glossário de negócio (português -> inglês, ponte para integrações)
 
-| Português | Inglês (termo técnico) |
+Os nomes oficiais são os em português. A coluna da direita serve a parceiros e ferramentas
+externas que usem o vocabulário de engenharia de dados em inglês.
+
+| Português (nome oficial) | Inglês (ponte) |
 |---|---|
 | Matriz / franqueadora | headquarters / franchisor |
 | Franqueado | franchisee |
-| Unidade / loja | store (`store`) |
-| Pedido | order (`order`) |
-| Item de pedido | order item (`order_item`) |
-| Número do pedido | order number (`order_number`) |
-| Canal | channel (`channel`) |
+| Unidade (`unidade`) | store |
+| Pedido (`pedido`) | order |
+| Item de pedido (`item_pedido`) | order item |
+| Número do pedido (`numero_pedido`) | order number |
+| Canal (`canal`) | channel |
 | Totem (autoatendimento) | kiosk |
 | Balcão | counter |
 | Retirada (pick-up) | pick-up |
-| Cliente | customer (`customer`) |
-| Colaborador | employee (`employee`) |
-| Produto | product (`product`) |
-| Forma de pagamento | payment method (`payment_method`) |
-| Tentativa de pagamento | payment attempt (`payment_attempt`) |
-| Campanha | campaign (`campaign`) |
-| Motivo | reason (`reason`) |
-| Finalidade (LGPD) | processing purpose (`processing_purpose`) |
-| Base legal | legal basis (`legal_basis`) |
-| Consentimento | consent (`consent`) |
-| Pontos de fidelidade | loyalty points (`loyalty_points`) |
-| Estoque | inventory (`inventory`) |
-| Saldo (de estoque) | on-hand balance (`on_hand_qty`) |
-| Ruptura | stockout (`is_stockout`) |
-| Período junino | festa junina season (`is_festa_junina_season`) |
-| Feriado nacional | national holiday (`national_holiday`) |
-| Faixa etária | age band (`age_band`) |
-| Formato (da unidade) | store format (`store_format`) |
-| Sazonal / temporada | seasonal / season (`is_seasonal`, `season`) |
+| Cliente (`cliente`) | customer |
+| Colaborador (`colaborador`) | employee |
+| Produto (`produto`) | product |
+| Forma de pagamento (`forma_pagamento`) | payment method |
+| Tentativa de pagamento (`tentativa_pagamento`) | payment attempt |
+| Campanha (`campanha`) | campaign |
+| Motivo (`motivo`) | reason |
+| Finalidade (LGPD) (`finalidade`) | processing purpose |
+| Base legal (`base_legal`) | legal basis |
+| Consentimento (`consentimento`) | consent |
+| Pontos de fidelidade (`pontos`) | loyalty points |
+| Estoque (`estoque`) | inventory |
+| Saldo de estoque (`qtd_saldo`) | on-hand balance |
+| Ruptura (`eh_ruptura`) | stockout |
+| Período junino (`eh_periodo_junino`) | festa junina season |
+| Feriado nacional (`eh_feriado_nacional`) | national holiday |
+| Faixa etária (`faixa_etaria`) | age band |
+| Formato da unidade (`formato_unidade`) | store format |
+| Sazonal / temporada (`eh_sazonal`, `temporada`) | seasonal / season |
 | Valor bruto / desconto / líquido | gross / discount / net amount |
 | Evento de domínio | domain event |
 | Agregado | aggregate |
+| Tipo de evento (`tipo_evento`) | event type |
+
+## Contrato da API
+
+Convenções da interface HTTP, também em português (ADR 0010). Os identificadores de código Python
+ficam em inglês; apenas o que trafega na rede segue a regra abaixo. Formato de erro: ADR 0011 e
+[docs/api/README.md](../api/README.md).
+
+| Item | Convenção | Exemplo |
+|---|---|---|
+| Rotas | plural, minúsculas, em português | `/auth`, `/usuarios`, `/unidades`, `/produtos`, `/estoque`, `/pedidos`, `/pagamentos`, `/fidelidade` |
+| Campos JSON | `camelCase` em português | `canalPedido`, `clienteId`, `unidadeId`, `itens`, `produtoId`, `quantidade`, `formaPagamento`, `precoUnitario`, `criadoEm` |
+| Datas e horas | ISO-8601 em UTC; campos de instante terminam em `Em` | `criadoEm`: `2026-02-05T12:00:00Z` |
+| Enums | MAIÚSCULAS, sem acento, `_` entre palavras | `AGUARDANDO_PAGAMENTO` |
+| Canal do pedido | enum `canalPedido` do roteiro da trilha | `APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB` |
+| Paginação | `?page=1&limit=10` (nomes do roteiro) | `GET /pedidos?page=1&limit=10` |
+| Erros | JSON padrão `error`, `message`, `details`, `timestamp`, `path`, `requestId` | ver [docs/api/README.md](../api/README.md) |
+
+Os valores do enum `canalPedido` são os mesmos de `dim_canal.nome_canal` no DW.
 
 ## Objetos implementados
 
-### `outbox_events` (PostgreSQL, OLTP)
+### `outbox_eventos` (PostgreSQL, OLTP)
 
 Outbox de eventos de domínio, gravada na mesma transação do caso de uso. Contrato:
-[`contracts/events/outbox_events.contract.yaml`](../../contracts/events/outbox_events.contract.yaml).
-Migração: `migrations/versions/20261102_1615_0001_create_outbox_events.py`.
+[`contracts/events/outbox_eventos.contract.yaml`](../../contracts/events/outbox_eventos.contract.yaml).
+Migração: `migrations/versions/20261102_1615_0001_cria_outbox_eventos.py`.
 
 | Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
 |---|---|---|---|---|
-| `event_id` | uuid | não | Identificador único do evento | UUID v4 gerado pelo domínio; chave primária |
-| `event_type` | text | não | Nome estável do evento | `snake_case` (`order_created`) |
-| `schema_version` | integer | não | Versão do formato do payload | >= 1 |
-| `aggregate_type` | text | não | Tipo do agregado de negócio | `order` |
-| `aggregate_id` | text | não | Identificador do agregado | `"42"`; nunca dado pessoal |
+| `id_evento` | uuid | não | Identificador único do evento | UUID v4 gerado pelo domínio; chave primária |
+| `tipo_evento` | text | não | Nome estável do evento | `snake_case` `<entidade>_<particípio>` (`pedido_criado`) |
+| `versao_schema` | integer | não | Versão do formato do payload | >= 1 |
+| `tipo_agregado` | text | não | Tipo do agregado de negócio | `pedido` |
+| `id_agregado` | text | não | Identificador do agregado | `"42"`; nunca dado pessoal |
 | `payload` | jsonb | não | Conteúdo específico do evento | objeto JSON, sem PII em claro |
-| `occurred_at` | timestamptz | não | Instante do fato de negócio | UTC |
-| `recorded_at` | timestamptz | não | Instante em que a outbox registrou o evento | UTC; `default now()` |
-| `sequence_id` | bigint | não | Ordem de captura | identidade `ALWAYS`; marca d'água da extração; índice `ix_outbox_events_sequence_id` |
+| `ocorrido_em` | timestamptz | não | Instante do fato de negócio | UTC |
+| `registrado_em` | timestamptz | não | Instante em que a outbox registrou o evento | UTC; `default now()` |
+| `id_sequencial` | bigint | não | Ordem de captura | identidade `ALWAYS`; marca d'água da extração; índice `ix_outbox_eventos_id_sequencial` |
 
-### `stg_outbox_events` (silver, DuckDB)
+### `stg_outbox_eventos` (silver, DuckDB)
 
-Eventos tipados e deduplicados por `event_id` (mantém a primeira captura, menor `sequence_id`).
-Origem: bronze `data/lake/bronze/outbox_events/`. Contrato do dbt imposto (`contract.enforced`).
+Eventos tipados e deduplicados por `id_evento` (mantém a primeira captura, menor `id_sequencial`).
+Origem: bronze `data/lake/bronze/outbox_eventos/`. Contrato do dbt imposto (`contract.enforced`).
 
 | Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
 |---|---|---|---|---|
-| `event_id` | uuid | não | Identificador único do evento | único |
-| `event_type` | varchar | não | Nome estável do evento | `order_created` |
-| `schema_version` | integer | não | Versão do formato do payload | >= 1 |
-| `aggregate_type` | varchar | não | Tipo do agregado | `order` |
-| `aggregate_id` | varchar | não | Identificador do agregado | `"42"` |
+| `id_evento` | uuid | não | Identificador único do evento | único |
+| `tipo_evento` | varchar | não | Nome estável do evento | `pedido_criado` |
+| `versao_schema` | integer | não | Versão do formato do payload | >= 1 |
+| `tipo_agregado` | varchar | não | Tipo do agregado | `pedido` |
+| `id_agregado` | varchar | não | Identificador do agregado | `"42"` |
 | `payload` | json | sim | Conteúdo do evento | sem PII em claro |
-| `occurred_at` | timestamp with time zone | não | Instante do fato (UTC) | |
-| `recorded_at` | timestamp with time zone | não | Instante de captura na outbox (UTC) | |
-| `sequence_id` | bigint | não | Ordem de captura (marca d'água) | |
-| `partition_date` | date | sim | Data (UTC) da partição `dt=` do bronze em que o evento chegou | derivada de `recorded_at` |
+| `ocorrido_em` | timestamp with time zone | não | Instante do fato (UTC) | |
+| `registrado_em` | timestamp with time zone | não | Instante de captura na outbox (UTC) | |
+| `id_sequencial` | bigint | não | Ordem de captura (marca d'água) | |
+| `data_particao` | date | sim | Data (UTC) da partição `dt=` do bronze em que o evento chegou | derivada de `registrado_em` |
 
-### `dim_date` (gold, DuckDB)
+### `dim_tempo` (gold, DuckDB)
 
-Dimensão de data: calendário diário de 2024-01-01 a 2030-12-31 (2557 linhas), data civil em
-America/Recife. Contrato do dbt imposto. Texto dos nomes em português.
-
-| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
-|---|---|---|---|---|
-| `date_key` | integer | não | Chave substituta AAAAMMDD | `20261225`; única |
-| `full_date` | date | não | Data completa (chave natural) | `2026-12-25`; única |
-| `year` | integer | não | Ano | `2026` |
-| `quarter` | integer | não | Trimestre | 1 a 4 |
-| `month` | integer | não | Mês | 1 a 12 |
-| `month_name` | varchar | sim | Nome do mês em português | `dezembro` |
-| `day_of_month` | integer | não | Dia do mês | 1 a 31 |
-| `day_of_week` | integer | não | Dia da semana ISO | 1 = segunda ... 7 = domingo |
-| `day_of_week_name` | varchar | sim | Nome do dia da semana em português | `sexta-feira` |
-| `is_weekend` | boolean | não | Sábado ou domingo | |
-| `is_national_holiday` | boolean | não | Consta em `national_holidays` | |
-| `holiday_name` | varchar | sim | Nome do feriado em português | `Natal`; nulo se não for feriado |
-| `is_festa_junina_season` | boolean | não | Dentro do período junino | variáveis dbt `festa_junina_season_start`/`_end` (padrão 06-01 a 07-31); **definição de negócio a validar pelo autor** |
-
-### `national_holidays` (seed do dbt, silver)
-
-Feriados nacionais do Brasil (2024-2030), gerados por `analytics/ingestion/generate_holidays.py`.
+Dimensão de tempo (data): calendário diário de 2024-01-01 a 2030-12-31 (2557 linhas), data civil
+em America/Recife. Contrato do dbt imposto. Texto dos nomes em português.
 
 | Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
 |---|---|---|---|---|
-| `holiday_date` | date | não | Data do feriado | `2026-12-25` |
-| `holiday_name` | varchar | não | Nome do feriado em português | `Natal` |
-| `holiday_type` | varchar | não | Tipo do feriado | por ora sempre `national` |
+| `sk_data` | integer | não | Chave substituta AAAAMMDD | `20261225`; única |
+| `data` | date | não | Data completa (chave natural) | `2026-12-25`; única |
+| `ano` | integer | não | Ano | `2026` |
+| `trimestre` | integer | não | Trimestre | 1 a 4 |
+| `mes` | integer | não | Mês | 1 a 12 |
+| `nome_mes` | varchar | sim | Nome do mês em português | `dezembro` |
+| `dia_mes` | integer | não | Dia do mês | 1 a 31 |
+| `dia_semana` | integer | não | Dia da semana ISO | 1 = segunda ... 7 = domingo |
+| `nome_dia_semana` | varchar | sim | Nome do dia da semana em português | `sexta-feira` |
+| `eh_fim_de_semana` | boolean | não | Sábado ou domingo | |
+| `eh_feriado_nacional` | boolean | não | Consta em `feriados_nacionais` | |
+| `nome_feriado` | varchar | sim | Nome do feriado em português | `Natal`; nulo se não for feriado |
+| `eh_periodo_junino` | boolean | não | Dentro do período junino | variáveis dbt `periodo_junino_inicio`/`periodo_junino_fim` (padrão 06-01 a 07-31); **definição de negócio a validar pelo autor** |
+
+### `feriados_nacionais` (seed do dbt, silver)
+
+Feriados nacionais do Brasil (2024-2030), gerados por `analytics/ingestao/gerar_feriados.py`.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `data_feriado` | date | não | Data do feriado | `2026-12-25` |
+| `nome_feriado` | varchar | não | Nome do feriado em português | `Natal` |
+| `tipo_feriado` | varchar | não | Tipo do feriado | por ora sempre `nacional` |
 
 ### Bronze (arquivos Parquet)
 
-`data/lake/bronze/outbox_events/dt=AAAA-MM-DD/<run_id>.parquet`: espelha `outbox_events` com todas
-as datas em texto ISO-8601 UTC e `payload` em texto JSON (colunas: `event_id`, `event_type`,
-`schema_version`, `aggregate_type`, `aggregate_id`, `payload`, `occurred_at`, `recorded_at`,
-`sequence_id`). Estado da extração: `data/lake/_state/outbox_events.json`. Detalhes em
+`data/lake/bronze/outbox_eventos/dt=AAAA-MM-DD/<run_id>.parquet`: espelha `outbox_eventos` com
+todas as datas em texto ISO-8601 UTC e `payload` em texto JSON (colunas: `id_evento`,
+`tipo_evento`, `versao_schema`, `tipo_agregado`, `id_agregado`, `payload`, `ocorrido_em`,
+`registrado_em`, `id_sequencial`). Estado da extração: `data/lake/_estado/outbox_eventos.json`.
+Parquet de esquema vazio: `dt=1970-01-01/_esquema_vazio.parquet`. Detalhes em
 [`analytics/README.md`](../../analytics/README.md).
 
 ## Objetos planejados
@@ -152,13 +181,13 @@ as datas em texto ISO-8601 UTC e `payload` em texto JSON (colunas: `event_id`, `
 Ainda não implementados; nomes, grãos e medidas estão na
 [matriz de barramento](matriz-de-barramento.md) (autoria humana).
 
-- **Fatos:** `fct_order_item`, `fct_order`, `fct_order_lifecycle`, `fct_payment_attempt`,
-  `fct_inventory_movement`, `fct_inventory_daily_snapshot`, `fct_loyalty_points_movement`,
-  `fct_sensitive_operation`, `fct_consent_daily_snapshot`.
-- **Dimensões:** `dim_date` (implementada), `dim_time_of_day`, `dim_store`, `dim_product`,
-  `dim_channel`, `dim_customer`, `dim_payment_method`, `dim_campaign`, `dim_employee`,
-  `dim_order_status`, `dim_reason`, `dim_processing_purpose`.
-- **Dimensão degenerada:** `order_number`.
+- **Fatos:** `fct_item_pedido`, `fct_pedido`, `fct_ciclo_pedido`, `fct_tentativa_pagamento`,
+  `fct_movimentacao_estoque`, `fct_saldo_estoque_diario`, `fct_movimento_pontos`,
+  `fct_operacao_sensivel`, `fct_consentimento_diario`.
+- **Dimensões:** `dim_tempo` (implementada), `dim_hora`, `dim_unidade`, `dim_produto`,
+  `dim_canal` (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`), `dim_cliente`, `dim_forma_pagamento`,
+  `dim_campanha`, `dim_colaborador`, `dim_status_pedido`, `dim_motivo`, `dim_finalidade`.
+- **Dimensão degenerada:** `numero_pedido`.
 
 Cada objeto planejado ganhará sua tabela neste dicionário, e sua descrição no dbt, ao ser
 implementado.

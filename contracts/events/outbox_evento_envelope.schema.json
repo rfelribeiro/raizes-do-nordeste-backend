@@ -1,44 +1,44 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raizes.example/contracts/events/outbox_event_envelope.schema.json",
-  "title": "OutboxEventEnvelope",
-  "description": "Envelope de um evento de domínio gravado na tabela outbox_events (PostgreSQL) e copiado, sem alterações, para o bronze do lake. Versão do contrato: ver outbox_events.contract.yaml.",
+  "$id": "https://raizes.example/contracts/events/outbox_evento_envelope.schema.json",
+  "title": "OutboxEventoEnvelope",
+  "description": "Envelope de um evento de domínio gravado na tabela outbox_eventos (PostgreSQL) e copiado, sem alterações, para o bronze do lake. Versão do contrato: ver outbox_eventos.contract.yaml.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "event_id",
-    "event_type",
-    "schema_version",
-    "aggregate_type",
-    "aggregate_id",
+    "id_evento",
+    "tipo_evento",
+    "versao_schema",
+    "tipo_agregado",
+    "id_agregado",
     "payload",
-    "occurred_at",
-    "recorded_at",
-    "sequence_id"
+    "ocorrido_em",
+    "registrado_em",
+    "id_sequencial"
   ],
   "properties": {
-    "event_id": {
+    "id_evento": {
       "description": "Identificador único do evento (UUID versão 4 gerado pelo domínio). Chave de deduplicação no DW.",
       "type": "string",
       "format": "uuid"
     },
-    "event_type": {
-      "description": "Nome estável do evento em snake_case, no padrão <entidade>_<fato_no_passado> em inglês (ex.: order_created, payment_approved). Nunca renomear um tipo já publicado.",
+    "tipo_evento": {
+      "description": "Nome estável do evento em snake_case, no padrão <entidade>_<fato_no_passado> em português (ex.: pedido_criado, pagamento_aprovado). Nunca renomear um tipo já publicado.",
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$",
       "maxLength": 100
     },
-    "schema_version": {
-      "description": "Versão do formato do payload para este event_type (inteiro >= 1). Muda a cada alteração aditiva do payload.",
+    "versao_schema": {
+      "description": "Versão do formato do payload para este tipo_evento (inteiro >= 1). Muda a cada alteração aditiva do payload.",
       "type": "integer",
       "minimum": 1
     },
-    "aggregate_type": {
-      "description": "Tipo do agregado de negócio dono do evento, em snake_case (ex.: order, customer).",
+    "tipo_agregado": {
+      "description": "Tipo do agregado de negócio dono do evento, em snake_case (ex.: pedido, cliente).",
       "type": "string",
       "pattern": "^[a-z][a-z0-9]*(_[a-z0-9]+)*$"
     },
-    "aggregate_id": {
+    "id_agregado": {
       "description": "Identificador do agregado, como texto. Identificador interno: nunca um dado pessoal em claro.",
       "type": "string",
       "minLength": 1
@@ -47,17 +47,17 @@
       "description": "Conteúdo específico do evento. Objeto JSON sem PII em claro (sem nome, CPF, e-mail, telefone, endereço ou data de nascimento).",
       "type": "object"
     },
-    "occurred_at": {
+    "ocorrido_em": {
       "description": "Instante do fato de negócio, em UTC (ISO-8601).",
       "type": "string",
       "format": "date-time"
     },
-    "recorded_at": {
-      "description": "Instante em que a outbox registrou o evento, em UTC (ISO-8601). Atribuído pelo banco; deve ser >= occurred_at.",
+    "registrado_em": {
+      "description": "Instante em que a outbox registrou o evento, em UTC (ISO-8601). Atribuído pelo banco; deve ser >= ocorrido_em.",
       "type": "string",
       "format": "date-time"
     },
-    "sequence_id": {
+    "id_sequencial": {
       "description": "Ordem de captura na outbox (identidade do banco, crescente). Usado como marca d'água pela extração incremental.",
       "type": "integer",
       "minimum": 1

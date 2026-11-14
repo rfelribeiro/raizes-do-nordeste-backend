@@ -4,32 +4,32 @@ sources:
   - name: bronze
     description: >
       Arquivos Parquet brutos do lake (camada bronze), gravados pelo extrator incremental
-      (analytics/ingestion/extract_outbox.py). Imutáveis e append-only, particionados por `dt`.
+      (analytics/ingestao/extrair_outbox.py). Imutáveis e append-only, particionados por `dt`.
     meta:
       # O extrator mantém sempre ao menos um Parquet com 0 linhas e o esquema correto
-      # (dt=1970-01-01/_empty_schema.parquet), então o glob nunca fica sem arquivos.
+      # (dt=1970-01-01/_esquema_vazio.parquet), então o glob nunca fica sem arquivos.
       external_location: >-
         read_parquet('{{ env_var('DW_LAKE_PATH', 'data/lake') }}/bronze/{name}/*/*.parquet',
         hive_partitioning = true, union_by_name = true)
     tables:
-      - name: outbox_events
+      - name: outbox_eventos
         description: Eventos de domínio capturados da outbox do PostgreSQL (um por linha).
         columns:
-          - name: event_id
+          - name: id_evento
             description: Identificador único do evento (texto UUID).
-          - name: event_type
+          - name: tipo_evento
             description: Nome estável do evento.
-          - name: schema_version
+          - name: versao_schema
             description: Versão do formato do payload.
-          - name: aggregate_type
+          - name: tipo_agregado
             description: Tipo do agregado de negócio.
-          - name: aggregate_id
+          - name: id_agregado
             description: Identificador do agregado.
           - name: payload
             description: Conteúdo do evento em JSON (texto).
-          - name: occurred_at
+          - name: ocorrido_em
             description: Instante do fato de negócio (ISO-8601 UTC, texto).
-          - name: recorded_at
+          - name: registrado_em
             description: Instante de captura na outbox (ISO-8601 UTC, texto).
-          - name: sequence_id
+          - name: id_sequencial
             description: Ordem de captura (marca d'água).

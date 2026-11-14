@@ -85,22 +85,22 @@ dw-dirs:
 	@mkdir -p data/lake data/warehouse
 
 dw-ingest: dw-dirs ## DW: extrai eventos novos da outbox para o bronze (Parquet)
-	$(DW_RUN_DB) python -m ingestion.extract_outbox
+	$(DW_RUN_DB) python -m ingestao.extrair_outbox
 
 dw-build: dw-dirs ## DW: dbt seed + build (silver e gold, com testes)
-	$(DW_RUN) python -m ingestion.extract_outbox --schema-only
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
 	$(DW_RUN) $(DBT) seed
 	$(DW_RUN) $(DBT) build
 
 dw-test: dw-dirs ## DW: testes Python do pipeline + testes de dados do dbt
 	$(DW_RUN) pytest -p no:cacheprovider analytics/tests
-	$(DW_RUN) python -m ingestion.extract_outbox --schema-only
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
 	$(DW_RUN) $(DBT) seed
 	$(DW_RUN) $(DBT) run
 	$(DW_RUN) $(DBT) test
 
 dw-docs: dw-dirs ## DW: gera a documentação do dbt (analytics/dbt/raizes_dw/target)
-	$(DW_RUN) python -m ingestion.extract_outbox --schema-only
+	$(DW_RUN) python -m ingestao.extrair_outbox --somente-esquema
 	$(DW_RUN) $(DBT) seed
 	$(DW_RUN) $(DBT) docs generate
 

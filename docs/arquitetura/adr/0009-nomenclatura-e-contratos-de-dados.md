@@ -1,7 +1,11 @@
 # ADR 0009 - Nomenclatura em inglês, dicionário de dados e contratos de dados
 
-- **Status:** aceita (substitui a decisão de nomes em português do [ADR 0008](0008-plataforma-analitica.md))
+- **Status:** aceita; a nomenclatura em inglês foi substituída pelo [ADR 0010](0010-idioma-portugues.md) (dicionário e contratos seguem válidos)
 - **Data:** 2026-11-14
+
+> **Nomenclatura substituída pelo ADR-0010; dicionário e contratos seguem válidos.** O item 1 (nomes
+> em inglês), o item 5 (`event_type` em inglês) e o item 6 (migração 0001 em inglês) abaixo ficam
+> como registro histórico; os nomes vigentes são os do ADR 0010 (D-034).
 
 ## Contexto
 

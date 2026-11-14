@@ -5,21 +5,21 @@ from typing import Any
 
 import pytest
 
-from ingestion import extract_outbox as ex
-from ingestion import generate_holidays as gh
+from ingestao import extrair_outbox as ex
+from ingestao import gerar_feriados as gh
 
 
 def _row(seq: int, recorded_at: datetime) -> dict[str, Any]:
     return {
-        "event_id": f"00000000-0000-4000-8000-{seq:012d}",
-        "event_type": "fictitious_event",
-        "schema_version": 1,
-        "aggregate_type": "test",
-        "aggregate_id": str(seq),
+        "id_evento": f"00000000-0000-4000-8000-{seq:012d}",
+        "tipo_evento": "evento_ficticio",
+        "versao_schema": 1,
+        "tipo_agregado": "teste",
+        "id_agregado": str(seq),
         "payload": {"value": seq},
-        "occurred_at": recorded_at,
-        "recorded_at": recorded_at,
-        "sequence_id": seq,
+        "ocorrido_em": recorded_at,
+        "registrado_em": recorded_at,
+        "id_sequencial": seq,
     }
 
 
@@ -42,7 +42,7 @@ def test_group_by_partition() -> None:
     ]
     groups = ex.group_by_partition(rows)
     assert list(groups) == [date(2026, 11, 1), date(2026, 11, 2)]
-    assert [x["sequence_id"] for x in groups[date(2026, 11, 2)]] == [2, 3]
+    assert [x["id_sequencial"] for x in groups[date(2026, 11, 2)]] == [2, 3]
 
 
 def test_watermark_never_regresses() -> None:
@@ -54,17 +54,17 @@ def test_watermark_never_regresses() -> None:
 
 def test_missing_state_starts_at_zero_and_writes_atomically(tmp_path: Path) -> None:
     file = ex.state_path(tmp_path)
-    assert file == tmp_path / "_state" / "outbox_events.json"
+    assert file == tmp_path / "_estado" / "outbox_eventos.json"
     assert ex.read_watermark(file) == 0
     ex.write_watermark(file, 42, "run-1")
     assert ex.read_watermark(file) == 42
-    assert json.loads(file.read_text())["last_run_id"] == "run-1"
+    assert json.loads(file.read_text())["ultima_execucao_id"] == "run-1"
     assert not list(file.parent.glob("*.tmp"))
 
 
 def test_lake_paths(tmp_path: Path) -> None:
     path = ex.partition_path(tmp_path, date(2026, 11, 2), "abc")
-    assert path == tmp_path / "bronze" / "outbox_events" / "dt=2026-11-02" / "abc.parquet"
+    assert path == tmp_path / "bronze" / "outbox_eventos" / "dt=2026-11-02" / "abc.parquet"
 
 
 def test_row_to_bronze_converts_to_utc_and_serializes_payload() -> None:
@@ -83,10 +83,10 @@ def test_run_id_is_unique_and_sortable() -> None:
     assert ex.new_run_id() != ex.new_run_id()
 
 
-def test_empty_schema_is_idempotent(tmp_path: Path) -> None:
+def test_esquema_vazio_is_idempotent(tmp_path: Path) -> None:
     duckdb = pytest.importorskip("duckdb")
     target = ex.ensure_empty_schema(tmp_path)
-    assert target.name == "_empty_schema.parquet"
+    assert target.name == "_esquema_vazio.parquet"
     before = target.stat().st_mtime_ns
     ex.ensure_empty_schema(tmp_path)
     assert target.stat().st_mtime_ns == before

@@ -1,20 +1,20 @@
 version: 2
 
 seeds:
-  - name: national_holidays
+  - name: feriados_nacionais
     description: >
       Feriados nacionais do Brasil (2024-2030), gerados por
-      analytics/ingestion/generate_holidays.py. Nomes dos feriados em português.
+      analytics/ingestao/gerar_feriados.py. Nomes dos feriados em português.
     columns:
-      - name: holiday_date
+      - name: data_feriado
         description: Data do feriado.
         data_tests:
           - not_null
-      - name: holiday_name
+      - name: nome_feriado
         description: Nome do feriado em português (ex. Natal).
         data_tests:
           - not_null
-      - name: holiday_type
-        description: Tipo do feriado; por ora sempre "national".
+      - name: tipo_feriado
+        description: Tipo do feriado; por ora sempre "nacional".
         data_tests:
           - not_null

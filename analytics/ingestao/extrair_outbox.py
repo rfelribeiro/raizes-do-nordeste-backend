@@ -1,19 +1,19 @@
-"""Extração incremental da outbox (`outbox_events`) para a camada bronze do lake.
+"""Extração incremental da outbox (`outbox_eventos`) para a camada bronze do lake.
 
 Fluxo de uma execução:
-  1. lê a marca d'água (último `sequence_id` já extraído) de `_state/outbox_events.json`;
-  2. consulta `outbox_events` com `sequence_id > marca d'água`, em ordem;
+  1. lê a marca d'água (último `id_sequencial` já extraído) de `_estado/outbox_eventos.json`;
+  2. consulta `outbox_eventos` com `id_sequencial > marca d'água`, em ordem;
   3. agrupa as linhas por data de captura (UTC) e grava um Parquet por partição:
-     `bronze/outbox_events/dt=AAAA-MM-DD/<run_id>.parquet` (imutável, append-only);
+     `bronze/outbox_eventos/dt=AAAA-MM-DD/<run_id>.parquet` (imutável, append-only);
   4. SOMENTE depois de gravar todos os arquivos, atualiza a marca d'água.
 
 Idempotência: sem eventos novos nada é gravado; se a execução falhar antes do passo 4, a marca
 d'água não avança e a próxima execução relê as mesmas linhas (arquivos órfãos da execução que
-falhou ficam com outro `run_id`; a silver deduplica por `event_id`, então não há dupla
+falhou ficam com outro `run_id`; a silver deduplica por `id_evento`, então não há dupla
 contagem — ao menos uma vez + deduplicação = efeito exatamente uma vez).
 
-Atraso de segurança: transações concorrentes podem confirmar `sequence_id` fora de ordem.
-Para não pular um evento que confirma "atrasado", só são lidas linhas com `recorded_at`
+Atraso de segurança: transações concorrentes podem confirmar `id_sequencial` fora de ordem.
+Para não pular um evento que confirma "atrasado", só são lidas linhas com `registrado_em`
 anterior a (agora - atraso). Transações mais longas que o atraso de segurança ainda são um risco
 residual, documentado em analytics/README.md.
 
@@ -33,25 +33,25 @@ from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("ingestion.extract_outbox")
+logger = logging.getLogger("ingestao.extrair_outbox")
 
-TABLE_NAME = "outbox_events"
+TABLE_NAME = "outbox_eventos"
 EMPTY_SCHEMA_DATE = "1970-01-01"
-EMPTY_SCHEMA_FILE = "_empty_schema.parquet"
+EMPTY_SCHEMA_FILE = "_esquema_vazio.parquet"
 DEFAULT_LAG_SECONDS = 5
 
 # Esquema do bronze: espelha a tabela de origem; datas em texto ISO-8601 UTC (bruto, sem tipagem
-# interpretativa). A tipagem acontece na silver (stg_outbox_events).
+# interpretativa). A tipagem acontece na silver (stg_outbox_eventos).
 BRONZE_COLUMNS: tuple[tuple[str, str], ...] = (
-    ("event_id", "VARCHAR"),
-    ("event_type", "VARCHAR"),
-    ("schema_version", "INTEGER"),
-    ("aggregate_type", "VARCHAR"),
-    ("aggregate_id", "VARCHAR"),
+    ("id_evento", "VARCHAR"),
+    ("tipo_evento", "VARCHAR"),
+    ("versao_schema", "INTEGER"),
+    ("tipo_agregado", "VARCHAR"),
+    ("id_agregado", "VARCHAR"),
     ("payload", "VARCHAR"),
-    ("occurred_at", "VARCHAR"),
-    ("recorded_at", "VARCHAR"),
-    ("sequence_id", "BIGINT"),
+    ("ocorrido_em", "VARCHAR"),
+    ("registrado_em", "VARCHAR"),
+    ("id_sequencial", "BIGINT"),
 )
 COLUMN_NAMES = tuple(name for name, _ in BRONZE_COLUMNS)
 
@@ -74,13 +74,13 @@ def group_by_partition(
     """Agrupa as linhas pela data de captura (UTC), preservando a ordem de entrada."""
     groups: dict[date, list[Mapping[str, Any]]] = defaultdict(list)
     for row in rows:
-        groups[partition_date(row["recorded_at"])].append(row)
+        groups[partition_date(row["registrado_em"])].append(row)
     return dict(sorted(groups.items()))
 
 
 def next_watermark(current: int, rows: Sequence[Mapping[str, Any]]) -> int:
-    """Maior `sequence_id` visto; a marca d'água nunca regride."""
-    return max([current, *(int(row["sequence_id"]) for row in rows)])
+    """Maior `id_sequencial` visto; a marca d'água nunca regride."""
+    return max([current, *(int(row["id_sequencial"]) for row in rows)])
 
 
 def partition_path(lake_root: Path, day: date, run_id: str) -> Path:
@@ -92,22 +92,22 @@ def empty_schema_path(lake_root: Path) -> Path:
 
 
 def state_path(lake_root: Path) -> Path:
-    return lake_root / "_state" / f"{TABLE_NAME}.json"
+    return lake_root / "_estado" / f"{TABLE_NAME}.json"
 
 
 def row_to_bronze(row: Mapping[str, Any]) -> tuple[Any, ...]:
     """Converte uma linha do Postgres para a tupla do bronze (datas em ISO UTC, payload JSON)."""
     payload = row["payload"]
     return (
-        str(row["event_id"]),
-        row["event_type"],
-        int(row["schema_version"]),
-        row["aggregate_type"],
-        row["aggregate_id"],
+        str(row["id_evento"]),
+        row["tipo_evento"],
+        int(row["versao_schema"]),
+        row["tipo_agregado"],
+        row["id_agregado"],
         payload if isinstance(payload, str) else json.dumps(payload, ensure_ascii=False),
-        row["occurred_at"].astimezone(UTC).isoformat(),
-        row["recorded_at"].astimezone(UTC).isoformat(),
-        int(row["sequence_id"]),
+        row["ocorrido_em"].astimezone(UTC).isoformat(),
+        row["registrado_em"].astimezone(UTC).isoformat(),
+        int(row["id_sequencial"]),
     )
 
 
@@ -126,7 +126,7 @@ def read_watermark(file: Path) -> int:
     if not file.exists():
         return 0
     data = json.loads(file.read_text(encoding="utf-8"))
-    return int(data["last_sequence_id"])
+    return int(data["ultimo_id_sequencial"])
 
 
 def write_watermark(file: Path, value: int, run_id: str) -> None:
@@ -136,9 +136,9 @@ def write_watermark(file: Path, value: int, run_id: str) -> None:
     temp.write_text(
         json.dumps(
             {
-                "last_sequence_id": value,
-                "last_run_id": run_id,
-                "updated_at": datetime.now(UTC).isoformat(),
+                "ultimo_id_sequencial": value,
+                "ultima_execucao_id": run_id,
+                "atualizado_em": datetime.now(UTC).isoformat(),
             },
             indent=2,
         )
@@ -199,10 +199,10 @@ def _connect_postgres() -> Any:
 def fetch_new_events(watermark: int, lag_seconds: int) -> list[dict[str, Any]]:
     query = f"""
         SELECT {", ".join(COLUMN_NAMES)}
-        FROM outbox_events
-        WHERE sequence_id > %s
-          AND recorded_at <= now() - make_interval(secs => %s)
-        ORDER BY sequence_id
+        FROM outbox_eventos
+        WHERE id_sequencial > %s
+          AND registrado_em <= now() - make_interval(secs => %s)
+        ORDER BY id_sequencial
     """
     with _connect_postgres() as connection, connection.cursor() as cursor:
         cursor.execute(query, (watermark, lag_seconds))
@@ -255,7 +255,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         help="raiz do lake (padrão: $DW_LAKE_PATH ou data/lake)",
     )
     parser.add_argument(
-        "--schema-only",
+        "--somente-esquema",
         action="store_true",
         help="apenas garante o Parquet de esquema vazio do bronze (não acessa o banco)",
     )
@@ -269,7 +269,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
     root = Path(args.lake)
-    if args.schema_only:
+    if args.somente_esquema:
         ensure_empty_schema(root)
         logger.info("Esquema vazio do bronze garantido em %s.", root)
         return 0

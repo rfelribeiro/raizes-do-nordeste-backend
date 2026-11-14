@@ -1,34 +1,34 @@
 version: 2
 
 models:
-  - name: dim_date
+  - name: dim_tempo
     description: >
       Dimensão de data (calendário diário, 2024-01-01 a 2030-12-31), data civil em
-      America/Recife. `day_of_week` segue ISO (1 = segunda ... 7 = domingo). Nomes de mês, de
+      America/Recife. `dia_semana` segue ISO (1 = segunda ... 7 = domingo). Nomes de mês, de
       dia da semana e de feriado são valores em português. Ainda não há membros especiais
       (-1 desconhecido, -2 anonimizado) nesta dimensão.
     config:
       contract:
         enforced: true
     columns:
-      - name: date_key
+      - name: sk_data
         description: Chave substituta no formato AAAAMMDD (ex. 20261102).
         data_type: integer
         data_tests:
           - unique
           - not_null
-      - name: full_date
+      - name: data
         description: Data civil completa (America/Recife). Chave natural.
         data_type: date
         data_tests:
           - unique
           - not_null
-      - name: year
+      - name: ano
         description: Ano com quatro dígitos.
         data_type: integer
         data_tests:
           - not_null
-      - name: quarter
+      - name: trimestre
         description: Trimestre do ano (1 a 4).
         data_type: integer
         data_tests:
@@ -36,7 +36,7 @@ models:
               arguments:
                 values: [1, 2, 3, 4]
                 quote: false
-      - name: month
+      - name: mes
         description: Número do mês (1 a 12).
         data_type: integer
         data_tests:
@@ -44,13 +44,13 @@ models:
               arguments:
                 values: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
                 quote: false
-      - name: month_name
+      - name: nome_mes
         description: Nome do mês em português, minúsculo (ex. janeiro).
         data_type: varchar
-      - name: day_of_month
+      - name: dia_mes
         description: Dia do mês (1 a 31).
         data_type: integer
-      - name: day_of_week
+      - name: dia_semana
         description: Dia da semana ISO (1 = segunda ... 7 = domingo).
         data_type: integer
         data_tests:
@@ -58,25 +58,25 @@ models:
               arguments:
                 values: [1, 2, 3, 4, 5, 6, 7]
                 quote: false
-      - name: day_of_week_name
+      - name: nome_dia_semana
         description: Nome do dia da semana em português (ex. segunda-feira).
         data_type: varchar
-      - name: is_weekend
+      - name: eh_fim_de_semana
         description: Verdadeiro para sábado e domingo.
         data_type: boolean
         data_tests:
           - not_null
-      - name: is_national_holiday
-        description: Verdadeiro quando a data consta na seed national_holidays.
+      - name: eh_feriado_nacional
+        description: Verdadeiro quando a data consta na seed feriados_nacionais.
         data_type: boolean
         data_tests:
           - not_null
-      - name: holiday_name
+      - name: nome_feriado
         description: Nome do feriado em português (ex. Natal); nulo se não for feriado.
         data_type: varchar
-      - name: is_festa_junina_season
+      - name: eh_periodo_junino
         description: >
-          Verdadeiro dentro do período junino (vars festa_junina_season_start/end do dbt).
+          Verdadeiro dentro do período junino (vars periodo_junino_inicio/fim do dbt).
           Definição de negócio a validar pelo autor.
         data_type: boolean
         data_tests:
