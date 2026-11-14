@@ -88,7 +88,7 @@ ficam em inglês; apenas o que trafega na rede segue a regra abaixo. Formato de 
 
 | Item | Convenção | Exemplo |
 |---|---|---|
-| Rotas | plural, minúsculas, em português | `/auth`, `/usuarios`, `/unidades`, `/produtos`, `/estoque`, `/pedidos`, `/pagamentos`, `/fidelidade` |
+| Rotas | plural, minúsculas, em português | `/auth`, `/usuarios`, `/unidades`, `/produtos`, `/estoques`, `/pedidos` (pagamento como subrecurso: `/pedidos/{id}/pagamentos`), `/fidelidade`, `/consentimentos`, `/auditoria` |
 | Campos JSON | `camelCase` em português | `canalPedido`, `clienteId`, `unidadeId`, `itens`, `produtoId`, `quantidade`, `formaPagamento`, `precoUnitario`, `criadoEm` |
 | Datas e horas | ISO-8601 em UTC; campos de instante terminam em `Em` | `criadoEm`: `2026-02-05T12:00:00Z` |
 | Enums | MAIÚSCULAS, sem acento, `_` entre palavras | `AGUARDANDO_PAGAMENTO` |
