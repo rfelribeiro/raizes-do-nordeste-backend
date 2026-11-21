@@ -37,7 +37,9 @@ Thumbs.db
 *.dump
 
 # --- Material original da disciplina: o PDF contém metadados pessoais de terceiros (fica só local)
-init/*.pdf
+# Material da disciplina (PDFs e transcrições) fica só local (D-055)
+init/*
+!init/README.md
 
 # --- Data Warehouse: lake (Parquet), warehouse (DuckDB) e artefatos do dbt (gerados localmente)
 data/

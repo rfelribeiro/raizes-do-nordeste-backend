@@ -41,7 +41,7 @@ Atualize a coluna **Revisão humana** à medida que revisar cada item.
 
 | Artefato | Produzido por | Especificado por | Revisão humana |
 |---|---|---|---|
-| `init/roteiro.md` (transcrição do PDF do roteiro) | Subagentes, com revisor | Humano | ⏳ pendente |
+| `init/roteiro.md` (transcrição do PDF do roteiro; mantida só localmente, não publicada, D-055) | Subagentes, com revisor | Humano | ⏳ pendente |
 | `docs/uso-de-ia/01-infraestrutura.md` | Subagente Haiku 5.5 | Opus 5.5 | ⏳ pendente |
 | `tools/registro_ia/` (exportador e testes) | Subagente Sonnet 5.5, com ajuste do Opus 5.5 | Opus 5.5, a pedido do humano | ⏳ pendente |
 | `.claude/settings.json`, `.gitignore`, este README, `decisoes.md` | Opus 5.5 | Humano | ⏳ pendente |

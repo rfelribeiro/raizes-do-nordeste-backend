@@ -9,8 +9,26 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 **Analítico:** Data Warehouse com margem para Lakehouse (DuckDB, Parquet, dbt-core, Kimball).
 **Arquitetura:** aplicação única em 4 camadas (API, Aplicação, Domínio, Infraestrutura).
 
-> Estado atual: fundação transversal (configuração, logs, formato de erro padronizado, health checks,
-> migrações, testes, CI). Os módulos de negócio ainda serão implementados.
+> **Estado atual:** requisitos e modelagem concluídos (casos de uso, DER, classes, sequência e
+> estados); fundação transversal pronta (configuração, logs, erro padronizado, health checks,
+> migrações, testes, CI, outbox e DW). Os módulos de negócio da API estão em implementação.
+
+## Para o avaliador: roteiro de leitura
+
+| Critério do roteiro | Onde ver |
+|---|---|
+| Análise e requisitos | [docs/requisitos/](docs/requisitos/README.md) |
+| Modelagem e arquitetura | [docs/modelagem/](docs/modelagem/README.md) e [docs/arquitetura/](docs/arquitetura/visao-geral.md) |
+| API e endpoints | [docs/api/](docs/api/README.md) e o Swagger em `/docs` com a API rodando |
+| LGPD e segurança | [docs/requisitos/ §7](docs/requisitos/README.md#7-lgpd-mínimo-técnico) e [ADR 0005](docs/arquitetura/adr/0005-protecao-de-credenciais-e-dados-pessoais.md) |
+| Entrega técnica | este README (seção "Como reproduzir") |
+| Plano de testes | [docs/testes/](docs/testes/README.md) |
+| Documento principal (fonte do PDF) | [docs/entrega/documento-principal.md](docs/entrega/documento-principal.md) |
+| Uso de IA (ferramenta, prompts, trechos) | [docs/uso-de-ia/](docs/uso-de-ia/README.md) |
+
+As referências ao enunciado aparecem como **RT p. N** (Roteiro de Atividade Prática da Trilha
+Back-end, 2026) e **RG p. N** (Roteiro geral com o estudo de caso), sempre pela página do PDF
+oficial distribuído na disciplina. Os roteiros não são redistribuídos neste repositório.
 
 ## Como reproduzir
 
@@ -20,7 +38,8 @@ O Docker é o ambiente canônico: o que roda no seu computador é o mesmo que ro
 os scripts auxiliares `setup` e `secrets`, que usam só a biblioteca padrão).
 
 ```bash
-git clone <url-do-repositorio> raizes && cd raizes
+git clone <URL deste repositório no GitHub>
+cd raizes-do-nordeste-backend
 
 make setup   # cria o .env (senha aleatória do banco) e ativa o hook de pre-commit
 make up      # constrói a imagem, sobe banco + API e aplica as migrações

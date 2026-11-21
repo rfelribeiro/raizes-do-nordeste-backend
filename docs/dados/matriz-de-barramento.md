@@ -28,31 +28,31 @@ A **matriz de barramento** cruza processos e dimensões. Ela torna visível quai
 
 ## Insumos do estudo de caso
 
-Citações literais de `init/roteiro.md` relevantes para análise (número da linha entre parênteses).
+Citações literais do roteiro geral com o estudo de caso (RG), relevantes para análise, com a página do PDF oficial.
 
-| Tema | Citação | Linha |
+| Tema | Citação | Página (RG) |
 |---|---|---|
-| Vendas por unidade e região | "vendas por unidade e por região;" | 106 |
-| Produtos mais consumidos | "produtos mais consumidos;" | 107 |
-| Relatórios financeiros | "relatórios financeiros;" | 108 |
-| Consolidação estratégica | "dados consolidados para decisões estratégicas;" | 109 |
-| Auditoria de operações sensíveis | "auditoria de operações sensíveis (cancelamentos, descontos, ajustes)." | 110 |
+| Vendas por unidade e região | "vendas por unidade e por região;" | p. 5 |
+| Produtos mais consumidos | "produtos mais consumidos;" | p. 5 |
+| Relatórios financeiros | "relatórios financeiros;" | p. 5 |
+| Consolidação estratégica | "dados consolidados para decisões estratégicas;" | p. 5 |
+| Auditoria de operações sensíveis | "auditoria de operações sensíveis (cancelamentos, descontos, ajustes)." | p. 5 |
 | Múltiplos canais | "Aplicativo oficial (pedidos antecipados, promoções, fidelização);" / "Totens de auto-atendimento nas lojas;" / "Atendimento humano no balcão;" / "Pedidos para retirada rápida (pick-up)." | 76 a 79 |
-| Unidades com formatos diferentes | "Algumas possuem cozinha completa, outras operam em formato reduzido." | 91 |
-| Produtos sazonais / juninos | "Certos produtos só estão disponíveis em épocas específicas do ano (especialmente no período junino)" | 91 |
-| Variações regionais | "algumas receitas variam levemente conforme a região." | 91 |
-| Estoque local | "controle de estoque local;" | 100 |
-| Metas e indicadores por unidade | "metas e indicadores de desempenho." | 102 |
-| Fidelidade: pontos | "acumular pontos;" | 118 |
-| Fidelidade: campanhas segmentadas | "permitir campanhas segmentadas;" | 120 |
-| Fidelidade: frequência, idade e perfil | "considerar fatores como frequência de consumo, idade e perfil do cliente." | 121 |
-| Consentimento | "consentimento explícito para uso de dados;" | 129 |
-| Anonimização | "anonimização quando aplicável;" | 134 |
-| Auditoria de acessos | "auditoria de acessos;" | 135 |
-| Pagamento externo: solicitação | "solicita o pagamento;" | 144 |
-| Pagamento externo: confirmação ou negativa | "recebe a confirmação ou negativa;" | 145 |
-| Pagamento externo: registro e status | "registra o resultado;" / "atualiza o status do pedido." | 146, 147 |
-| Rastreabilidade | "A franqueadora exige padronização, rastreabilidade e transparência" | 112 |
+| Unidades com formatos diferentes | "Algumas possuem cozinha completa, outras operam em formato reduzido." | p. 5 |
+| Produtos sazonais / juninos | "Certos produtos só estão disponíveis em épocas específicas do ano (especialmente no período junino)" | p. 5 |
+| Variações regionais | "algumas receitas variam levemente conforme a região." | p. 5 |
+| Estoque local | "controle de estoque local;" | p. 5 |
+| Metas e indicadores por unidade | "metas e indicadores de desempenho." | p. 5 |
+| Fidelidade: pontos | "acumular pontos;" | p. 5 |
+| Fidelidade: campanhas segmentadas | "permitir campanhas segmentadas;" | p. 5 |
+| Fidelidade: frequência, idade e perfil | "considerar fatores como frequência de consumo, idade e perfil do cliente." | p. 5 |
+| Consentimento | "consentimento explícito para uso de dados;" | p. 5 |
+| Anonimização | "anonimização quando aplicável;" | p. 6 |
+| Auditoria de acessos | "auditoria de acessos;" | p. 6 |
+| Pagamento externo: solicitação | "solicita o pagamento;" | p. 6 |
+| Pagamento externo: confirmação ou negativa | "recebe a confirmação ou negativa;" | p. 6 |
+| Pagamento externo: registro e status | "registra o resultado;" / "atualiza o status do pedido." | p. 6 |
+| Rastreabilidade | "A franqueadora exige padronização, rastreabilidade e transparência" | p. 5 |
 
 ## Processos de negócio e grãos — 🧑 autor
 

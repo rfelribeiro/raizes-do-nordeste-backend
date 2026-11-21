@@ -6,7 +6,7 @@ execução:
 - Swagger UI: `http://localhost:${API_PORT}/docs`
 - OpenAPI JSON: `http://localhost:${API_PORT}/openapi.json`
 
-O contrato segue o roteiro oficial da trilha (`init/roteiro_trilha_backend.md`) e está todo em
+O contrato segue o roteiro oficial da trilha (Roteiro de Atividade Prática da Trilha Back-end, 2026) e está todo em
 português ([ADR 0010](../arquitetura/adr/0010-idioma-portugues.md)). As convenções de campos e
 enums estão na seção "Contrato da API" do
 [dicionário de dados](../dados/dicionario-de-dados.md#contrato-da-api).
@@ -15,7 +15,7 @@ enums estão na seção "Contrato da API" do
 
 | Item | Convenção |
 |---|---|
-| Rotas | plural, em português: `/auth`, `/usuarios`, `/unidades`, `/produtos`, `/estoque`, `/pedidos`, `/pagamentos`, `/fidelidade` |
+| Rotas | plural, em português: `/auth`, `/usuarios`, `/unidades`, `/produtos`, `/estoques`, `/pedidos` (pagamento como subrecurso: `/pedidos/{id}/pagamentos`), `/fidelidade`, `/consentimentos`, `/auditoria` |
 | Campos JSON | `camelCase` em português: `canalPedido`, `clienteId`, `unidadeId`, `itens`, `produtoId`, `quantidade`, `formaPagamento`, `precoUnitario`, `criadoEm` |
 | Enums | MAIÚSCULAS, sem acento: `AGUARDANDO_PAGAMENTO`; `canalPedido`: `APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB` |
 | Paginação | `?page=1&limit=10` (nomes do roteiro) |

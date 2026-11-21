@@ -8,10 +8,10 @@ Modelagem do sistema (seção 4 do documento principal): casos de uso, diagrama 
 | Artefato | Situação |
 |---|---|
 | [DER do banco transacional (PostgreSQL)](der.md) | Produzido |
-| Casos de uso | A produzir |
-| Diagrama de classes | A produzir |
-| Diagramas de sequência | A produzir |
-| Diagramas de estados (ciclo de vida do pedido) | A produzir |
+| [Casos de uso](casos-de-uso.md) (diagrama, 11 descrições detalhadas e 16 resumidas) | Produzido |
+| [Diagramas de classes](classes.md) (domínio e camada de aplicação com portas) | Produzido |
+| [Diagramas de sequência](sequencia.md) (Realizar Pedido, Solicitar Pagamento, Atualizar Status) | Produzido |
+| Diagrama de estados (ciclo de vida do pedido) | Produzido: [seção 5.1 dos requisitos](../requisitos/README.md#51-máquina-de-estados-do-pedido) |
 
 ## Dois modelos, dois propósitos
 

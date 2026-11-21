@@ -7,7 +7,7 @@
 
 O [ADR 0009](0009-nomenclatura-e-contratos-de-dados.md) (D-033) decidiu por nomes de dados em
 inglês, pensando em parcerias e integrações futuras. Depois disso, o roteiro oficial da trilha
-(`init/roteiro_trilha_backend.pdf`, transcrito em `init/roteiro_trilha_backend.md`) mostrou que o
+(PDF oficial da disciplina, mantido só localmente; ver D-055) mostrou que o
 **contrato da API é em português**: rotas (`/pedidos`, `/unidades`), campos (`canalPedido`,
 `clienteId`, `itens`, `quantidade`), enums (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`) e mensagens
 de erro. Manter a API em português e o banco em inglês criaria duas línguas no mesmo sistema.
