@@ -47,3 +47,7 @@ analytics/dbt/raizes_dw/logs/
 logs/
 *.duckdb
 *.duckdb.wal
+
+# Documento de entrega: dados pessoais da capa e arquivos gerados ficam fora do git
+docs/entrega/capa.local.yaml
+docs/entrega/saida/

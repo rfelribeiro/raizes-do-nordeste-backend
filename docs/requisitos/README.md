@@ -40,10 +40,10 @@ MoSCoW: M = Must, S = Should, C = Could. "MVP (implementado)" entra na API entre
 | RF-12 | **Nova tentativa de pagamento** após recusa, mantendo o pedido em AGUARDANDO_PAGAMENTO | M | MVP (implementado) | Cobre o cenário de falha do mock e evita perder a venda | [trilha L102](../../init/roteiro_trilha_backend.md#L102), [trilha L479](../../init/roteiro_trilha_backend.md#L479) | D-042 🤝 |
 | RF-13 | **Trilha de auditoria** de ações sensíveis (criação, cancelamento, mudança de status, ajuste de estoque, acesso a dados pessoais), com consulta por ADMIN e por GERENTE (este só da sua unidade) (`GET /auditoria`) | M | MVP (implementado) | Registro de ações sensíveis é critério de avaliação e requisito da matriz | [trilha L500](../../init/roteiro_trilha_backend.md#L500), [caso L110](../../init/roteiro.md#L110) | D-038 🤝 |
 | RF-14 | **Registrar e revogar consentimento** por finalidade (`/consentimentos`), guardando finalidade, base legal, data e versão do termo | M | MVP (implementado) | Exigência explícita de LGPD do roteiro | [trilha L252](../../init/roteiro_trilha_backend.md#L252), [trilha L100](../../init/roteiro_trilha_backend.md#L100) | D-038 🤝 |
-| RF-15 | **Consultar os próprios dados pessoais** (titular) | S | MVP (implementado) | Direito de acesso do titular (LGPD, art. 18) | [trilha L252](../../init/roteiro_trilha_backend.md#L252) | 🤖 proposta |
+| RF-15 | **Consultar os próprios dados pessoais** (titular) | S | MVP (implementado) | Direito de acesso do titular (LGPD, art. 18) | [trilha L252](../../init/roteiro_trilha_backend.md#L252) | D-050 🧑 |
 | RF-16 | **Estoque** (`/estoques`): saldo por produto × unidade; entrada pelo GERENTE; reserva na criação do pedido; baixa e devolução; 409 quando o saldo for insuficiente; consulta de saldo | S | MVP (implementado) | Restrição de venda por indisponibilidade; evita vender o que não existe no pico | [trilha L99](../../init/roteiro_trilha_backend.md#L99), [caso L155](../../init/roteiro.md#L155) | D-038 🤝, D-040 🤝 |
 | RF-17 | **Fidelidade** (`/fidelidade/...`): acúmulo automático no pagamento aprovado (1 ponto por R$ 1,00), só para cliente com consentimento da finalidade FIDELIDADE; saldo e extrato | S | MVP (implementado) | Fidelização com consentimento é requisito do caso | [trilha L100](../../init/roteiro_trilha_backend.md#L100), [caso L116](../../init/roteiro.md#L116) | D-038 🤝, D-046 🤖 |
-| RF-18 | **Resgate de pontos** (resgate simples como desconto no pedido) | C | Conceitual (documentado) | Roteiro pede "resgate simples"; fica documentado para conter o escopo | [trilha L100](../../init/roteiro_trilha_backend.md#L100) | D-038 🤝 |
+| RF-18 | **Resgate de pontos** como desconto no pedido: múltiplos de 100 pontos (100 pontos = R$ 5,00), até 50% do valor dos itens; débito na criação do pedido e devolução em cancelamento ou expiração | S | MVP (implementado) | O roteiro lista "pontos e resgate simples" entre os obrigatórios | [trilha L100](../../init/roteiro_trilha_backend.md#L100) | D-047 🤝, D-051 🤖 |
 | RF-19 | **Campanhas e promoções** como regra documentada: tipos, vigência, unidades, público e como se aplicam ao pedido | C | Conceitual (documentado) | O roteiro aceita "ao menos como regra/documentação" | [trilha L101](../../init/roteiro_trilha_backend.md#L101), [caso L120](../../init/roteiro.md#L120) | D-038 🤝 |
 | RF-20 | **Expiração de pedido não pago** após 15 min, com devolução da reserva. A regra fica documentada; a tarefa agendada é evolução | C | Conceitual (documentado) | Libera estoque reservado; a tarefa agendada não pontua diretamente | [trilha L99](../../init/roteiro_trilha_backend.md#L99) | D-040 🤝, D-046 🤖 |
 | RF-21 | **Anonimização de cliente inativo** há 2 anos | C | Conceitual (documentado) | Estratégia de retenção/anonimização "quando aplicável" | [trilha L252](../../init/roteiro_trilha_backend.md#L252) | D-046 🤖 |
@@ -96,12 +96,12 @@ stateDiagram-v2
 | RN-01 | O pedido nasce em AGUARDANDO_PAGAMENTO. Uma **recusa** de pagamento mantém o pedido nesse estado e grava a tentativa com o motivo. | D-042 🤝 |
 | RN-02 | CANCELADO só é possível a partir de AGUARDANDO_PAGAMENTO ou de PAGO. A partir de PAGO, o cancelamento **gera estorno** no mock. Depois do preparo (EM_PREPARO em diante), não se cancela. | D-042 🤝 |
 | RN-03 | **Qualquer outra transição** retorna **409** (conflito de regra de negócio) no erro padrão. ENTREGUE e CANCELADO são estados finais. | D-035 🤝 |
-| RN-04 🤖 | **Quem faz cada transição** (divisão proposta pela IA, pendente de validação): **PAGO** só pelo resultado do pagamento, nunca por chamada manual; **COZINHA**: PAGO → EM_PREPARO → PRONTO; **ATENDENTE**: PRONTO → ENTREGUE; **CLIENTE** cancela o próprio pedido em AGUARDANDO_PAGAMENTO; **ATENDENTE e GERENTE** cancelam em PAGO. O GERENTE só atua na própria unidade. | 🤖 proposta |
+| RN-04 | **Quem faz cada transição** (proposta pela IA, validada pelo humano): **PAGO** só pelo resultado do pagamento, nunca por chamada manual; **COZINHA**: PAGO → EM_PREPARO → PRONTO; **ATENDENTE**: PRONTO → ENTREGUE; **CLIENTE** cancela o próprio pedido em AGUARDANDO_PAGAMENTO; **ATENDENTE e GERENTE** cancelam em PAGO. O GERENTE só atua na própria unidade. | D-050 🧑 |
 | RN-05 | **Reserva de estoque:** na criação do pedido, na mesma transação e com bloqueio de linha, reserva-se a quantidade de cada item na unidade. Saldo insuficiente: **409** e nenhum pedido é criado. | D-040 🤝 |
 | RN-06 | **Devolução da reserva** em cancelamento, recusa definitiva (pedido cancelado) e expiração. Pagamento aprovado converte a reserva em baixa. | D-040 🤝 |
 | RN-07 | **Expiração:** pedido não pago em 15 min é cancelado e devolve a reserva (regra documentada; tarefa agendada como evolução). | D-046 🤖 |
 | RN-08 | **Pontos:** acúmulo de 1 ponto por R$ 1,00 pago, só no pagamento aprovado e só se o cliente tiver consentimento ativo da finalidade FIDELIDADE. Sem consentimento, não acumula. | D-038 🤝, D-046 🤖 |
-| RN-09 | **Estorno de pontos** no cancelamento de pedido PAGO que já os gerou. | 🤖 proposta |
+| RN-09 | **Estorno de pontos** no cancelamento de pedido PAGO que já os gerou; pontos resgatados no pedido são devolvidos no cancelamento ou na expiração. | D-050 🧑, D-051 🤖 |
 | RN-10 | **Preço:** usa-se o preço local da unidade, se existir; senão, o preço de referência da rede. O preço é **congelado no item do pedido** (`precoUnitario`) no momento da criação. | D-043 🤝 |
 | RN-11 | **Canal:** `canalPedido` é obrigatório na criação e **imutável** depois dela. | trilha L110 |
 | RN-12 | Só se pede produto **ofertado e disponível** no cardápio da unidade e dentro do período sazonal, quando houver. | D-043 🤝 |
@@ -128,7 +128,7 @@ Authorization: Bearer <token>
 
 ## 7. LGPD (mínimo técnico)
 
-Base normativa: Lei 13.709/2018, art. 7º ([trilha L252](../../init/roteiro_trilha_backend.md#L252)). As bases e prazos abaixo são o desenho técnico do projeto, a validar com o jurídico da rede.
+Base normativa: Lei 13.709/2018, art. 7º ([trilha L252](../../init/roteiro_trilha_backend.md#L252)). As bases e prazos abaixo são o desenho técnico do projeto (validado pelo humano, D-050); numa implantação real, seriam confirmados com o jurídico da rede.
 
 | Dado pessoal | Finalidade | Base legal | Obrigatório? | Retenção |
 |---|---|---|---|---|
@@ -136,17 +136,17 @@ Base normativa: Lei 13.709/2018, art. 7º ([trilha L252](../../init/roteiro_tril
 | E-mail | Login e comunicação sobre o pedido | Execução de contrato (art. 7º, V) | Sim | Igual ao nome |
 | Hash da senha (Argon2id) | Autenticação | Execução de contrato (art. 7º, V) | Sim | Enquanto a conta existir; nunca exposto |
 | Data de nascimento | Campanhas segmentadas por perfil | Consentimento (art. 7º, I), finalidade própria | **Não** | Até a revogação ou a anonimização |
-| Histórico de pedidos | Prestação do serviço, garantia, obrigações fiscais e contábeis da rede | Execução de contrato e cumprimento de obrigação legal (art. 7º, V e II) | Sim, se houver pedido | Conforme obrigação legal vigente; no DW, só pseudonimizado 🤖 proposta |
-| Pontos de fidelidade | Programa de fidelização | Consentimento (art. 7º, I), finalidade FIDELIDADE | **Não** | Enquanto houver consentimento; zerados ou anonimizados na revogação 🤖 proposta |
+| Histórico de pedidos | Prestação do serviço, garantia, obrigações fiscais e contábeis da rede | Execução de contrato e cumprimento de obrigação legal (art. 7º, V e II) | Sim, se houver pedido | Conforme obrigação legal vigente; no DW, só pseudonimizado (D-050 🧑) |
+| Pontos de fidelidade | Programa de fidelização | Consentimento (art. 7º, I), finalidade FIDELIDADE | **Não** | Enquanto houver consentimento; zerados ou anonimizados na revogação (D-050 🧑) |
 | Registros de auditoria de acesso | Segurança, rastreabilidade e prevenção a fraude | Legítimo interesse (art. 7º, IX) e cumprimento de obrigação legal | Sim (gerado pelo sistema) | 1 ano (D-046 🤖) |
 
-**Consentimento.** `POST /consentimentos` registra, por finalidade (FIDELIDADE, MARKETING, DATA_NASCIMENTO e outras que vierem a existir), a **finalidade, a base legal, a data e a versão do termo**. A revogação (`DELETE`/`PATCH` em `/consentimentos`) é tão simples quanto a concessão: grava um novo registro de revogação, sem apagar o histórico. O acúmulo de pontos e o uso da data de nascimento consultam o consentimento vigente. Os nomes exatos das finalidades são 🤖 proposta (ver "Pontos em aberto").
+**Consentimento.** `POST /consentimentos` registra, por finalidade (FIDELIDADE, MARKETING, DATA_NASCIMENTO e outras que vierem a existir), a **finalidade, a base legal, a data e a versão do termo**. A revogação (`DELETE`/`PATCH` em `/consentimentos`) é tão simples quanto a concessão: grava um novo registro de revogação, sem apagar o histórico. O acúmulo de pontos e o uso da data de nascimento consultam o consentimento vigente. Finalidades validadas pelo humano (D-050).
 
 **Logs de acesso a dados sensíveis.** Consultas a dados pessoais de terceiros (por ATENDENTE, GERENTE ou ADMIN) e as ações sensíveis entram na trilha de auditoria (RF-13) com autor, alvo, instante e `requestId`. Os logs técnicos não carregam dados pessoais (RNF-06).
 
 **Retenção e anonimização.** Auditoria retida por 1 ano. Cliente inativo há 2 anos tem nome e e-mail anonimizados (RF-21, conceitual), preservando agregados de pedidos. Pedidos e movimentos financeiros seguem a obrigação legal aplicável.
 
-**Pseudonimização no DW.** O identificador do cliente é transformado por **HMAC** com chave guardada fora do repositório antes de chegar ao DW; payloads do outbox não carregam nome, e-mail nem data de nascimento. O cliente **nunca aparece identificado no DW**; existem membros especiais para cliente não identificado e anonimizado (D-029 🤝, D-031 🤖). O detalhe do HMAC é 🤖 proposta.
+**Pseudonimização no DW.** O identificador do cliente é transformado por **HMAC** com chave guardada fora do repositório antes de chegar ao DW; payloads do outbox não carregam nome, e-mail nem data de nascimento. O cliente **nunca aparece identificado no DW**; existem membros especiais para cliente não identificado e anonimizado (D-029 🤝, D-031 🤖). Algoritmo HMAC-SHA256, com a chave `ANALYTICS_PSEUDONYM_KEY` só no `.env` (D-051 🤖).
 
 ## 8. Integração com pagamento (mock)
 
@@ -154,7 +154,7 @@ O pagamento real é externo; o sistema só solicita, registra o resultado e atua
 
 - **Serviço HTTP separado** no Docker Compose, simulando um gateway (D-041 🤝).
 - **Tokens de teste** determinam o resultado: `tok_aprovado` (aprova), `tok_recusado` (recusa, com motivo) e `tok_timeout` (não responde dentro do prazo).
-- **Fluxo síncrono** com **timeout de 3 s**; até **2 novas tentativas, apenas em caso de timeout** (D-046 🤖). Esgotadas, o pedido permanece em AGUARDANDO_PAGAMENTO e a tentativa fica registrada como falha.
+- **Fluxo síncrono** com **timeout de 3 s**; até **2 novas tentativas, apenas em caso de timeout** (D-046 🤖). Esgotadas, a tentativa fica com status FALHA, o pedido permanece em AGUARDANDO_PAGAMENTO e a API responde **504** no erro padrão (D-051 🤖).
 - **Idempotência:** `Idempotency-Key` em `POST /pedidos` e `POST /pedidos/{id}/pagamentos`; uma repetição não gera cobrança nem pedido duplicados.
 - **Nova tentativa após recusa:** novo `POST /pedidos/{id}/pagamentos` com outro token/forma, enquanto o pedido estiver em AGUARDANDO_PAGAMENTO (RF-12).
 - **Webhook assíncrono:** evolução documentada, não implementada.
@@ -186,7 +186,6 @@ sequenceDiagram
 
 | Item | Situação | Motivo |
 |---|---|---|
-| Resgate de pontos (RF-18) | Conceitual | O acúmulo e o consentimento demonstram a fidelização; o resgate soma pouco ao fluxo crítico |
 | Campanhas (RF-19) | Conceitual | O roteiro aceita regra documentada; implementar exigiria motor de regras |
 | Expiração agendada (RF-20) | Regra documentada | Exige tarefa agendada e infraestrutura extra; o risco é baixo no MVP |
 | Anonimização (RF-21) | Conceitual | Sem base real de clientes inativos para demonstrar; custo alto para peso baixo |
@@ -218,16 +217,8 @@ Item "1) Análise do Problema e Requisitos" da [tabela consolidada](../../init/r
 
 ## Pontos em aberto
 
-Itens 🤖 proposta que dependem de validação humana:
-
-1. Divisão de quem faz cada transição de status (RN-04) e a permissão de ATENDENTE para criar pedido em nome do cliente.
-2. Escopo do RF-15 (consulta dos próprios dados) e nome/lista das finalidades de consentimento (FIDELIDADE, MARKETING, DATA_NASCIMENTO).
-3. Estorno de pontos no cancelamento de pedido PAGO (RN-09) e destino dos pontos na revogação do consentimento.
-4. Bases legais e prazos de retenção da tabela da seção 7 (a validar juridicamente), inclusive o prazo para histórico de pedidos.
-5. Algoritmo e guarda da chave do HMAC da pseudonimização.
-6. Quanto aguardar além dos 3 s × 3 tentativas na resposta síncrona, e o comportamento do pedido após esgotar as tentativas por timeout.
-7. Meta de 99,5% só documentada, sem medição no MVP.
+As propostas da IA listadas aqui na primeira versão foram validadas pelo humano em 2026-11-21 (D-050). Os detalhes restantes (regra de resgate, timeout esgotado, HMAC) foram definidos pela IA na D-051 e aguardam validação. A meta de 99,5% de disponibilidade (RNF-09) fica documentada, sem medição no MVP.
 
 ---
 
-*Escopo decidido pelo humano a partir de opções da IA (D-038 a D-045); detalhes técnicos definidos pela IA a pedido do humano (D-046) e pendentes de validação. Documento redigido por IA (Claude Sonnet 5.5) sob especificação do Claude Opus 5.5.*
+*Escopo decidido pelo humano a partir de opções da IA (D-038 a D-045, D-047); detalhes técnicos definidos pela IA a pedido do humano (D-046, validada na D-050; D-051, pendente). Documento redigido por IA (Claude Sonnet 5.5) sob especificação do Claude Opus 5.5.*
