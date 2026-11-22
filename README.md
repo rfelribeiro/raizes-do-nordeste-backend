@@ -14,6 +14,25 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 > pagamento mock, status, auditoria, consentimento e outbox), por decisão do autor (D-057): o
 > diferencial do trabalho é a análise construir × comprar.
 
+## Visão geral em uma imagem
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/arquitetura/hld/arquitetura-hld-escuro.png">
+  <img src="docs/arquitetura/hld/arquitetura-hld-claro.png" alt="Arquitetura de alto nível: navegador, Postman e gestor acessam contêineres Docker (api, db, gateway-mock, analytics e dashboard); ferramentas pontuais geram testes e o PDF; o GitHub guarda o código e roda a integração contínua">
+</picture>
+
+- **Sempre ligados (`make up`):** `api` recebe os pedidos, `db` (PostgreSQL) guarda tudo e
+  anota os eventos numa caixa de saída (outbox), `gateway-mock` finge ser a operadora de pagamento.
+- **Sob demanda:** `analytics` (`make dw`) copia os eventos para o Data Warehouse (Parquet e
+  DuckDB, com dbt) e `dashboard` (`make dashboard`) mostra o painel de vendas.
+- **Uso pontual:** contêineres que nascem, fazem o serviço e somem: newman (`make postman`),
+  Playwright (capturas) e a geração do PDF ABNT (`make documento`).
+- **GitHub:** a cada envio, a integração contínua sobe tudo do zero e roda 6 verificações.
+- Só as portas 8080 (API), 5432 (banco) e 8501 (painel) ficam abertas, e apenas em `127.0.0.1`.
+
+Versão com a descrição de cada peça: [docs/arquitetura/hld/arquitetura-hld.html](docs/arquitetura/hld/arquitetura-hld.html)
+(abra o arquivo no navegador). Organização interna do código, em camadas: [docs/arquitetura/visao-geral.md](docs/arquitetura/visao-geral.md).
+
 ## Para o avaliador: roteiro de leitura
 
 **Repositório público:** https://github.com/rfelribeiro/raizes-do-nordeste-backend · **Swagger:** `http://localhost:${API_PORT}/docs` com a API rodando (ver "Como reproduzir") · **Coleção Postman:** [`postman/`](postman/README.md)
