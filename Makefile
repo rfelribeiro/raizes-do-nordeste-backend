@@ -12,7 +12,7 @@ RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" api
 LOCK_IMAGE := python:3.14.10-slim
 PIP_TOOLS_VERSION := 7.6.2
 # Imagem do newman (CLI do Postman) usada por `make postman`.
-NEWMAN_VERSION := 6.2.1-alpine
+NEWMAN_VERSION := 6.1.3-alpine
 
 # Pipeline analítico (DW): serviço "analytics" do compose (profile opcional, não sobe no `make up`).
 DW_RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" analytics

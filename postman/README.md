@@ -24,7 +24,7 @@ Pré-requisitos: `make setup`, `make up`, `make migrate` e `make seed`.
 make postman
 ```
 
-Roda `postman/newman:6.2.1-alpine` em contêiner (`--network host`) com `baseUrl` apontando para
+Roda `postman/newman:6.1.3-alpine` em contêiner (`--network host`) com `baseUrl` apontando para
 `http://localhost:<API_PORT do .env>`.
 
 ## Cenários
