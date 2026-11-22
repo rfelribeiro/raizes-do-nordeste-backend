@@ -1497,7 +1497,7 @@ Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela
 | 401 | Sem token ou token inválido ou expirado |
 | 403 | Perfil sem permissão ou colaborador de outra unidade |
 | 404 | Recurso inexistente ou pedido de outro cliente (a existência não é revelada) |
-| 409 | Conflito ou violação de regra de negócio (transição inválida, estoque insuficiente, requisição idempotente em processamento) |
+| 409 | Conflito ou violação de regra de negócio (transição inválida, estoque insuficiente, pagamento já efetuado ou em andamento) |
 | 500 | Falha inesperada, sem vazamento de detalhes internos |
 | 504 | Timeout esgotado no gateway de pagamento; o pedido permanece aguardando pagamento |
 

@@ -122,9 +122,12 @@ async def _application(request: Request, exc: Exception) -> JSONResponse:
 
 async def _validation(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, RequestValidationError)
-    details = [
-        {"field": formatar_loc(err["loc"]), "issue": str(err["msg"])} for err in exc.errors()
-    ]
+    errors = exc.errors()
+    # Corpo que nem chega a ser JSON válido é requisição malformada (400), não validação (D-054).
+    if any(err.get("type") == "json_invalid" for err in errors):
+        code, _ = _CODIGOS[400]
+        return erro_response(request, 400, code, "O corpo da requisição não é um JSON válido.", [])
+    details = [{"field": formatar_loc(err["loc"]), "issue": str(err["msg"])} for err in errors]
     code, message = _CODIGOS[422]
     return erro_response(request, 422, code, message, details)
 

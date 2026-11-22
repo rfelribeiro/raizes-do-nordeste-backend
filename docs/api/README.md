@@ -638,7 +638,7 @@ Decisão: [ADR 0011](../arquitetura/adr/0011-formato-de-erro.md). **Toda** respo
 
 | Status | `error` |
 |---|---|
-| 400 | `REQUISICAO_INVALIDA` (reservado; hoje o corpo JSON malformado devolve 422) |
+| 400 | `REQUISICAO_INVALIDA` (corpo que não é JSON válido; campo ausente ou inválido é 422) |
 | 401 | `NAO_AUTENTICADO` |
 | 403 | `SEM_PERMISSAO` |
 | 404 | `NAO_ENCONTRADO` |

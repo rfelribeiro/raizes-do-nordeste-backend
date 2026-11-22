@@ -71,6 +71,23 @@ def test_rota_inexistente_404(client: TestClient) -> None:
     assert body["details"] == []
 
 
+def test_json_malformado_400(client: TestClient) -> None:
+    response = client.post(
+        "/_pedidos", content=b'{"itens": [', headers={"Content-Type": "application/json"}
+    )
+    assert response.status_code == 400
+    body = response.json()
+    _assert_formato(body, "/_pedidos")
+    assert body["error"] == "REQUISICAO_INVALIDA"
+    assert body["details"] == []
+
+
+def test_campo_ausente_continua_422(client: TestClient) -> None:
+    response = client.post("/_pedidos", json={})
+    assert response.status_code == 422
+    assert response.json()["error"] == "VALIDACAO_FALHOU"
+
+
 def test_metodo_nao_permitido_405(client: TestClient) -> None:
     response = client.delete("/health/live")
     assert response.status_code == 405
