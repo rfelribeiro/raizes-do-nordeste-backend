@@ -71,7 +71,7 @@ seed: ## Carga inicial de demonstração (idempotente; exige as migrações apli
 
 postman: ## Roda a coleção Postman com newman em contêiner (exige `make up` e `make seed`)
 	@port=$$(grep -E '^API_PORT=' .env | head -n1 | cut -d= -f2); \
-	docker run --network host -v "$(CURDIR)/postman":/etc/newman:ro postman/newman:$(NEWMAN_VERSION) \
+	docker run --rm --network host -v "$(CURDIR)/postman":/etc/newman:ro postman/newman:$(NEWMAN_VERSION) \
 		run raizes-mvp.postman_collection.json -e local.postman_environment.json \
 		--env-var baseUrl=http://localhost:$${port:-8080}
 
