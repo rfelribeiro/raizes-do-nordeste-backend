@@ -20,7 +20,7 @@ DW_RUN_DB := $(COMPOSE) run --rm --entrypoint "" analytics
 DBT := dbt
 
 .PHONY: help setup up down logs ps shell test test-integration test-all lint format typecheck \
-	migrate seed postman revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs documento
+	migrate seed postman revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs dw-simulado dashboard dashboard-down dashboard-lock documento
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -120,6 +120,32 @@ dw-docs: dw-dirs ## DW: gera a documentação do dbt (analytics/dbt/raizes_dw/ta
 	$(DW_RUN) $(DBT) docs generate
 
 dw: dw-ingest dw-build ## DW: pipeline completo (ingestão + build)
+
+# DW SIMULADO (dados fictícios): lake e arquivo DuckDB próprios, sem tocar nos dados reais.
+SIM_RUN := $(COMPOSE) run --rm --no-deps -e DW_LAKE_PATH=/app/data/lake_simulado -e DW_DUCKDB_PATH=/app/data/warehouse/raizes_simulado.duckdb --entrypoint "" analytics
+
+dw-simulado: dw-dirs ## DW: gera histórico FICTÍCIO e roda dbt (seed + build) em lake/arquivo separados
+	rm -f data/warehouse/raizes_simulado.duckdb
+	$(SIM_RUN) python -m simulacao.gerar_historico --lake /app/data/lake_simulado
+	$(SIM_RUN) $(DBT) seed
+	$(SIM_RUN) $(DBT) build
+
+DASHBOARD_PORT_EFETIVA := $(shell grep -E '^DASHBOARD_PORT=' .env 2>/dev/null | cut -d= -f2)
+
+dashboard: ## Painel Streamlit (mockup) sobre o DW simulado; exige `make dw-simulado` antes
+	@test -f data/warehouse/raizes_simulado.duckdb || { echo "Rode 'make dw-simulado' antes."; exit 1; }
+	$(COMPOSE) --profile dashboard up -d --build dashboard
+	@echo "Painel (dados fictícios): http://127.0.0.1:$(or $(DASHBOARD_PORT_EFETIVA),8501)"
+
+dashboard-down: ## Derruba o painel Streamlit
+	$(COMPOSE) --profile dashboard stop dashboard
+	$(COMPOSE) --profile dashboard rm -f dashboard
+
+dashboard-lock: ## Regenera dashboard/requirements.lock dentro de um contêiner
+	docker run --rm -u $(HOST_UID) -e HOME=/tmp -e PIP_NO_WARN_SCRIPT_LOCATION=1 -v "$(CURDIR)":/work -w /work $(LOCK_IMAGE) sh -c '\
+		python -m pip install --quiet --user pip-tools==$(PIP_TOOLS_VERSION) && \
+		python -m piptools compile --quiet --strip-extras --no-emit-index-url \
+			-o dashboard/requirements.lock dashboard/requirements.in'
 
 dw-lock: ## Regenera analytics/requirements.lock dentro de um contêiner
 	docker run --rm -u $(HOST_UID) -e HOME=/tmp -e PIP_NO_WARN_SCRIPT_LOCATION=1 -v "$(CURDIR)":/work -w /work $(LOCK_IMAGE) sh -c '\

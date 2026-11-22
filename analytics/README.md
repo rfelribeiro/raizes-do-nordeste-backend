@@ -35,11 +35,36 @@ docker compose run --rm --no-deps --entrypoint "" analytics python -c \
   "import duckdb; print(duckdb.connect('/app/data/warehouse/raizes.duckdb', read_only=True).sql('select count(*) from gold.dim_tempo'))"
 ```
 
+## Histórico simulado e painel (mockup)
+
+Para dar série temporal a uma demonstração, `make dw-simulado` gera eventos de domínio
+**100% fictícios** (determinísticos, `--semente`) e roda o `dbt seed` + `dbt build` do mesmo
+projeto sobre eles. `make dashboard` sobe o painel Streamlit (`dashboard/`) sobre esse resultado.
+
+```bash
+make dw-simulado   # gera o histórico (~32 mil pedidos, 01/01 a 20/11/2026) e constrói a gold simulada
+make dashboard     # painel em http://127.0.0.1:8501 (porta: DASHBOARD_PORT); make dashboard-down derruba
+```
+
+Separação total dos dados reais:
+
+```
+data/lake_simulado/bronze/outbox_eventos/dt=AAAA-MM-DD/simulado.parquet   # lake simulado
+data/warehouse/raizes_simulado.duckdb                                     # DW simulado (silver + gold)
+```
+
+O gerador (`simulacao/gerar_historico.py`) recusa destinos sem "simulado" no nome. Os parâmetros
+(sazonalidade semanal, picos de almoço e jantar, período junino com picos em 24/06 e 29/06, mix de
+canais por unidade, taxas de recusa, tempos de preparo) ficam no topo do arquivo, comentados. As
+unidades são as do seed mais duas fictícias com UUIDs fixos (`uuid5`). **Aviso:** os dados são
+fictícios e o painel é um mockup para apresentação.
+
 ## Estrutura
 
 ```
 ingestao/extrair_outbox.py   # extrator incremental (funções puras + I/O)
 ingestao/gerar_feriados.py # gera o seed de feriados nacionais (algoritmo da Páscoa)
+simulacao/gerar_historico.py # histórico sintético (dados fictícios) no esquema do bronze
 tests/                       # testes das funções puras
 dbt/raizes_dw/               # projeto dbt: models/staging (silver), models/marts (gold), seeds
 Dockerfile                   # imagem do serviço analytics (Python 3.14.10, usuário não-root)

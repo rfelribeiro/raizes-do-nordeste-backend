@@ -134,6 +134,8 @@ Não sobe no `make up`; rode depois dele:
 make dw           # extrai eventos da outbox para o bronze e roda dbt (silver + gold + testes)
 make dw-ingest    # só a ingestão          make dw-build   # só o dbt (seed + build)
 make dw-test      # testes do pipeline     make dw-docs    # docs do dbt
+make dw-simulado  # histórico FICTÍCIO + dbt, em lake/arquivo separados dos dados reais
+make dashboard    # painel Streamlit (mockup) sobre o DW simulado, em http://127.0.0.1:8501
 ```
 
 Os arquivos gerados ficam em `data/` (fora do git). Sem eventos na outbox o pipeline também

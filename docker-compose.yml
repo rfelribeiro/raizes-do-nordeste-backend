@@ -83,5 +83,21 @@ services:
       db:
         condition: service_healthy
 
+  # Painel Streamlit (mockup, dados fictícios). Fora do `make up`: só via `make dashboard`.
+  # Lê o DuckDB simulado em modo somente leitura; porta publicada só em 127.0.0.1.
+  dashboard:
+    profiles: ["dashboard"]
+    build:
+      context: ./dashboard
+      args:
+        UID: ${HOST_UID:-1000}
+    environment:
+      DW_DUCKDB_PATH: /app/data/warehouse/raizes_simulado.duckdb
+    ports:
+      - "127.0.0.1:${DASHBOARD_PORT:-8501}:8501"
+    volumes:
+      - ./data:/app/data:ro
+    restart: unless-stopped
+
 volumes:
   pgdata:
