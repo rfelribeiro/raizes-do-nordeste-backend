@@ -1842,7 +1842,55 @@ As evidências são de três tipos. A primeira é a saída do newman: a coleçã
 
 A terceira é a execução nominal dos cenários, que ficam nomeados na coleção e mapeados na Tabela 17: o fluxo feliz está em `P01 - Cliente cria pedido APP (201)`, `P06 - Pagamento aprovado tok_aprovado (201, pedido PAGO)` e `P07`, `P08` e `P09` (status até ENTREGUE); o pagamento negado, em `P04 - Pagamento recusado tok_recusado (201, pedido segue aguardando)`; a auditoria, em `P13 - Auditoria: admin encontra PEDIDO_CRIADO do pedido (200)`; e os erros, em `N01` a `N12`, sempre validando o erro padrão completo (`error`, `message`, `details`, `timestamp`, `path` e `requestId`).
 
-As capturas de tela do Swagger local (`http://localhost:${API_PORT}/docs`), mostrando os endpoints do fluxo e uma resposta de cada tipo, serão produzidas pelo autor e ficam em `docs/testes/evidencias/`. <!-- PENDENTE (autor): inserir as capturas do Swagger. -->
+As capturas de tela do Swagger local (`http://localhost:${API_PORT}/docs`), mostrando os endpoints do fluxo e uma resposta de cada tipo, estão em `docs/testes/evidencias/` e foram geradas pelo script `scripts/evidencias/capturar_swagger.py` (navegador headless em contêiner, sem tokens visíveis), como mostram as Figuras 12 a 19.
+
+**Figura 12 — Swagger local (`/docs`): todos os endpoints da API, agrupados por tag**
+
+![Figura 12 — Swagger local (`/docs`): todos os endpoints da API, agrupados por tag](../testes/evidencias/swagger-visao-geral.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 13 — Autorização no Swagger com o token do cliente de demonstração (valor mascarado pela interface)**
+
+![Figura 13 — Autorização no Swagger com o token do cliente de demonstração (valor mascarado pela interface)](../testes/evidencias/swagger-autorizado.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 14 — `POST /api/v1/pedidos` com canal APP: resposta 201 e pedido em AGUARDANDO_PAGAMENTO**
+
+![Figura 14 — `POST /api/v1/pedidos` com canal APP: resposta 201 e pedido em AGUARDANDO_PAGAMENTO](../testes/evidencias/swagger-criar-pedido-201.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 15 — `POST /api/v1/pedidos` sem `canalPedido`: resposta 422 no erro padrão**
+
+![Figura 15 — `POST /api/v1/pedidos` sem `canalPedido`: resposta 422 no erro padrão](../testes/evidencias/swagger-erro-422-canal.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 16 — `POST /api/v1/pedidos` com quantidade acima do estoque: resposta 409 `ESTOQUE_INSUFICIENTE`**
+
+![Figura 16 — `POST /api/v1/pedidos` com quantidade acima do estoque: resposta 409 `ESTOQUE_INSUFICIENTE`](../testes/evidencias/swagger-erro-409-estoque.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 17 — `POST /api/v1/pedidos/{id}/pagamentos` com `tok_recusado`: 201 com tentativa RECUSADO e pedido ainda em AGUARDANDO_PAGAMENTO**
+
+![Figura 17 — `POST /api/v1/pedidos/{id}/pagamentos` com `tok_recusado`: 201 com tentativa RECUSADO e pedido ainda em AGUARDANDO_PAGAMENTO](../testes/evidencias/swagger-pagamento-recusado.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 18 — `POST /api/v1/pedidos/{id}/pagamentos` com `tok_aprovado`: 201 com tentativa APROVADO e pedido PAGO**
+
+![Figura 18 — `POST /api/v1/pedidos/{id}/pagamentos` com `tok_aprovado`: 201 com tentativa APROVADO e pedido PAGO](../testes/evidencias/swagger-pagamento-aprovado.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Figura 19 — `GET /api/v1/auditoria` com o token do administrador: registros `PEDIDO_CRIADO`**
+
+![Figura 19 — `GET /api/v1/auditoria` com o token do administrador: registros `PEDIDO_CRIADO`](../testes/evidencias/swagger-auditoria.png)
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 # 7 Plano de testes e evidências
 

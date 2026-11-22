@@ -84,7 +84,20 @@ Resumos em [evidencias/](evidencias/) (sem tokens nem credenciais):
 - [pytest-resumo.txt](evidencias/pytest-resumo.txt): `make test` (375 passaram) e
   `make test-integration` (83 passaram).
 
-As capturas de tela do Swagger (`/docs`) são feitas pelo autor e ficam em `docs/testes/evidencias/`.
+### Capturas do Swagger
+
+Geradas por `scripts/evidencias/capturar_swagger.py` (Playwright em contêiner, comando no cabeçalho do
+script), com dados reais do seed; o comando curl do Swagger é ocultado para não expor tokens. Em
+[evidencias/](evidencias/):
+
+- `swagger-visao-geral.png`: todos os endpoints, por tag.
+- `swagger-autorizado.png`: autorização com o token do cliente (valor mascarado).
+- `swagger-criar-pedido-201.png`: `POST /pedidos` com resposta 201.
+- `swagger-erro-422-canal.png`: sem `canalPedido`, 422 no erro padrão.
+- `swagger-erro-409-estoque.png`: quantidade acima do estoque, 409 `ESTOQUE_INSUFICIENTE`.
+- `swagger-pagamento-recusado.png` e `swagger-pagamento-aprovado.png`: pagamento com `tok_recusado` e
+  `tok_aprovado`.
+- `swagger-auditoria.png`: `GET /auditoria` (admin) com `PEDIDO_CRIADO`.
 
 ## 5. Teste de carga
 
