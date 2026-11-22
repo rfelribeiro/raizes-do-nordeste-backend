@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from raizes.api.dependencies import get_database_health_check
+from raizes.api.composition.health import get_database_health_check
 from raizes.main import create_app
 
 
