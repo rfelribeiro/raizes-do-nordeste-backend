@@ -108,7 +108,7 @@ Notas do diagrama:
 
 | Ator | Escopo | Observação |
 |---|---|---|
-| CLIENTE | Os próprios dados e pedidos | Também age pelos canais APP, WEB, PICKUP e TOTEM |
+| CLIENTE | Os próprios dados e pedidos | Cria pedidos pelos canais APP, WEB e PICKUP (RN-14) |
 | ATENDENTE | Unidade de lotação | Cria pedido em nome do cliente (BALCAO, TOTEM) |
 | COZINHA | Unidade de lotação | Só avança PAGO → EM_PREPARO → PRONTO |
 | GERENTE | Somente a própria unidade | Realiza tudo o que ATENDENTE e COZINHA realizam, mais cardápio da unidade, estoque e auditoria da unidade |
@@ -306,7 +306,7 @@ Criação de um pedido em uma unidade, por um canal (`canalPedido`), com reserva
 
 **Ator principal**
 
-CLIENTE (canais APP, WEB, PICKUP, TOTEM) ou ATENDENTE (em nome do cliente, BALCAO e TOTEM; D-050).
+CLIENTE (canais APP, WEB e PICKUP) ou ATENDENTE e GERENTE (em nome do cliente, BALCAO e TOTEM; D-050, RN-14).
 
 **Demais atores**
 
@@ -435,7 +435,7 @@ Código HTTP da resposta de recusa (🤖 D8). Uma linha de tentativa por `POST`,
 **Fluxo alternativo**
 
 - 2a. [Exceção 401] Token ausente ou inválido.
-- 2b. [Exceção 403] Pedido de outro cliente (colaboradores não solicitam pagamento neste MVP).
+- 2b. [Exceção 403] Colaborador solicitando pagamento (só o CLIENTE dono paga neste MVP).
 - 2c. [Exceção 404] Pedido inexistente (também usado quando o pedido pertence a outro cliente, para não revelar existência; RNF-03).
 - 2d. [Exceção 400] Corpo JSON malformado. [Exceção 422] Campo ausente ou forma de pagamento fora do enum.
 - 3a. Repetição da mesma chave com o mesmo corpo: devolve a resposta original, sem nova cobrança (RN-13). Corpo diferente: [Exceção 422].
