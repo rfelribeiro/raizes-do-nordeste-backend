@@ -53,3 +53,6 @@ logs/
 # Documento de entrega: dados pessoais da capa e arquivos gerados ficam fora do git
 docs/entrega/capa.local.yaml
 docs/entrega/saida/
+
+# Worktrees dos agentes de implementação (Claude Code)
+.claude/worktrees/
