@@ -1964,19 +1964,35 @@ como DER/Classes/Casos de Uso se conectam aos endpoints e ao fluxo crítico; com
 foi tratado; validações e erros padronizados; cuidados de segurança/LGPD; como os testes evidenciam
 o funcionamento. Roteiro geral: lições aprendidas, desafios e evoluções futuras.
 Ponte para a proposta final à Raízes (D-037): construir × comprar.
-STATUS: ⬜ AUTORIA: 🧑 (texto autoral)
+STATUS: ✅ AUTORIA: 🧑 (texto autoral)
 -->
 
-<!-- ROTEIRO PARA O AUTOR (a trilha pede que a conclusão cubra todos os itens abaixo):
-1. O que foi implementado e o que ficou como proposta, com as prioridades e a justificativa (seção 2.6; tabela de entrega dos RFs; RT p. 13).
-2. Como o DER, o diagrama de classes e os casos de uso se conectam aos endpoints e ao fluxo crítico pedido → pagamento → status (seções 3.1 a 3.5 e 4; RT p. 13).
-3. Como o pagamento mock foi tratado: serviço HTTP separado, tokens de teste, timeout de 3 s, novas tentativas só em timeout, idempotência, recusa que mantém o pedido aguardando (RF-11, RF-12, RNF-10; D-041, D-042).
-4. Quais validações e erros foram padronizados: erro padrão do roteiro, 400 e 422, 401, 403, 404, 409, `canalPedido` obrigatório (seção 4.2; D-035).
-5. Principais cuidados de segurança e LGPD: Argon2id, JWT, autorização por perfil e unidade, minimização, consentimento versionado, auditoria, pseudonimização no DW (seção 5).
-6. Como os testes evidenciam o funcionamento: cenários positivos e negativos, coleção Postman, testes de integração, teste de carga (seção 7, a preencher após a implementação).
-7. Lições aprendidas, desafios e evoluções futuras (webhook de pagamento, expiração agendada, CDC, Lakehouse), inclusive o uso de IA como par de arquitetura e o que o autor aprendeu decidindo (Apêndice A).
-8. Ponte para a proposta final à Raízes (D-037): o que vale construir sob medida e o que vale comprar de prateleira.
--->
+<!-- AUTORIA: parágrafos técnicos redigidos pela IA a partir do que foi implementado; lições, evoluções e fechamento são do autor (D-061). -->
+
+Este trabalho entregou uma API REST que fecha o fluxo crítico da Rede Raízes do Nordeste: pedido, pagamento simulado e atualização de status, com persistência real em PostgreSQL. Foram implementados o login com JWT, a autorização por perfil e por unidade, a criação de pedidos com `canalPedido` obrigatório e reserva de estoque, a consulta de pedidos com filtros e paginação, a máquina de estados do pedido, o pagamento por um gateway simulado, a trilha de auditoria, o registro de consentimentos e a publicação de eventos de domínio para o Data Warehouse. Os demais requisitos, como cadastro de clientes, gestão de catálogo e estoque, cancelamento e fidelidade, foram especificados e modelados, mas não implementados, por decisão consciente de escopo (D-057): a prioridade MoSCoW registra o valor de cada requisito para o negócio, e a coluna "Entrega" da Tabela 2 mostra o que foi codificado.
+
+Os modelos se conectam diretamente ao código. As tabelas do DER são as da migração do banco; as classes do domínio (`Order`, `Stock`, `Consent`) concentram as regras de negócio sem depender de framework; e cada caso de uso detalhado corresponde a um endpoint: Realizar Pedido a `POST /pedidos`, Solicitar Pagamento a `POST /pedidos/{id}/pagamentos` e Atualizar Status a `PATCH /pedidos/{id}/status`. Os diagramas de sequência descrevem a mesma ordem de passos que o código executa, inclusive o bloqueio de linhas do estoque e o pagamento em duas transações curtas.
+
+O pagamento foi tratado como um serviço HTTP separado no Docker Compose, que responde conforme um token de teste: aprovado, recusado ou sem resposta. A API aguarda no máximo 3 segundos, repete a chamada até duas vezes apenas em caso de tempo esgotado e, se não houver resposta, registra a falha e devolve 504. A recusa mantém o pedido aguardando pagamento e permite nova tentativa, e a chamada externa acontece fora de qualquer transação aberta no banco.
+
+Todas as respostas de erro seguem o mesmo formato JSON definido pelo roteiro, com `error`, `message`, `details`, `timestamp`, `path` e `requestId`. Os códigos foram padronizados: 400 para corpo que não é JSON válido, 422 para campo ausente ou inválido (como `canalPedido`), 401 sem autenticação, 403 sem permissão, 404 para recurso inexistente ou pedido de outro cliente, 409 para estoque insuficiente ou transição de status inválida, e 504 quando o gateway não responde.
+
+Na segurança e na LGPD, as senhas são guardadas com Argon2id, o acesso usa JWT com validade de 60 minutos, e cada operação confere o perfil e a unidade de quem a solicita. A coleta de dados pessoais é mínima, sem CPF nem telefone; os consentimentos são registrados por finalidade, com versão do termo e sem apagar o histórico; a auditoria e os logs não guardam dados pessoais; e os eventos enviados ao Data Warehouse levam apenas identificadores, pseudonimizados na camada analítica.
+
+O funcionamento é comprovado por testes em três níveis: testes unitários das regras de domínio, testes de integração contra um PostgreSQL real (incluindo a disputa simultânea pelo último item em estoque) e uma coleção Postman com cenários positivos e negativos, executada de ponta a ponta contra a API e o gateway simulado. Todos rodam também na integração contínua do repositório, e o teste de carga ficou documentado como evolução.
+
+<!-- AUTORIA: texto do autor, com revisão de forma pela IA (D-061). -->
+
+O maior desafio deste trabalho foi interpretar o quanto a API precisava estar funcional. Essa dificuldade talvez venha do fato de eu não atuar no dia a dia com back-end, já que minha experiência está na área de dados. Com o auxílio da IA, porém, poucos prompts e perguntas bem colocadas permitiram tomar decisões mais direcionadas. O trabalho dá margem para que, com tempo, se construa uma solução realmente rentável: com o contexto apresentado e o apoio da IA, seria possível criar pequenos módulos e comercializá-los a partir do que foi desenvolvido. Ainda assim, optei pelo lado didático e concentrei o esforço nas decisões e no formato de apresentação, apoiado na experiência que já tenho no mercado de tecnologia, na área de análise de dados. Atualmente, atuo como Tech Lead de dois produtos de dados que utilizam ferramentas como Azure SQL Database, Azure Analysis Services e Dedicated SQL Pool. Muitas das ferramentas usadas neste trabalho foram adotadas apenas para fins didáticos, sem experiência profissional prévia com elas. A crescente adoção do PostgreSQL pelas empresas, principalmente por sua capacidade de atender cenários de busca vetorial e de uso com IA, foi um fator decisivo na escolha da arquitetura.
+
+<!-- AUTORIA: frase técnica de evolução redigida pela IA; o restante do parágrafo seguinte é do autor (D-061). -->
+
+No plano técnico, as evoluções naturais são os itens que já estão modelados: idempotência das requisições, cancelamento, fidelidade, expiração automática de pedidos não pagos, confirmação de pagamento por webhook e a evolução do Data Warehouse para uma arquitetura Lakehouse.
+
+Se eu apresentasse esta proposta aos gestores da Raízes do Nordeste, porém, começaria pelos processos, mesmo que eles gostassem do desenho da solução. O motivo é simples: no papel, tudo funciona, mas mudar a cultura e a forma como as pessoas trabalham é muito mais complexo do que ajustar uma ferramenta. Além disso, mudanças em projetos de tecnologia custam caro, e a própria implantação tem um custo. Meu papel seria o de facilitador: oferecer aos gestores um leque de opções, entre soluções próprias e de mercado, para aplicar processos bem definidos de maneira mais eficiente e sustentar o crescimento da rede. Fica uma reflexão: uma nova franquia receberia o suporte adequado enquanto toda a rede ainda está aprendendo a usar a solução recém-implantada? A tecnologia costuma ser a última coisa a ser aprendida e, muitas vezes, a que mais dificulta o sucesso de um negócio.
+
+Em síntese, o sucesso da Raízes do Nordeste depende mais da maturidade dos seus processos e da sua operação do que da tecnologia que estará por trás, sustentando tudo.
+
 
 # Referências
 
