@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
 
-from raizes.api.dependencies import get_database_health_check
+from raizes.api.composition.health import get_database_health_check
 from raizes.api.errors import erro_response
 from raizes.application.ports.health import DatabaseHealthCheck
 

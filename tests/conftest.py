@@ -9,3 +9,4 @@ import os
 os.environ.setdefault("POSTGRES_DB", "raizes_teste")
 os.environ.setdefault("POSTGRES_USER", "raizes_teste")
 os.environ.setdefault("POSTGRES_PASSWORD", "senha_ficticia_de_teste")
+os.environ.setdefault("JWT_SECRET", "segredo_jwt_ficticio_apenas_para_testes_0123456789")

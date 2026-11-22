@@ -17,7 +17,14 @@ from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from raizes.api.schemas.erro import DetalheErro, ErroPadrao
-from raizes.application.errors import ApplicationError
+from raizes.application.errors import (
+    ApplicationError,
+    ApplicationValidationError,
+    AuthenticationError,
+    ConflictError,
+    DependencyTimeoutError,
+    PermissionDeniedError,
+)
 from raizes.domain.shared.errors import BusinessRuleViolationError, DomainError, NotFoundError
 from raizes.infrastructure.logging import request_id_var
 
@@ -36,7 +43,17 @@ _CODIGOS: dict[int, tuple[str, str]] = {
     422: ("VALIDACAO_FALHOU", "Um ou mais campos da requisição são inválidos."),
     429: ("MUITAS_REQUISICOES", "Muitas requisições; tente novamente mais tarde."),
     503: ("SERVICO_INDISPONIVEL", "Serviço temporariamente indisponível."),
+    504: ("TEMPO_ESGOTADO", "Tempo esgotado ao aguardar um serviço dependente."),
 }
+
+# Status HTTP dos erros de aplicação (ApplicationError genérico = 400).
+_STATUS_APLICACAO: tuple[tuple[type[ApplicationError], int], ...] = (
+    (AuthenticationError, 401),
+    (PermissionDeniedError, 403),
+    (ConflictError, 409),
+    (ApplicationValidationError, 422),
+    (DependencyTimeoutError, 504),
+)
 
 
 def erro_response(
@@ -98,7 +115,9 @@ async def _domain(request: Request, exc: Exception) -> JSONResponse:
 
 async def _application(request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, ApplicationError)
-    return erro_response(request, 400, exc.codigo, exc.message, exc.detalhes)
+    status = next((s for tipo, s in _STATUS_APLICACAO if isinstance(exc, tipo)), 400)
+    headers = {"WWW-Authenticate": "Bearer"} if status == 401 else None
+    return erro_response(request, status, exc.codigo, exc.message, exc.detalhes, headers)
 
 
 async def _validation(request: Request, exc: Exception) -> JSONResponse:

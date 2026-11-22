@@ -61,6 +61,7 @@ Decisão: [ADR 0011](../arquitetura/adr/0011-formato-de-erro.md). **Toda** respo
 | 422 | `VALIDACAO_FALHOU` (com `details` por campo) |
 | 500 | `ERRO_INTERNO` (nunca expõe stack nem mensagem interna) |
 | 503 | `SERVICO_INDISPONIVEL` (ex.: banco fora do ar em `/health/ready`) |
+| 504 | `TEMPO_ESGOTADO` (dependência, como o gateway de pagamento, sem resposta após as novas tentativas) |
 
 Exceções de domínio carregam o próprio `codigo` (e, opcionalmente, `detalhes`), que a camada API
 traduz para este formato.

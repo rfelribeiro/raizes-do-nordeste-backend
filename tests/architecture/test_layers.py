@@ -22,8 +22,8 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
     "application": ("raizes.api", "raizes.infrastructure", "fastapi", "sqlalchemy"),
     "api": ("raizes.infrastructure.db",),
 }
-# Arquivos autorizados a fazer a composição (podem importar infraestrutura).
-COMPOSITION_FILES = {"api/dependencies.py"}
+# Prefixo autorizado a fazer a composição (pode importar infraestrutura).
+COMPOSITION_PREFIX = "api/composition/"
 
 
 def _matches(module: str, prefix: str) -> bool:
@@ -50,7 +50,7 @@ def imported_modules(source: str, module_name: str, is_package: bool) -> set[str
 
 
 def violations_in(source: str, layer: str, module_name: str, relative_path: str) -> list[str]:
-    if relative_path in COMPOSITION_FILES:
+    if relative_path.startswith(COMPOSITION_PREFIX):
         return []
     found = imported_modules(source, module_name, relative_path.endswith("__init__.py"))
     return sorted(
@@ -90,5 +90,6 @@ def test_detector_flags_forbidden_imports() -> None:
 
 def test_detector_allows_composition_file_and_clean_code() -> None:
     source = "from raizes.infrastructure.db.session import get_engine"
-    assert violations_in(source, "api", "raizes.api.dependencies", "api/dependencies.py") == []
+    assert violations_in(source, "api", "raizes.api.composition.db", "api/composition/db.py") == []
+    assert violations_in(source, "api", "raizes.api.health", "api/health.py")
     assert violations_in("import json", "domain", "raizes.domain.x", "x.py") == []
