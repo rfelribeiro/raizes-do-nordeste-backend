@@ -83,5 +83,21 @@ e o esquema do bronze. Assim `stg_outbox_eventos` funciona (e retorna 0 linhas) 
   (seed `feriados_nacionais`, gerado por `python analytics/ingestao/gerar_feriados.py`) e período
   junino (`eh_periodo_junino`) parametrizado em `dbt_project.yml` (**definição de negócio a validar pelo autor**).
 
-Dimensões e fatos de negócio ainda não existem: a modelagem dimensional é de autoria humana
+- Dimensões estáticas (gold, SCD 1, com membro -1): `dim_canal`, `dim_status_pedido`
+  (valores do enum `OrderStatus`) e `dim_forma_pagamento` (valores de `PaymentMethod`).
+- `dim_hora` (gold): grão minuto (1440 linhas + membro -1), `sk_hora` = HHMM. Limites de
+  `periodo_dia` e janelas de `eh_pico` em `vars` do `dbt_project.yml` (**definição de negócio a validar pelo autor**).
+- `dim_unidade` (gold): mínima, só `id_unidade` dos eventos.
+- `int_cliente_pseudonimo` (silver, modelo Python) e `dim_cliente` (gold): cliente mínimo e
+  pseudonimizado (HMAC-SHA256 com `ANALYTICS_PSEUDONYM_KEY`; o DuckDB não tem HMAC nativo, por
+  isso o modelo é Python). O id em claro fica só na silver. Membros -1 (sem cliente) e -2
+  (anonimizado; só o membro, o processo fica como evolução). Sem a chave, o build falha com mensagem clara; na CI usa-se um valor fictício.
+- `fct_pedido` (gold): um pedido, no status mais recente conhecido.
+- `fct_tentativa_pagamento` (gold): uma tentativa de pagamento com resultado (aprovada ou recusada).
+
+Os fatos 2 (`fct_pedido`) e 4 (`fct_tentativa_pagamento`) da matriz foram implementados pela IA
+seguindo a modelagem do autor (D-062). Lacunas, por falta do dado nos eventos: `numero_pedido`,
+`qtd_itens`, campanha, colaborador, atributos de unidade (nome, cidade, uf, região, formato) e de
+cliente (faixa etária, perfil, cidade), `latencia_gateway_ms`, `dim_motivo` e as tentativas com
+timeout (a tentativa `FALHA` não gera evento). Os demais fatos e dimensões continuam modelados, não implementados
 ([matriz de barramento](../docs/dados/matriz-de-barramento.md)).

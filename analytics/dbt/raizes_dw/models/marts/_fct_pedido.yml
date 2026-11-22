@@ -1,0 +1,96 @@
+version: 2
+
+models:
+  - name: fct_pedido
+    description: >
+      Fato de pedido. Grão - um pedido, no status mais recente conhecido (último status_novo por ocorrido_em, senão o do pedido_criado). Lacunas - numero_pedido, sk_campanha, sk_colaborador e qtd_itens não existem nos eventos; valor_desconto é 0 (sem desconto no MVP).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: id_pedido
+        description: "Id do pedido (dimensão degenerada; UUID em texto). Chave do grão."
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+      - name: sk_data
+        description: "Data civil de criação (America/Recife)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_data
+
+      - name: sk_hora
+        description: "Hora local de criação (HHMM)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_hora')
+                field: sk_hora
+
+      - name: sk_unidade
+        description: "Unidade do pedido."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_unidade')
+                field: sk_unidade
+
+      - name: sk_canal
+        description: "Canal do pedido."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_canal')
+                field: sk_canal
+
+      - name: sk_cliente
+        description: "Cliente (-1 se não identificado)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cliente')
+                field: sk_cliente
+
+      - name: sk_status_pedido
+        description: "Status atual do pedido."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_status_pedido')
+                field: sk_status_pedido
+
+      - name: valor_bruto
+        description: "Valor total do pedido (BRL)."
+        data_type: decimal(12,2)
+        data_tests:
+          - not_null
+      - name: valor_desconto
+        description: "Desconto (sempre 0 no MVP)."
+        data_type: decimal(12,2)
+        data_tests:
+          - not_null
+      - name: valor_liquido
+        description: "Valor bruto menos desconto."
+        data_type: decimal(12,2)
+        data_tests:
+          - not_null
+      - name: criado_em
+        description: "Instante de criação (UTC)."
+        data_type: timestamp with time zone
+        data_tests:
+          - not_null

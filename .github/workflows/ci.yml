@@ -95,6 +95,8 @@ jobs:
       DBT_PROJECT_DIR: analytics/dbt/raizes_dw
       DBT_PROFILES_DIR: analytics/dbt/raizes_dw
       DBT_SEND_ANONYMOUS_USAGE_STATS: "False"
+      # Valor fictício, só para os testes (o modelo de pseudonimização exige uma chave).
+      ANALYTICS_PSEUDONYM_KEY: ci_ficticio_sem_valor_apenas_para_testes
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

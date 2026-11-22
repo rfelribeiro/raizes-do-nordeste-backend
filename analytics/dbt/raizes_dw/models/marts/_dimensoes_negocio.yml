@@ -1,0 +1,184 @@
+version: 2
+
+models:
+  - name: dim_canal
+    description: >
+      Dimensão de canal do pedido (SCD 1, estática): valores do enum canalPedido. Membro -1 = não identificado.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_canal
+        description: "Chave substituta (-1 = não identificado)."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: nome_canal
+        description: "Nome do canal (enum canalPedido). Chave natural usada na carga dos fatos."
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NÃO IDENTIFICADO", "APP", "TOTEM", "BALCAO", "PICKUP", "WEB"]
+
+      - name: tipo_canal
+        description: "Tipo do canal: digital ou presencial."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["digital", "presencial", "não identificado"]
+
+
+  - name: dim_status_pedido
+    description: >
+      Dimensão de status do pedido (SCD 1, estática): valores do enum OrderStatus.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_status_pedido
+        description: "Chave substituta (-1 = não identificado)."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: nome_status_pedido
+        description: "Nome do status (enum OrderStatus)."
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NÃO IDENTIFICADO", "AGUARDANDO_PAGAMENTO", "PAGO", "EM_PREPARO", "PRONTO", "ENTREGUE", "CANCELADO"]
+
+      - name: ordem_fluxo
+        description: "Posição no fluxo de atendimento (1 a 6); nulo no membro -1."
+        data_type: integer
+      - name: eh_final
+        description: "Verdadeiro nos status finais (ENTREGUE, CANCELADO)."
+        data_type: boolean
+        data_tests:
+          - not_null
+
+  - name: dim_forma_pagamento
+    description: >
+      Dimensão de forma de pagamento (SCD 1, estática): valores do enum PaymentMethod.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_forma_pagamento
+        description: "Chave substituta (-1 = não identificado)."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: nome_forma_pagamento
+        description: "Nome da forma de pagamento (enum PaymentMethod)."
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["NÃO IDENTIFICADO", "PIX", "CREDITO", "DEBITO"]
+
+      - name: grupo_forma_pagamento
+        description: "Agrupamento: pix ou cartão."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["pix", "cartão", "não identificado"]
+
+
+  - name: dim_hora
+    description: >
+      Dimensão de hora do dia, grão minuto (1440 linhas + membro -1), hora local de America/Recife. Limites de períodos e picos são definição de negócio a validar pelo autor (vars do dbt).
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_hora
+        description: "Chave substituta HHMM (ex. 1430); -1 = não identificado."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: hora
+        description: "Hora (0 a 23); nulo no membro -1."
+        data_type: integer
+      - name: minuto
+        description: "Minuto (0 a 59); nulo no membro -1."
+        data_type: integer
+      - name: periodo_dia
+        description: "Período do dia: madrugada, café da manhã, almoço, tarde ou noite."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["madrugada", "café da manhã", "almoço", "tarde", "noite", "não identificado"]
+
+      - name: eh_pico
+        description: "Verdadeiro nas janelas de pico (11:30-14:00 e 18:00-20:30)."
+        data_type: boolean
+        data_tests:
+          - not_null
+
+  - name: dim_unidade
+    description: >
+      Dimensão de unidade MÍNIMA, derivada dos eventos. Lacuna - nome, cidade, uf, região e formato não existem nos eventos (exige evento de cadastro de unidade). SCD 2 não implementado.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_unidade
+        description: "Chave substituta por ordem de primeira aparição (-1 = não identificado)."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: id_unidade
+        description: "Id da unidade (UUID, texto); nulo no membro -1."
+        data_type: varchar
+        data_tests:
+          - unique
+          - not_null:
+              config:
+                where: "sk_unidade > 0"
+
+  - name: dim_cliente
+    description: >
+      Dimensão de cliente MÍNIMA e pseudonimizada (HMAC-SHA256 do id com ANALYTICS_PSEUDONYM_KEY, calculado em int_cliente_pseudonimo). O id em claro não sai na gold. Membros -1 (sem cliente) e -2 (anonimizado, só o membro). Lacuna - faixa etária, perfil, cidade, uf e adesão não existem nos eventos; SCD 2 não implementado.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: sk_cliente
+        description: "Chave substituta (-1 não identificado, -2 anonimizado)."
+        data_type: integer
+        data_tests:
+          - unique
+          - not_null
+      - name: id_cliente_pseudonimo
+        description: "HMAC-SHA256 (hex) do id do cliente; nulo nos membros -1 e -2."
+        data_type: varchar
+        data_tests:
+          - unique
+      - name: situacao_cliente
+        description: "Situação: identificado, não identificado ou anonimizado."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["identificado", "não identificado", "anonimizado"]
+

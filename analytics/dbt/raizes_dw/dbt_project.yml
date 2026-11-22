@@ -20,10 +20,24 @@ vars:
   # Intervalo da dimensão de data (dim_tempo).
   dim_tempo_data_inicio: "2024-01-01"
   dim_tempo_data_fim: "2030-12-31"
+  # Definição de negócio a validar pelo autor: períodos do dia (dim_hora), formato HH:MM, início inclusivo.
+  # A madrugada vai de 00:00 até o início do café da manhã. O período seguinte começa onde o anterior termina.
+  periodo_cafe_da_manha_inicio: "06:00"
+  periodo_almoco_inicio: "11:00"
+  periodo_tarde_inicio: "15:00"
+  periodo_noite_inicio: "18:00"
+  # Definição de negócio a validar pelo autor: janelas de pico (dim_hora), HH:MM, inclusivas nas duas pontas.
+  pico_almoco_inicio: "11:30"
+  pico_almoco_fim: "14:00"
+  pico_jantar_inicio: "18:00"
+  pico_jantar_fim: "20:30"
 
 models:
   raizes_dw:
     staging:
+      +materialized: table
+      +schema: silver
+    intermediate:
       +materialized: table
       +schema: silver
     marts:

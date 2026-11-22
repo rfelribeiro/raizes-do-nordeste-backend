@@ -150,3 +150,21 @@ Pedidos sem cliente cadastrado, ou de cliente sem consentimento para uso analít
 - **No produto:** `eh_sazonal` e `temporada` (ex.: "junina") são atributos SCD tipo 2 da `dim_produto`. A disponibilidade do produto por unidade e período pertence ao OLTP (cardápio); o DW registra o que foi vendido.
 - **No calendário:** `eh_periodo_junino` fica na `dim_tempo`, e não no produto. O período é uma propriedade da data e vale para todos os fatos, permitindo comparar vendas, estoque e fidelidade dentro e fora do período.
 - **Definição do período:** um calendário comercial governado pela área de negócio (seed `calendario_comercial`) é a prática recomendada, em vez de uma regra fixa no código. O padrão provisório continua sendo de 01/06 a 31/07 (São João em 24/06, São Pedro em 29/06 e festejos que se estendem por julho em várias praças), parametrizado em `dbt_project.yml`.
+
+## Estado da implementação (D-062) — 🤝
+
+O autor escolheu implementar dois fatos com os eventos atuais, sem enriquecê-los; a IA seguiu esta modelagem e definiu as dimensões mínimas (ver [`decisoes.md`](../uso-de-ia/decisoes.md), D-062). Onde o evento não traz o dado, a coluna foi omitida.
+
+| # | Processo | Modelo | Estado | Lacunas (dado que falta nos eventos) |
+|---|---|---|---|---|
+| 1 | Itens de pedido | `fct_item_pedido` | modelado | Os eventos não trazem itens (produto, quantidade, preço); exige `dim_produto` e enriquecer `pedido_criado` |
+| 2 | Pedidos | `fct_pedido` | implementado | `numero_pedido`, `qtd_itens`, campanha, colaborador; desconto fixo em 0 (não há desconto no MVP) |
+| 3 | Ciclo de vida do pedido | `fct_ciclo_pedido` | modelado | `status_pedido_alterado` existe, mas o snapshot acumulativo (upsert e marcos) não foi construído |
+| 4 | Pagamentos | `fct_tentativa_pagamento` | implementado | `latencia_gateway_ms`; tentativas com timeout (`FALHA` não gera evento); `dim_motivo` (o motivo da recusa é degenerado) |
+| 5 | Movimentação de estoque | `fct_movimentacao_estoque` | modelado | Não há evento de estoque |
+| 6 | Saldo de estoque | `fct_saldo_estoque_diario` | modelado | Não há evento de estoque |
+| 7 | Fidelidade | `fct_movimento_pontos` | modelado | Não há evento de pontos |
+| 8 | Operações sensíveis | `fct_operacao_sensivel` | modelado | Não há evento de cancelamento, desconto ou ajuste com motivo |
+| 9 | Consentimentos LGPD | `fct_consentimento_diario` | modelado | Não há evento de consentimento |
+
+Dimensões implementadas (mínimas): `dim_tempo`, `dim_hora`, `dim_canal`, `dim_status_pedido`, `dim_forma_pagamento`, `dim_unidade` (só o id; nome, cidade, uf, região e formato exigem evento de cadastro de unidade; sem SCD 2) e `dim_cliente` (só o pseudônimo HMAC e os membros -1 e -2; faixa etária, perfil e cidade não existem nos eventos; sem SCD 2). Limites de `periodo_dia` e `eh_pico` em `dim_hora` são definição de negócio a validar pelo autor.

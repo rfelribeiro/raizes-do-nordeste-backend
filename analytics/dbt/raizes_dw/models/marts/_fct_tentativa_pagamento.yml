@@ -1,0 +1,107 @@
+version: 2
+
+models:
+  - name: fct_tentativa_pagamento
+    description: >
+      Fato de tentativa de pagamento. Grão - uma tentativa com resultado (aprovada ou recusada). Lacunas - latencia_gateway_ms, sk_motivo (dim_motivo) e tentativas com timeout (a tentativa FALHA não gera evento) não existem nos eventos. A unicidade (id_pedido, numero_tentativa) é testada em tests/fct_tentativa_pagamento_grao_unico.sql.
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: id_pedido
+        description: "Id do pedido (dimensão degenerada)."
+        data_type: varchar
+        data_tests:
+          - not_null
+      - name: numero_tentativa
+        description: "Número da tentativa dentro do pedido (1, 2, ...)."
+        data_type: integer
+        data_tests:
+          - not_null
+      - name: resultado
+        description: "Resultado da tentativa (degenerado)."
+        data_type: varchar
+        data_tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["APROVADO", "RECUSADO"]
+
+      - name: motivo_recusa
+        description: "Motivo da recusa (degenerado); nulo se aprovado."
+        data_type: varchar
+      - name: sk_data
+        description: "Data civil do resultado (America/Recife)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tempo')
+                field: sk_data
+
+      - name: sk_hora
+        description: "Hora local do resultado (HHMM)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_hora')
+                field: sk_hora
+
+      - name: sk_unidade
+        description: "Unidade do pedido."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_unidade')
+                field: sk_unidade
+
+      - name: sk_canal
+        description: "Canal do pedido."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_canal')
+                field: sk_canal
+
+      - name: sk_forma_pagamento
+        description: "Forma de pagamento usada."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_forma_pagamento')
+                field: sk_forma_pagamento
+
+      - name: sk_cliente
+        description: "Cliente do pedido (-1 se não identificado)."
+        data_type: integer
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_cliente')
+                field: sk_cliente
+
+      - name: valor_solicitado
+        description: "Valor cobrado na tentativa (BRL)."
+        data_type: decimal(12,2)
+        data_tests:
+          - not_null
+      - name: valor_aprovado
+        description: "Igual ao solicitado se aprovado; 0 se recusado."
+        data_type: decimal(12,2)
+        data_tests:
+          - not_null
+      - name: ocorrido_em
+        description: "Instante do resultado (UTC)."
+        data_type: timestamp with time zone
+        data_tests:
+          - not_null

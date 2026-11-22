@@ -157,6 +157,116 @@ em America/Recife. Contrato do dbt imposto. Texto dos nomes em português.
 | `nome_feriado` | varchar | sim | Nome do feriado em português | `Natal`; nulo se não for feriado |
 | `eh_periodo_junino` | boolean | não | Dentro do período junino | variáveis dbt `periodo_junino_inicio`/`periodo_junino_fim` (padrão 06-01 a 07-31); **definição de negócio a validar pelo autor** |
 
+### `dim_canal` (gold, DuckDB)
+
+Canal do pedido (SCD 1, estática, 6 linhas com o membro -1). Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_canal` | integer | não | Chave substituta | -1 não identificado; 1 a 5; única |
+| `nome_canal` | varchar | não | Nome do canal (enum `canalPedido`) | `APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`; única |
+| `tipo_canal` | varchar | não | Tipo do canal | `digital` (APP, WEB, PICKUP) ou `presencial` (TOTEM, BALCAO) |
+
+### `dim_status_pedido` (gold, DuckDB)
+
+Status do pedido (SCD 1, estática). Valores do enum `OrderStatus`. Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_status_pedido` | integer | não | Chave substituta | -1 não identificado; 1 a 6; única |
+| `nome_status_pedido` | varchar | não | Nome do status | `AGUARDANDO_PAGAMENTO`, `PAGO`, `EM_PREPARO`, `PRONTO`, `ENTREGUE`, `CANCELADO` |
+| `ordem_fluxo` | integer | sim | Posição no fluxo | 1 a 6; nulo no -1 |
+| `eh_final` | boolean | não | Status final | verdadeiro em `ENTREGUE` e `CANCELADO` |
+
+### `dim_forma_pagamento` (gold, DuckDB)
+
+Forma de pagamento (SCD 1, estática). Valores do enum `PaymentMethod`. Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_forma_pagamento` | integer | não | Chave substituta | -1 não identificado; 1 a 3; única |
+| `nome_forma_pagamento` | varchar | não | Nome da forma de pagamento | `PIX`, `CREDITO`, `DEBITO` |
+| `grupo_forma_pagamento` | varchar | não | Agrupamento | `pix` ou `cartão` |
+
+### `dim_hora` (gold, DuckDB)
+
+Hora do dia no grão minuto: 1440 linhas + membro -1, hora local de America/Recife. Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_hora` | integer | não | Chave substituta HHMM | `1430`; -1 não identificado; única |
+| `hora` | integer | sim | Hora | 0 a 23; nulo no -1 |
+| `minuto` | integer | sim | Minuto | 0 a 59; nulo no -1 |
+| `periodo_dia` | varchar | não | Período do dia | `madrugada` (00:00), `café da manhã` (06:00), `almoço` (11:00), `tarde` (15:00), `noite` (18:00); vars `periodo_*_inicio`; **a validar pelo autor** |
+| `eh_pico` | boolean | não | Janela de pico | 11:30-14:00 e 18:00-20:30 (vars `pico_*`); **a validar pelo autor** |
+
+### `dim_unidade` (gold, DuckDB)
+
+Unidade, MÍNIMA: só o id que aparece nos eventos. Lacuna: nome, cidade, uf, região e formato exigem evento de cadastro de unidade. Sem SCD 2. Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_unidade` | integer | não | Chave substituta (ordem de primeira aparição) | -1 não identificado; única |
+| `id_unidade` | varchar | sim | Id da unidade (UUID em texto) | nulo só no -1 |
+
+### `int_cliente_pseudonimo` (silver, modelo Python)
+
+Mapa interno id do cliente -> chave substituta e pseudônimo. Guarda o id em claro; **não** é exposta na gold. Sem contrato (modelos Python não o suportam).
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_cliente` | integer | não | Chave substituta (ordem de primeira aparição) | única |
+| `id_cliente` | varchar | não | Id do cliente (UUID em texto) | do evento `pedido_criado` |
+| `id_cliente_pseudonimo` | varchar | não | HMAC-SHA256 (hex) do id | chave `ANALYTICS_PSEUDONYM_KEY` |
+
+### `dim_cliente` (gold, DuckDB)
+
+Cliente, MÍNIMO e pseudonimizado (sem o id em claro). Lacuna: faixa etária, perfil, cidade, uf e adesão não existem nos eventos. Sem SCD 2. Contrato imposto.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `sk_cliente` | integer | não | Chave substituta | -1 não identificado; -2 anonimizado (só o membro); única |
+| `id_cliente_pseudonimo` | varchar | sim | HMAC-SHA256 (hex) do id do cliente | nulo em -1 e -2 |
+| `situacao_cliente` | varchar | não | Situação | `identificado`, `não identificado`, `anonimizado` |
+
+### `fct_pedido` (gold, DuckDB)
+
+Grão: um pedido, no status mais recente conhecido (último `status_novo` por `ocorrido_em`, desempate por `id_sequencial`; sem mudança, o status do `pedido_criado`). Data e hora locais de America/Recife. Contrato imposto. Lacunas: `numero_pedido`, `sk_campanha`, `sk_colaborador`, `qtd_itens`.
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `id_pedido` | varchar | não | Id do pedido (dimensão degenerada) | única (grão) |
+| `sk_data` | integer | não | Data de criação | -> `dim_tempo.sk_data` |
+| `sk_hora` | integer | não | Hora local de criação | -> `dim_hora.sk_hora` |
+| `sk_unidade` | integer | não | Unidade | -> `dim_unidade`; -1 se desconhecida |
+| `sk_canal` | integer | não | Canal | -> `dim_canal` |
+| `sk_cliente` | integer | não | Cliente | -> `dim_cliente`; -1 sem cliente |
+| `sk_status_pedido` | integer | não | Status atual | -> `dim_status_pedido` |
+| `valor_bruto` | decimal(12,2) | não | Valor total do pedido (BRL) | `valor_total` do evento |
+| `valor_desconto` | decimal(12,2) | não | Desconto | sempre 0 no MVP |
+| `valor_liquido` | decimal(12,2) | não | Bruto menos desconto |  |
+| `criado_em` | timestamptz | não | Instante de criação (UTC) |  |
+
+### `fct_tentativa_pagamento` (gold, DuckDB)
+
+Grão: uma tentativa de pagamento com resultado (aprovada ou recusada). Contrato imposto. Lacunas: `latencia_gateway_ms`, `dim_motivo`, tentativas com timeout (`FALHA` não gera evento).
+
+| Coluna | Tipo | Nulo? | Descrição | Regra / exemplo |
+|---|---|---|---|---|
+| `id_pedido` | varchar | não | Id do pedido (dimensão degenerada) | com `numero_tentativa`, única (teste singular) |
+| `numero_tentativa` | integer | não | Número da tentativa no pedido |  |
+| `resultado` | varchar | não | Resultado (degenerado) | `APROVADO` ou `RECUSADO` |
+| `motivo_recusa` | varchar | sim | Motivo da recusa (degenerado) | nulo se aprovado |
+| `sk_data` | integer | não | Data do resultado | -> `dim_tempo` |
+| `sk_hora` | integer | não | Hora local do resultado | -> `dim_hora` |
+| `sk_unidade` | integer | não | Unidade | -> `dim_unidade` |
+| `sk_canal` | integer | não | Canal | -> `dim_canal` |
+| `sk_forma_pagamento` | integer | não | Forma de pagamento | -> `dim_forma_pagamento` |
+| `sk_cliente` | integer | não | Cliente (via `pedido_criado`) | -> `dim_cliente`; -1 sem cliente |
+| `valor_solicitado` | decimal(12,2) | não | Valor cobrado |  |
+| `valor_aprovado` | decimal(12,2) | não | Valor aprovado | igual ao solicitado se aprovado; 0 se recusado |
+| `ocorrido_em` | timestamptz | não | Instante do resultado (UTC) |  |
+
 ### `feriados_nacionais` (seed do dbt, silver)
 
 Feriados nacionais do Brasil (2024-2030), gerados por `analytics/ingestao/gerar_feriados.py`.
@@ -178,14 +288,14 @@ Parquet de esquema vazio: `dt=1970-01-01/_esquema_vazio.parquet`. Detalhes em
 
 ## Objetos planejados
 
-Ainda não implementados; nomes, grãos e medidas estão na
+Implementados: `fct_pedido`, `fct_tentativa_pagamento` e as dimensões acima (D-062). Os demais ainda não; nomes, grãos e medidas estão na
 [matriz de barramento](matriz-de-barramento.md) (autoria humana).
 
 - **Fatos:** `fct_item_pedido`, `fct_pedido`, `fct_ciclo_pedido`, `fct_tentativa_pagamento`,
   `fct_movimentacao_estoque`, `fct_saldo_estoque_diario`, `fct_movimento_pontos`,
   `fct_operacao_sensivel`, `fct_consentimento_diario`.
-- **Dimensões:** `dim_tempo` (implementada), `dim_hora`, `dim_unidade`, `dim_produto`,
-  `dim_canal` (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`), `dim_cliente`, `dim_forma_pagamento`,
+- **Dimensões (implementadas: tempo, hora, canal, status, forma de pagamento, unidade e cliente, as duas últimas mínimas):** `dim_tempo`, `dim_hora`, `dim_unidade` (mínima), `dim_produto`,
+  `dim_canal` (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`), `dim_cliente` (mínima), `dim_forma_pagamento`,
   `dim_campanha`, `dim_colaborador`, `dim_status_pedido`, `dim_motivo`, `dim_finalidade`.
 - **Dimensão degenerada:** `numero_pedido`.
 

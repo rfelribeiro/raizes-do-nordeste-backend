@@ -1,0 +1,25 @@
+version: 2
+
+models:
+  - name: int_cliente_pseudonimo
+    description: >
+      Silver intermediária (modelo Python, pois o DuckDB não tem HMAC nativo): id do cliente em claro,
+      chave substituta e pseudônimo HMAC-SHA256. Fica na silver; a gold só expõe o pseudônimo.
+      Contrato do dbt não é suportado em modelos Python, por isso `contract` não é imposto aqui
+      (a `dim_cliente`, em SQL, tem contrato).
+    columns:
+      - name: sk_cliente
+        description: Chave substituta por ordem de primeira aparição.
+        data_tests:
+          - unique
+          - not_null
+      - name: id_cliente
+        description: Id do cliente (UUID em texto), vindo do evento pedido_criado.
+        data_tests:
+          - unique
+          - not_null
+      - name: id_cliente_pseudonimo
+        description: HMAC-SHA256 (hex) do id com ANALYTICS_PSEUDONYM_KEY.
+        data_tests:
+          - unique
+          - not_null
