@@ -54,7 +54,7 @@ Roda `postman/newman:6.1.3-alpine` em contêiner (`--network host`) com `baseUrl
 | N06 | Pedido inexistente | RNF-03 | 404 | Negativo |
 | N07 | Cliente2 le pedido de outro cliente | RNF-05 | 404 | Negativo |
 | N08 | Quantidade acima do estoque | RF-07, RNF-11 | 409 ESTOQUE_INSUFICIENTE | Negativo |
-| N09 | Transicao ENTREGUE para PRONTO | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |
+| N09 | Cozinha pede PRONTO em pedido ENTREGUE (transicao invalida) | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |
 | N10 | Pagar pedido ja pago | UC-05 | 409 | Negativo |
 
 Todos os negativos validam o erro padrão (`error`, `message`, `details`, `timestamp`, `path`,
