@@ -230,52 +230,34 @@ STATUS: ✏️ (3.2, 3.3, 3.6 e 3.7 rascunhadas; 3.1, 3.4 e 3.5 aguardam docs/mo
 
 Esta seção apresenta os atores, o diagrama de casos de uso e a descrição dos 27 casos de uso identificados a partir dos requisitos. Os seis casos de uso do fluxo implementado no MVP (UC-02, UC-04, UC-05, UC-06, UC-09 e UC-11) são descritos em detalhe, no modelo de descrição do roteiro da trilha; os demais são apresentados de forma resumida, na Tabela 7.
 
-A Figura 1 mostra o diagrama de casos de uso. Os atores humanos ficam à esquerda (CLIENTE, ATENDENTE e COZINHA) e à direita (GERENTE e ADMIN); o gateway de pagamento, ator externo, aparece à direita. Os casos de uso com borda tracejada são conceituais (RF-19 a RF-21), documentados sem código no MVP. As setas tracejadas com rótulo representam relações de inclusão (`include`, obrigatória) e de extensão (`extend`, condicional).
+A Figura 1 mostra o diagrama de casos de uso, dividido em três partes por grupo de atores para caber legível na página: (a) o cliente e o gateway de pagamento, ator externo; (b) a equipe da unidade; e (c) a administração da rede e os processos automáticos. Um caso de uso que aparece em mais de uma parte é o mesmo, e a versão em diagrama único está em `docs/modelagem/casos-de-uso.md`. Os casos de uso com borda tracejada são conceituais (RF-19 a RF-21), documentados sem código no MVP. As setas tracejadas com rótulo representam relações de inclusão (`include`, obrigatória) e de extensão (`extend`, condicional).
 
 Para não sobrecarregar o diagrama, o GERENTE, que executa tudo o que o ATENDENTE e a COZINHA executam, mas somente na própria unidade (RN-04), aparece ligado apenas aos casos de uso que lhe são exclusivos ou que divide com o ADMIN. Pelo mesmo motivo, a autenticação (UC-02) é pré-condição de todos os casos de uso, exceto o cadastro (UC-01), e só a ligação do CLIENTE foi desenhada.
 
-**Figura 1 — Diagrama de casos de uso do sistema**
+**Figura 1 — Diagrama de casos de uso do sistema, por grupo de atores**
 
 ```mermaid
 flowchart LR
     CLI(["CLIENTE"])
-    ATE(["ATENDENTE"])
-    COZ(["COZINHA"])
-    GER(["GERENTE"])
-    ADM(["ADMIN"])
     GW(["Gateway de pagamento mock"])
-
     subgraph SIS["Sistema Raízes do Nordeste"]
-        direction TB
         UC01["UC-01 Cadastrar Cliente"]
         UC02["UC-02 Autenticar"]
         UC03["UC-03 Consultar Cardápio da Unidade"]
         UC04["UC-04 Realizar Pedido"]
         UC05["UC-05 Solicitar Pagamento"]
-        UC06["UC-06 Atualizar Status do Pedido"]
         UC07["UC-07 Cancelar Pedido"]
-        UC08["UC-08 Registrar Entrada de Estoque"]
         UC09["UC-09 Gerir Consentimento"]
-        UC10["UC-10 Resgatar Pontos"]
-        UC11["UC-11 Consultar Auditoria"]
-        UC12["UC-12 Gerir Unidades"]
-        UC13["UC-13 Gerir Catálogo da Rede"]
-        UC14["UC-14 Gerir Cardápio da Unidade"]
         UC15["UC-15 Consultar Pedidos"]
-        UC16["UC-16 Consultar Saldo de Estoque"]
         UC17["UC-17 Consultar Saldo e Extrato de Pontos"]
         UC18["UC-18 Consultar Meus Dados Pessoais"]
-        UC19["UC-19 Gerir Usuários e Perfis"]
+        UC10["UC-10 Resgatar Pontos"]
         UC20["UC-20 Nova Tentativa de Pagamento"]
         UC21["UC-21 Acumular Pontos"]
         UC22["UC-22 Estornar Pagamento"]
         UC23["UC-23 Reservar Estoque"]
         UC24["UC-24 Registrar Auditoria"]
-        UC25["UC-25 Gerir Campanhas"]
-        UC26["UC-26 Expirar Pedido não Pago"]
-        UC27["UC-27 Anonimizar Cliente Inativo"]
     end
-
     CLI --- UC01
     CLI --- UC02
     CLI --- UC03
@@ -286,42 +268,85 @@ flowchart LR
     CLI --- UC15
     CLI --- UC17
     CLI --- UC18
+    UC05 --- GW
+    UC22 --- GW
+    UC04 -.->|"include"| UC23
+    UC04 -.->|"include"| UC24
+    UC07 -.->|"include"| UC24
+    UC10 -.->|"extend"| UC04
+    UC20 -.->|"extend"| UC05
+    UC21 -.->|"extend"| UC05
+    UC22 -.->|"extend"| UC07
+```
+
+**(a)** Cliente e gateway de pagamento
+
+```mermaid
+flowchart LR
+    ATE(["ATENDENTE"])
+    COZ(["COZINHA"])
+    GER(["GERENTE"])
+    subgraph SIS["Sistema Raízes do Nordeste"]
+        UC03["UC-03 Consultar Cardápio da Unidade"]
+        UC04["UC-04 Realizar Pedido"]
+        UC06["UC-06 Atualizar Status do Pedido"]
+        UC07["UC-07 Cancelar Pedido"]
+        UC15["UC-15 Consultar Pedidos"]
+        UC08["UC-08 Registrar Entrada de Estoque"]
+        UC11["UC-11 Consultar Auditoria"]
+        UC14["UC-14 Gerir Cardápio da Unidade"]
+        UC16["UC-16 Consultar Saldo de Estoque"]
+        UC23["UC-23 Reservar Estoque"]
+        UC24["UC-24 Registrar Auditoria"]
+    end
+    ATE --- UC03
     ATE --- UC04
     ATE --- UC06
     ATE --- UC07
     ATE --- UC15
-    ATE --- UC03
     COZ --- UC06
     COZ --- UC15
-
     GER --- UC06
     GER --- UC07
     GER --- UC08
     GER --- UC11
     GER --- UC14
     GER --- UC16
+    UC04 -.->|"include"| UC23
+    UC04 -.->|"include"| UC24
+    UC06 -.->|"include"| UC24
+    UC07 -.->|"include"| UC24
+```
+
+**(b)** Equipe da unidade: atendente, cozinha e gerente
+
+```mermaid
+flowchart LR
+    ADM(["ADMIN"])
+    subgraph SIS["Sistema Raízes do Nordeste"]
+        UC11["UC-11 Consultar Auditoria"]
+        UC12["UC-12 Gerir Unidades"]
+        UC13["UC-13 Gerir Catálogo da Rede"]
+        UC15["UC-15 Consultar Pedidos"]
+        UC16["UC-16 Consultar Saldo de Estoque"]
+        UC19["UC-19 Gerir Usuários e Perfis"]
+        UC25["UC-25 Gerir Campanhas"]
+        UC26["UC-26 Expirar Pedido não Pago"]
+        UC27["UC-27 Anonimizar Cliente Inativo"]
+        UC24["UC-24 Registrar Auditoria"]
+    end
     ADM --- UC11
     ADM --- UC12
     ADM --- UC13
     ADM --- UC15
     ADM --- UC16
     ADM --- UC19
-    UC05 --- GW
-    UC22 --- GW
-
-    UC04 -.->|"include"| UC23
-    UC04 -.->|"include"| UC24
-    UC10 -.->|"extend"| UC04
-    UC20 -.->|"extend"| UC05
-    UC21 -.->|"extend"| UC05
-    UC22 -.->|"extend"| UC07
-    UC07 -.->|"include"| UC24
-    UC06 -.->|"include"| UC24
     UC26 -.->|"include"| UC24
-
     classDef conceitual stroke-dasharray: 5 5
     class UC25,UC26,UC27 conceitual
 ```
+
+**(c)** Administração da rede e processos automáticos
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 

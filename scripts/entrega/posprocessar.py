@@ -209,6 +209,10 @@ def main(entrada, capa_yaml, saida):
         negrito = bool(p.runs) and all(r.bold for r in p.runs if r.text.strip())
         if re.match(r"^(Figura|Tabela|Quadro)\s+\d+\s+[—–-]", texto) and negrito:
             p.style = doc.styles["Legenda ABNT"]
+        elif re.match(r"^\([a-z]\)\s", texto) and len(texto) < 120:
+            # rótulo de parte de figura, ex.: "(a) Cliente", logo abaixo da imagem da parte
+            formata(p, alinha=C, recuo=0, depois=12)
+            tamanho_runs(p._p, 10)
         elif texto.startswith("Fonte:"):
             p.style = doc.styles["Fonte ABNT"]
         elif em_refs and nome in ("Body Text", "First Paragraph", "Compact", "Normal"):
