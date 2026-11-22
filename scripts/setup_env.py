@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Cria ou completa o .env a partir do .env.example, gerando segredos aleatórios.
 
-- .env ausente: é criado com senha de banco e chave de pseudonimização aleatórias.
+- .env ausente: é criado com senha de banco, chave de pseudonimização e segredo JWT aleatórios.
 - .env existente: NUNCA é sobrescrito; apenas chaves que faltam são acrescentadas ao final
   (com segredos aleatórios quando for o caso). Valores existentes não são alterados.
 - Nunca imprime valores de segredos (apenas os NOMES das chaves acrescentadas).
@@ -21,6 +21,7 @@ TARGET = ROOT / ".env"
 GERADORES: dict[str, Callable[[], str]] = {
     "POSTGRES_PASSWORD": lambda: secrets.token_urlsafe(24),
     "ANALYTICS_PSEUDONYM_KEY": lambda: secrets.token_hex(32),
+    "JWT_SECRET": lambda: secrets.token_urlsafe(48),
 }
 
 LINHA_CHAVE = re.compile(r"^([A-Z][A-Z0-9_]*)=(.*)$")
