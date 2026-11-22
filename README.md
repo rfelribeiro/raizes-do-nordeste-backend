@@ -78,6 +78,30 @@ Observações:
 - Migrações: aplicadas automaticamente ao iniciar o contêiner da API; manualmente com
   `make migrate`; nova migração com `make revision m="descrição"`.
 
+## Dados de demonstração
+
+```bash
+make migrate   # se ainda não aplicou as migrações
+make seed      # carga inicial fictícia (idempotente: pode rodar várias vezes)
+```
+
+Unidades, categorias, produtos, cardápio, estoques, usuários e um consentimento de fidelidade, todos
+fictícios e com identificadores fixos. A unidade 1 (Recife, formato COMPLETA) tem a carne de sol
+com apenas 2 unidades em estoque, para exercitar o erro 409 `ESTOQUE_INSUFICIENTE`.
+
+| E-mail | Perfil | Unidade |
+|---|---|---|
+| `cliente@exemplo.com` | CLIENTE | n/a |
+| `cliente2@exemplo.com` | CLIENTE | n/a |
+| `atendente@exemplo.com` | ATENDENTE | 1 |
+| `cozinha@exemplo.com` | COZINHA | 1 |
+| `gerente@exemplo.com` | GERENTE | 1 |
+| `gerente2@exemplo.com` | GERENTE | 2 |
+| `admin@exemplo.com` | ADMIN | n/a |
+
+A senha `Demo@2026` é **fictícia** e vale só para uso local de demonstração; nunca a use fora
+dele.
+
 ## Data Warehouse
 
 Camada analítica opcional (DuckDB + Parquet + dbt), alimentada pela outbox de eventos de domínio.

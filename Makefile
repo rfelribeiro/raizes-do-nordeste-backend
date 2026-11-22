@@ -18,7 +18,7 @@ DW_RUN_DB := $(COMPOSE) run --rm --entrypoint "" analytics
 DBT := dbt
 
 .PHONY: help setup up down logs ps shell test test-integration test-all lint format typecheck \
-	migrate revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs
+	migrate seed revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -63,6 +63,9 @@ typecheck: ## Verificação estática de tipos (mypy)
 
 migrate: ## Aplica as migrações (alembic upgrade head)
 	$(COMPOSE) run --rm --entrypoint "" api alembic upgrade head
+
+seed: ## Carga inicial de demonstração (idempotente; exige as migrações aplicadas)
+	$(COMPOSE) run --rm --entrypoint "" api python scripts/seed.py
 
 revision: ## Cria migração: make revision m="mensagem"
 	@test -n "$(m)" || { echo 'Informe a mensagem: make revision m="mensagem"'; exit 1; }
