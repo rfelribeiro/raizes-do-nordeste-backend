@@ -9,6 +9,7 @@ Uso: preprocessar.py <raiz-do-repositorio> --fase {extrair,imagens}
   extrair: gera os .mmd e o documento.md provisório (imagens ainda sem tamanho);
   imagens: calcula o tamanho de cada PNG e grava o documento.md final.
 """
+
 import argparse
 import re
 import struct
@@ -67,7 +68,7 @@ def limpar(texto: str) -> str:
             trecho = re.sub(r"<!--.*?-->", "", trecho, flags=re.S)
         partes.append((cerca, trecho))
     # recompõe e remove capítulos gerados pelo pipeline (capa e sumário)
-    linhas, cerca_atual = [], False
+    linhas = []
     descartando = False
     for cerca, trecho in partes:
         for linha in trecho.split("\n"):

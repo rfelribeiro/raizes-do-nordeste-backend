@@ -2,6 +2,7 @@
 
 Uso: gerar_referencia.py <modelo-padrao.docx> <saida.docx>
 """
+
 import sys
 
 from docx import Document
@@ -37,7 +38,20 @@ def fonte(estilo, nome=FONTE, tam=12, negrito=None, italico=None, caps=None):
         rf.attrib.pop(qn(f"w:{a}"), None)
 
 
-def par(estilo, linha=1.5, antes=0, depois=0, alinha=None, recuo=Cm(0), esq=None, quebra=None, prox=None):
+SEM_RECUO = Cm(0)
+
+
+def par(
+    estilo,
+    linha=1.5,
+    antes=0,
+    depois=0,
+    alinha=None,
+    recuo=SEM_RECUO,
+    esq=None,
+    quebra=None,
+    prox=None,
+):
     p = estilo.paragraph_format
     p.line_spacing_rule = WD_LINE_SPACING.MULTIPLE if linha != 1 else WD_LINE_SPACING.SINGLE
     p.line_spacing = linha
@@ -74,15 +88,35 @@ def main(origem: str, destino: str) -> None:
         fonte(get("Compact"))
         par(get("Compact"), alinha=J)
     # títulos
-    h = {1: dict(depois=18, caps=True), 2: dict(antes=12, depois=12), 3: dict(antes=12, depois=6), 4: dict(antes=6, depois=6)}
+    h = {
+        1: dict(depois=18, caps=True),
+        2: dict(antes=12, depois=12),
+        3: dict(antes=12, depois=6),
+        4: dict(antes=6, depois=6),
+    }
     for nivel, cfg in h.items():
         s = get(f"Heading {nivel}")
         if s is None:
             continue
         fonte(s, negrito=True, italico=(nivel == 4), caps=cfg.get("caps", False))
-        par(s, alinha=E, antes=cfg.get("antes", 0), depois=cfg["depois"], quebra=(nivel == 1), prox=True)
+        par(
+            s,
+            alinha=E,
+            antes=cfg.get("antes", 0),
+            depois=cfg["depois"],
+            quebra=(nivel == 1),
+            prox=True,
+        )
     # texto menor (10) com espaçamento simples
-    for n in ("Block Text", "Footnote Text", "Image Caption", "Table Caption", "Caption", "Captioned Figure", "Figure"):
+    for n in (
+        "Block Text",
+        "Footnote Text",
+        "Image Caption",
+        "Table Caption",
+        "Caption",
+        "Captioned Figure",
+        "Figure",
+    ):
         s = get(n)
         if s:
             fonte(s, tam=10)

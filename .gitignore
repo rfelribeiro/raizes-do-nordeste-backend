@@ -56,3 +56,8 @@ docs/entrega/saida/
 
 # Worktrees dos agentes de implementação (Claude Code)
 .claude/worktrees/
+
+# Espaço de trabalho local do app Postman (cópia da coleção versionada em JSON)
+.postman/
+postman/collections/
+postman/globals/

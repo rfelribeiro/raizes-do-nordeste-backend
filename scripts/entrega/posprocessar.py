@@ -4,6 +4,7 @@ Faz o que o pandoc não faz sozinho: capa, folha de rosto, sumário (campo TOC),
 (paginação visível só a partir da Introdução), estilos de legenda/fonte, formato das tabelas.
 Uso: posprocessar.py <entrada.docx> <capa.local.yaml> <saida.docx>
 """
+
 import copy
 import re
 import sys
@@ -23,6 +24,7 @@ C, E = WD_ALIGN_PARAGRAPH.CENTER, WD_ALIGN_PARAGRAPH.LEFT
 
 def campo(par, instrucao, texto_provisorio=""):
     """Insere um campo do Word (begin/instr/separate/texto/end) no parágrafo."""
+
     def run(filho):
         r = OxmlElement("w:r")
         r.append(filho)
@@ -88,7 +90,14 @@ def formata_tabela(tab, largura_total, tam):
     ncol = len(tab.columns)
     pr = tbl.tblPr
     for filho in list(pr):
-        if filho.tag in (qn("w:tblStyle"), qn("w:tblW"), qn("w:tblLayout"), qn("w:tblBorders"), qn("w:tblLook"), qn("w:tblCellMar")):
+        if filho.tag in (
+            qn("w:tblStyle"),
+            qn("w:tblW"),
+            qn("w:tblLayout"),
+            qn("w:tblBorders"),
+            qn("w:tblLook"),
+            qn("w:tblCellMar"),
+        ):
             pr.remove(filho)
     w = OxmlElement("w:tblW")
     w.set(qn("w:w"), str(largura_total))
@@ -142,7 +151,7 @@ def formata_tabela(tab, largura_total, tam):
             larg[i] = sobra * larg[i] / base
     larg = [int(v) for v in larg]
     grade = tbl.find(qn("w:tblGrid"))
-    for g, v in zip(grade.findall(qn("w:gridCol")), larg):
+    for g, v in zip(grade.findall(qn("w:gridCol")), larg, strict=False):
         g.set(qn("w:w"), str(v))
     for ri, row in enumerate(tab.rows):
         trpr = row._tr.get_or_add_trPr()
@@ -178,11 +187,13 @@ def formata_tabela(tab, largura_total, tam):
 
 def _estilo(doc, p_elem):
     from docx.text.paragraph import Paragraph
+
     return Paragraph(p_elem, doc._body).style.name
 
 
 def main(entrada, capa_yaml, saida):
-    capa = yaml.safe_load(open(capa_yaml, encoding="utf-8"))
+    with open(capa_yaml, encoding="utf-8") as arquivo:
+        capa = yaml.safe_load(arquivo)
     doc = Document(entrada)
     corpo = doc.element.body
 
@@ -229,7 +240,16 @@ def main(entrada, capa_yaml, saida):
     # ---- capa, folha de rosto e sumário (inseridos no início, na ordem) ----
     ancora = corpo[0]
 
-    def novo(texto="", estilo="Capa ABNT", negrito=False, caixa_alta=False, antes=None, depois=None, quebra=False, esq=None):
+    def novo(
+        texto="",
+        estilo="Capa ABNT",
+        negrito=False,
+        caixa_alta=False,
+        antes=None,
+        depois=None,
+        quebra=False,
+        esq=None,
+    ):
         p = doc.add_paragraph(style=estilo)
         if texto:
             r = p.add_run(texto.upper() if caixa_alta else texto)
@@ -243,26 +263,27 @@ def main(entrada, capa_yaml, saida):
     # capa
     novo(capa["instituicao"], negrito=True, caixa_alta=True, depois=6)
     novo(capa["curso"], caixa_alta=True, depois=6)
-    novo(f'{capa["disciplina"]} — {capa["turma"]}', caixa_alta=True, depois=6)
+    novo(f"{capa['disciplina']} — {capa['turma']}", caixa_alta=True, depois=6)
     novo(capa["trilha"], caixa_alta=True)
     novo(capa["autor"], caixa_alta=True, antes=70)
-    novo(f'RU: {capa["ru"]}', antes=0)
+    novo(f"RU: {capa['ru']}", antes=0)
     novo(capa["titulo"], negrito=True, caixa_alta=True, antes=90)
     novo("Projeto Multidisciplinar — Trilha Back-end", antes=6)
-    novo(f'Polo de apoio: {capa["polo"]}', antes=60)
-    novo(f'Semestre: {capa["semestre"]}')
+    novo(f"Polo de apoio: {capa['polo']}", antes=60)
+    novo(f"Semestre: {capa['semestre']}")
     novo(capa["cidade"], antes=120, depois=0)
     novo(str(capa["ano"]), antes=0)
 
     # folha de rosto
     novo(capa["autor"], caixa_alta=True, quebra=True)
-    novo(f'RU: {capa["ru"]}')
+    novo(f"RU: {capa['ru']}")
     novo(capa["titulo"], negrito=True, caixa_alta=True, antes=110)
     novo("Projeto Multidisciplinar — Trilha Back-end", antes=6)
     natureza = (
-        f'Trabalho apresentado à disciplina {capa["disciplina"]} ({capa["turma"]}) do curso de '
-        f'{capa["curso"]} do {capa["instituicao"]}, {capa["trilha"]}, como requisito parcial de avaliação. '
-        f'Polo de apoio: {capa["polo"]}. Semestre: {capa["semestre"]}.'
+        f"Trabalho apresentado à disciplina {capa['disciplina']} ({capa['turma']}) do curso de "
+        f"{capa['curso']} do {capa['instituicao']}, {capa['trilha']}, "
+        "como requisito parcial de avaliação. "
+        f"Polo de apoio: {capa['polo']}. Semestre: {capa['semestre']}."
     )
     novo(natureza, estilo="Natureza ABNT", antes=80, depois=8)
     novo("Professores:", estilo="Natureza ABNT", depois=2)
@@ -325,7 +346,11 @@ def main(entrada, capa_yaml, saida):
 
     for tab in largas:
         antes = tab._tbl.getprevious()
-        if antes is not None and antes.tag == qn("w:p") and _estilo(doc, antes).startswith("Legenda"):
+        if (
+            antes is not None
+            and antes.tag == qn("w:p")
+            and _estilo(doc, antes).startswith("Legenda")
+        ):
             ini = antes
         else:
             ini = tab._tbl
