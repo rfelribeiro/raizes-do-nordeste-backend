@@ -73,7 +73,7 @@ class Order(Base):
         "atualizado_em", DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
-    items: Mapped[list["OrderItem"]] = relationship(
+    items: Mapped[list[OrderItem]] = relationship(
         back_populates="order", order_by="OrderItem.product_id"
     )
 
@@ -158,9 +158,7 @@ class PaymentAttempt(Base):
     requested_at: Mapped[datetime] = mapped_column(
         "solicitado_em", DateTime(timezone=True), nullable=False, server_default=func.now()
     )
-    responded_at: Mapped[datetime | None] = mapped_column(
-        "respondido_em", DateTime(timezone=True)
-    )
+    responded_at: Mapped[datetime | None] = mapped_column("respondido_em", DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(
         "atualizado_em", DateTime(timezone=True), nullable=False, server_default=func.now()
     )
