@@ -15,6 +15,10 @@ anyio==4.16.0
     #   httpx
     #   starlette
     #   watchfiles
+argon2-cffi==25.1.0
+    # via raizes-api (pyproject.toml)
+argon2-cffi-bindings==26.2.0
+    # via argon2-cffi
 ast-serialize==0.13.1
     # via mypy
 attrs==26.1.0
@@ -25,6 +29,8 @@ certifi==2026.10.23
     # via
     #   httpcore
     #   httpx
+cffi==2.1.1
+    # via argon2-cffi-bindings
 click==8.5.0
     # via uvicorn
 fastapi==0.162.0
@@ -71,6 +77,8 @@ psycopg==3.3.6
     # via raizes-api (pyproject.toml)
 psycopg-binary==3.3.6
     # via psycopg
+pycparser==3.12
+    # via cffi
 pydantic==2.14.2
     # via
     #   fastapi
@@ -81,6 +89,8 @@ pydantic-settings==2.16.2
     # via raizes-api (pyproject.toml)
 pygments==2.21.0
     # via pytest
+pyjwt==2.15.1
+    # via raizes-api (pyproject.toml)
 pytest==9.2.0
     # via raizes-api (pyproject.toml)
 python-dotenv==1.2.4
