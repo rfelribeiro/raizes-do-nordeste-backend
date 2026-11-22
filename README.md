@@ -16,6 +16,8 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 
 ## Para o avaliador: roteiro de leitura
 
+**Repositório público:** https://github.com/rfelribeiro/raizes-do-nordeste-backend · **Swagger:** `http://localhost:${API_PORT}/docs` com a API rodando (ver "Como reproduzir") · **Coleção Postman:** [`postman/`](postman/README.md)
+
 | Critério do roteiro | Onde ver |
 |---|---|
 | Análise e requisitos | [docs/requisitos/](docs/requisitos/README.md) |
@@ -39,7 +41,7 @@ O Docker é o ambiente canônico: o que roda no seu computador é o mesmo que ro
 os scripts auxiliares `setup` e `secrets`, que usam só a biblioteca padrão).
 
 ```bash
-git clone <URL deste repositório no GitHub>
+git clone https://github.com/rfelribeiro/raizes-do-nordeste-backend.git
 cd raizes-do-nordeste-backend
 
 make setup   # cria o .env (senha aleatória do banco) e ativa o hook de pre-commit

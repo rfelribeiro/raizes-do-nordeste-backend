@@ -21,6 +21,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 PRIVATE_TERMS_FILE = ROOT / ".registro-ia.local"
 ALLOW_MARKER = "segredos:permitir"
+PUBLIC_REPO_URL = re.compile(r"github\.com/[a-z0-9-]+/raizes-do-nordeste-backend(?:\.git)?")
 MAX_BYTES = 2_000_000
 
 TOKEN_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
@@ -106,7 +107,9 @@ def scan_text(path: str, text: str, terms: list[str]) -> list[tuple[int, str]]:
                 findings.append((number, kind))
         if literal_secret_kind(line, suffix):
             findings.append((number, "senha/segredo com valor literal"))
-        lowered = line.lower()
+        # Exceção autorizada pelo autor (D-061): o endereço público do próprio repositório pode
+        # aparecer; o nome da conta continua termo privado em qualquer outro contexto.
+        lowered = PUBLIC_REPO_URL.sub("", line.lower())
         if any(term in lowered for term in terms):
             findings.append((number, "termo privado (.registro-ia.local)"))
     return findings

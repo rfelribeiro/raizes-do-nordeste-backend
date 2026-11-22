@@ -1769,7 +1769,7 @@ STATUS: ✏️ (6.3 e 6.4 escritas; faltam as capturas do Swagger, do autor)
 
 <!-- FONTE: README.md (Estrutura de pastas). STATUS: ✏️ -->
 
-O código-fonte é versionado em repositório público, com histórico de commits, e não contém credenciais. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 15.
+O código-fonte é versionado em repositório público (https://github.com/rfelribeiro/raizes-do-nordeste-backend), com histórico de commits, e não contém credenciais. A documentação da API fica disponível no Swagger (`http://localhost:${API_PORT}/docs`, com a API em execução) e a coleção Postman, em `postman/raizes-mvp.postman_collection.json`. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 15.
 
 **Tabela 15 — Organização do repositório**
 
@@ -1942,9 +1942,23 @@ STATUS: ⬜ AUTORIA: 🧑 (texto autoral)
 
 # Referências
 
-<!-- ABNT NBR 6023. Registrar só o que foi efetivamente usado. -->
+<!-- ABNT NBR 6023. -->
 
-<!-- PENDENTE: referências ainda não compiladas. Candidatas, a confirmar pelo autor conforme o uso real no texto: Lei nº 13.709/2018 (LGPD); documentação oficial de FastAPI, SQLAlchemy, Alembic e PostgreSQL; obra de Kimball sobre modelagem dimensional (Apêndice B). -->
+ALEMBIC. **Alembic documentation**. [*S. l.*]: SQLAlchemy authors, 2026. Disponível em: https://alembic.sqlalchemy.org/. Acesso em: 22 nov. 2026.
+
+BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). **Diário Oficial da União**: seção 1, Brasília, DF, 15 ago. 2018. Disponível em: https://www.planalto.gov.br/ccivil_03/_ato2015-2018/2018/lei/l13709.htm. Acesso em: 22 nov. 2026.
+
+CENTRO UNIVERSITÁRIO INTERNACIONAL UNINTER. **Projeto multidisciplinar**: orientações e estudo de caso – Rede "Raízes do Nordeste". Curitiba: UNINTER, 2026. Material didático da disciplina (citado como RG).
+
+CENTRO UNIVERSITÁRIO INTERNACIONAL UNINTER. **Roteiro de atividade prática de projeto multidisciplinar**: trilha back-end. Curitiba: UNINTER, 2026. Material didático da disciplina (citado como RT).
+
+FASTAPI. **FastAPI documentation**. [*S. l.*], 2026. Disponível em: https://fastapi.tiangolo.com/. Acesso em: 22 nov. 2026.
+
+KIMBALL, Ralph; ROSS, Margy. **The data warehouse toolkit**: the definitive guide to dimensional modeling. 3. ed. Indianapolis: Wiley, 2013.
+
+SQLALCHEMY. **SQLAlchemy 2.0 documentation**. [*S. l.*], 2026. Disponível em: https://docs.sqlalchemy.org/en/20/. Acesso em: 22 nov. 2026.
+
+THE POSTGRESQL GLOBAL DEVELOPMENT GROUP. **PostgreSQL 17 documentation**. [*S. l.*], 2026. Disponível em: https://www.postgresql.org/docs/17/. Acesso em: 22 nov. 2026.
 
 # Apêndice A — Declaração de uso de inteligência artificial
 
