@@ -1,0 +1,1744 @@
+{
+  "info": {
+    "name": "Raizes do Nordeste - MVP",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colecao do fluxo A (pedido, pagamento mock, status, consentimento, auditoria). Repetivel: cada execucao cria pedidos novos. Pre-requisitos: make up, make migrate, make seed. Ambiente: local.postman_environment.json (senha de demonstracao FICTICIA).\n\n| Cenario | Descricao | Requisito/regra | Status esperado | Tipo |\n|---|---|---|---|---|\n| 00 | Login dos 7 perfis | RF-02 | 200 | Positivo |\n| 00 | Login com senha errada | RF-02, RNF-03 | 401 | Negativo |\n| P01 | Cliente cria pedido APP | RF-07, RN-12 | 201 | Positivo |\n| P02 | Listar com canalPedido=APP | RF-08 | 200 | Positivo |\n| P03 | Cliente obtem o proprio pedido | RF-08 | 200 | Positivo |\n| P04 | Pagamento recusado (tok_recusado) | RF-11, RF-12, UC-05 | 201 (RECUSADO) | Positivo (pagamento negado) |\n| P05 | Pedido segue AGUARDANDO_PAGAMENTO | UC-05 | 200 | Positivo |\n| P06 | Pagamento aprovado (tok_aprovado) | RF-11, UC-05 | 201 (PAGO) | Positivo |\n| P07 | Cozinha: EM_PREPARO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P08 | Cozinha: PRONTO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P09 | Atendente: ENTREGUE | RF-09, RN-04 | 200 | Positivo |\n| P10 | Atendente cria pedido BALCAO | RF-07, RN-14 | 201 | Positivo |\n| P11 | Registrar consentimento MARKETING | RF-14 | 201 | Positivo |\n| P12 | Listar consentimentos | RF-14 | 200 | Positivo |\n| P13 | Auditoria PEDIDO_CRIADO (admin) | RF-13, UC-11 | 200 | Positivo (auditoria) |\n| N01 | Criar pedido sem token | RNF-03 | 401 | Negativo |\n| N02 | Cozinha cria pedido | RN-14, RNF-03 | 403 | Negativo |\n| N03 | Cliente muda status | RN-04, RNF-03 | 403 | Negativo |\n| N04 | canalPedido ausente | RF-07, RN-12 | 422 | Negativo |\n| N05 | Canal incompativel com o perfil | RN-14 | 422 | Negativo |\n| N06 | Pedido inexistente | RNF-03 | 404 | Negativo |\n| N07 | Cliente2 le pedido de outro cliente | RNF-05 | 404 | Negativo |\n| N08 | Quantidade acima do estoque | RF-07, RNF-11 | 409 ESTOQUE_INSUFICIENTE | Negativo |\n| N09 | Transicao ENTREGUE para PRONTO | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |\n| N10 | Pagar pedido ja pago | UC-05 | 409 | Negativo |"
+  },
+  "item": [
+    {
+      "name": "00 Autenticacao",
+      "item": [
+        {
+          "name": "Login cliente (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenCliente', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailCliente}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login cliente2 (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenCliente2', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailCliente2}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login atendente (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenAtendente', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailAtendente}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login cozinha (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenCozinha', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailCozinha}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login gerente (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenGerente', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailGerente}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login gerente2 (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenGerente2', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailGerente2}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login admin (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com accessToken bearer', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.accessToken).to.be.a('string').and.not.empty;",
+                  "  pm.expect(b.tokenType.toLowerCase()).to.eql('bearer');",
+                  "  pm.expect(b.expiresIn).to.eql(3600);",
+                  "  pm.collectionVariables.set('tokenAdmin', b.accessToken);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailAdmin}}\",\n  \"senha\": \"{{senhaDemo}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N - Login com senha errada (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 com erro padrao NAO_AUTENTICADO', function () { pm.response.to.have.status(401);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('NAO_AUTENTICADO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailCliente}}\",\n  \"senha\": \"senha-errada-ficticia\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "01 Positivos",
+      "item": [
+        {
+          "name": "P01 - Cliente cria pedido APP (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 pedido APP aguardando pagamento', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p.id).to.be.a('string');",
+                  "  pm.expect(p.canalPedido).to.eql('APP');",
+                  "  pm.expect(p.status).to.eql('AGUARDANDO_PAGAMENTO');",
+                  "  pm.expect(p.valorTotal).to.match(/^\\d+\\.\\d{2}$/);",
+                  "  pm.expect(p.itens).to.have.lengthOf(1);",
+                  "  pm.collectionVariables.set('pedidoId', p.id);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P02 - Listar pedidos com canalPedido=APP (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 paginado e todos os itens APP', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  ['items','page','limit','total'].forEach(k => pm.expect(b).to.have.property(k));",
+                  "  pm.expect(b.items).to.be.an('array').and.not.empty;",
+                  "  b.items.forEach(i => pm.expect(i.canalPedido).to.eql('APP'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos?canalPedido=APP&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ],
+              "query": [
+                {
+                  "key": "canalPedido",
+                  "value": "APP"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "P03 - Cliente obtem o proprio pedido (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 com o pedido e seus itens', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p.id).to.eql(pm.collectionVariables.get('pedidoId'));",
+                  "  pm.expect(p.itens).to.be.an('array').and.not.empty;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "P04 - Pagamento recusado tok_recusado (201, pedido segue aguardando)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 tentativa RECUSADO e pedido AGUARDANDO_PAGAMENTO', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.tentativa.status).to.eql('RECUSADO');",
+                  "  pm.expect(b.statusPedido).to.eql('AGUARDANDO_PAGAMENTO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/pagamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "pagamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"CREDITO\",\n  \"tokenPagamento\": \"tok_recusado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P05 - Pedido segue AGUARDANDO_PAGAMENTO apos recusa (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e status AGUARDANDO_PAGAMENTO', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('AGUARDANDO_PAGAMENTO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "P06 - Pagamento aprovado tok_aprovado (201, pedido PAGO)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 tentativa APROVADO e pedido PAGO', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.tentativa.status).to.eql('APROVADO');",
+                  "  pm.expect(b.statusPedido).to.eql('PAGO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/pagamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "pagamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"CREDITO\",\n  \"tokenPagamento\": \"tok_aprovado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P07 - Cozinha move para EM_PREPARO (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e status EM_PREPARO', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('EM_PREPARO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCozinha}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_PREPARO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P08 - Cozinha move para PRONTO (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e status PRONTO', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('PRONTO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCozinha}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PRONTO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P09 - Atendente move para ENTREGUE (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e status ENTREGUE', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  pm.expect(pm.response.json().status).to.eql('ENTREGUE');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAtendente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ENTREGUE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P10 - Atendente cria pedido BALCAO na unidade 1 (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 pedido BALCAO', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  const p = pm.response.json();",
+                  "  pm.expect(p.canalPedido).to.eql('BALCAO');",
+                  "  pm.expect(p.unidadeId).to.eql(pm.environment.get('unidade1Id'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAtendente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"BALCAO\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P11 - Cliente registra consentimento MARKETING (201)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('201 consentimento registrado', function () {",
+                  "  pm.response.to.have.status(201);",
+                  "  pm.expect(JSON.stringify(pm.response.json())).to.include('MARKETING');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/consentimentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "consentimentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"finalidade\": \"MARKETING\",\n  \"acao\": \"CONCEDIDO\",\n  \"versaoTermo\": \"v1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "P12 - Cliente lista consentimentos (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e lista inclui MARKETING e FIDELIDADE', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const s = JSON.stringify(pm.response.json());",
+                  "  pm.expect(s).to.include('MARKETING');",
+                  "  pm.expect(s).to.include('FIDELIDADE');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/consentimentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "consentimentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "P13 - Auditoria: admin encontra PEDIDO_CRIADO do pedido (200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('200 e trilha contem o pedido criado nesta execucao', function () {",
+                  "  pm.response.to.have.status(200);",
+                  "  const b = pm.response.json();",
+                  "  pm.expect(b.items).to.be.an('array').and.not.empty;",
+                  "  b.items.forEach(i => pm.expect(i.acao).to.eql('PEDIDO_CRIADO'));",
+                  "  const id = pm.collectionVariables.get('pedidoId');",
+                  "  pm.expect(b.items.some(i => JSON.stringify(i).includes(id)), 'pedido na trilha').to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auditoria?acao=PEDIDO_CRIADO&limit=100",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auditoria"
+              ],
+              "query": [
+                {
+                  "key": "acao",
+                  "value": "PEDIDO_CRIADO"
+                },
+                {
+                  "key": "limit",
+                  "value": "100"
+                }
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAdmin}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "02 Negativos",
+      "item": [
+        {
+          "name": "N01 - Criar pedido sem token (401)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('401 com erro padrao NAO_AUTENTICADO', function () { pm.response.to.have.status(401);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('NAO_AUTENTICADO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N02 - Cozinha cria pedido (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 com erro padrao SEM_PERMISSAO', function () { pm.response.to.have.status(403);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('SEM_PERMISSAO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCozinha}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"BALCAO\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N03 - Cliente tenta mudar status (403)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('403 com erro padrao SEM_PERMISSAO', function () { pm.response.to.have.status(403);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('SEM_PERMISSAO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"EM_PREPARO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N04 - canalPedido ausente (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 com erro padrao VALIDACAO_FALHOU', function () { pm.response.to.have.status(422);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('VALIDACAO_FALHOU');",
+                  "  pm.expect(e.details.some(d => d.field === 'canalPedido')).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N05 - Canal incompativel: cliente com BALCAO (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 com erro padrao ', function () { pm.response.to.have.status(422);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"BALCAO\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": 2\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N06 - Pedido inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 com erro padrao NAO_ENCONTRADO', function () { pm.response.to.have.status(404);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('NAO_ENCONTRADO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoInexistenteId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoInexistenteId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "N07 - Cliente2 obtem pedido do cliente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 com erro padrao NAO_ENCONTRADO', function () { pm.response.to.have.status(404);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('NAO_ENCONTRADO'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente2}}",
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "N08 - Quantidade acima do estoque (409 ESTOQUE_INSUFICIENTE)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 com erro padrao ESTOQUE_INSUFICIENTE', function () { pm.response.to.have.status(409);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('ESTOQUE_INSUFICIENTE'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoCarneSolId}}\",\n      \"quantidade\": 3\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N09 - Transicao invalida ENTREGUE para PRONTO (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 com erro padrao TRANSICAO_INVALIDA', function () { pm.response.to.have.status(409);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('TRANSICAO_INVALIDA'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "status"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenAtendente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"PRONTO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N10 - Pagar pedido ja pago (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('409 com erro padrao ', function () { pm.response.to.have.status(409);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos/{{pedidoId}}/pagamentos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos",
+                "{{pedidoId}}",
+                "pagamentos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"formaPagamento\": \"CREDITO\",\n  \"tokenPagamento\": \"tok_aprovado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "tokenCliente",
+      "value": ""
+    },
+    {
+      "key": "tokenCliente2",
+      "value": ""
+    },
+    {
+      "key": "tokenAtendente",
+      "value": ""
+    },
+    {
+      "key": "tokenCozinha",
+      "value": ""
+    },
+    {
+      "key": "tokenGerente",
+      "value": ""
+    },
+    {
+      "key": "tokenGerente2",
+      "value": ""
+    },
+    {
+      "key": "tokenAdmin",
+      "value": ""
+    },
+    {
+      "key": "pedidoId",
+      "value": ""
+    }
+  ]
+}
