@@ -36,6 +36,29 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      gateway-mock:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Gateway de pagamento simulado (D-041). Só acessível na rede do compose (sem porta no host).
+  gateway-mock:
+    build:
+      context: .
+      target: dev
+      args:
+        UID: ${HOST_UID:-1000}
+    # Não aplica migrações nem usa o banco: ignora o entrypoint da API.
+    entrypoint: []
+    command: ["uvicorn", "gateway_mock.app:app", "--host", "0.0.0.0", "--port", "8001", "--no-access-log"]
+    environment:
+      MOCK_TIMEOUT_SLEEP_SECONDS: "5"
+    volumes:
+      - .:/app
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:8001/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
     restart: unless-stopped
 
   # Pipeline analítico (DW). Fora do `make up`: só roda via `make dw*` (profile "analytics").
