@@ -38,50 +38,40 @@ Nome do arquivo final: <RU>_Projeto_Back_End.PDF (RT p. 13).
 EXIGE: contexto do estudo de caso, objetivos do projeto, principais usuários e relevância do sistema
 (roteiro geral); foco no negócio e numa API que suporte múltiplos canais (RT p. 4).
 FONTE: docs/requisitos/README.md §1 e §2; init/roteiro.md (estudo de caso).
-STATUS: ⬜ AUTORIA: 🧑 (texto autoral, recomendado escrever com a própria voz)
+STATUS: ✅ AUTORIA: 🧑 (texto autoral, recomendado escrever com a própria voz)
 -->
 
 ## 1.1 Contexto
 
-<!-- ROTEIRO PARA O AUTOR:
-1. Quem é a Raízes do Nordeste: rede de lanchonetes nordestinas em expansão, com matriz (franqueadora) e unidades em várias cidades (docs/requisitos/README.md §1; estudo de caso em init/roteiro.md).
-2. Unidades não idênticas: formatos diferentes (cozinha completa ou reduzida) e produtos sazonais, em especial no período junino.
-3. Múltiplos canais de pedido (aplicativo, totem, balcão, retirada rápida e web) e o que o cliente espera: ver o cardápio da unidade, pedir, acompanhar o status.
-4. Necessidades da matriz: padronização, rastreabilidade e auditoria de operações sensíveis.
-5. Pressões do caso: programa de fidelização com consentimento (LGPD), picos de demanda sem falha e pagamento por serviço externo.
-6. Por que o foco é o back-end: a regra de negócio, os dados e a segurança, e não as telas (RT p. 4).
--->
+<!-- AUTORIA: resumo do autor, completado pela IA com os fatos do estudo de caso exigidos pelo roteiro (D-061). -->
+
+A Rede Raízes do Nordeste começou com uma operação simples e, agora, está em expansão, transformando parte de suas operações em regime de franquia. Com o crescimento, a rede passa a ter uma matriz e unidades em diferentes cidades, que não são idênticas entre si: há unidades com cozinha completa e outras em formato reduzido, e o cardápio varia conforme a unidade e a época do ano, como no período junino.
+
+Os pedidos chegam por vários canais (aplicativo, totem, balcão, retirada rápida e web), o programa de fidelização exige o consentimento do cliente, conforme a LGPD, os horários de pico não podem interromper a operação e o pagamento é processado por um serviço externo. Nesse cenário, o foco deste trabalho é o back-end, porque é nele que ficam as regras de negócio, os dados e a segurança que sustentam todos os canais.
 
 ## 1.2 Objetivos do projeto
 
-<!-- ROTEIRO PARA O AUTOR:
-1. Objetivo geral: uma API REST que feche o fluxo crítico pedido → pagamento (mock) → status (docs/requisitos/README.md §1).
-2. Objetivos específicos: estoque integrado ao pedido, controle de acesso por perfil, rastreabilidade por canal (canalPedido), trilha de auditoria e tratamento mínimo de LGPD.
-3. Objetivo de documentação: separar o que foi implementado (MVP) do que ficou como proposta, com justificativa (RT p. 14 e L545).
-4. Objetivo de reprodutibilidade: do clone ao Swagger funcionando com poucos comandos (RNF-14).
-5. Critério de sucesso: o que o autor considera "entregue" (fluxo crítico executável e testado).
--->
+<!-- AUTORIA: texto do autor, com revisão de forma pela IA; o primeiro parágrafo resume o objetivo técnico exigido pelo roteiro (D-061). -->
+
+O objetivo técnico deste trabalho é entregar uma API REST que feche o fluxo crítico da rede, composto por pedido, pagamento simulado e atualização de status, com controle de acesso por perfil, identificação do canal de cada pedido, controle de estoque, trilha de auditoria e cuidados mínimos de LGPD, de forma reproduzível e testada.
+
+Além disso, o trabalho busca mostrar como é possível fazer algo grandioso com a IA nos dias atuais, sabendo que, muito provavelmente, diversas ferramentas já disponíveis no mercado podem alavancar o negócio sem que a empresa precise se desgastar com um grande projeto de tecnologia personalizada. Por fim, o trabalho dá ênfase aos dados gerados pela empresa e traz uma visão analítica para os gestores do negócio, com a implementação de um Data Warehouse, como ponto de partida para uma cultura orientada por dados.
 
 ## 1.3 Principais usuários
 
-<!-- ROTEIRO PARA O AUTOR:
-1. Os cinco perfis de acesso e o que cada um faz: CLIENTE, ATENDENTE, COZINHA, GERENTE e ADMIN (docs/requisitos/README.md §2; D-039).
-2. Quem enxerga o quê: GERENTE restrito à própria unidade, ADMIN com visão da rede inteira.
-3. Os "usuários" não humanos da API: os canais (app, totem, balcão, pick-up, web) e o gateway de pagamento mock.
-4. Relação com a seção 2.1 deste documento, sem repetir a tabela.
--->
+<!-- AUTORIA: redigido pela IA a pedido do autor (D-061). -->
+
+Os usuários do sistema correspondem aos cinco perfis de acesso descritos na seção 2.1. O cliente faz pedidos pelos canais digitais (aplicativo, web e retirada rápida), acompanha o status e gerencia os próprios consentimentos. O atendente registra pedidos no balcão e no totem da sua unidade e entrega os pedidos prontos. A cozinha recebe os pedidos pagos e informa o andamento do preparo. O gerente acompanha a operação e a auditoria da própria unidade, e o administrador da matriz tem visão de toda a rede.
+
+Além das pessoas, a API atende usuários não humanos: os canais de venda, que consomem o mesmo contrato, e o gateway de pagamento, com o qual a API troca solicitações e respostas.
 
 ## 1.4 Relevância e visão do autor
 
-<!-- Espaço para a visão analítica (D-017): dados como ativo de uma rede que não é empresa de tecnologia. -->
+<!-- AUTORIA: texto do autor, com revisão de forma pela IA (D-061). -->
 
-<!-- ROTEIRO PARA O AUTOR:
-1. Relevância do sistema para a rede: padronização entre unidades, rastreabilidade e resistência ao horário de pico.
-2. A tese do autor (D-017): a rede não é uma empresa de tecnologia, mas dados são essenciais a qualquer empresa.
-3. Como a API publica eventos de domínio (outbox) que alimentam o Data Warehouse, sem expor dados pessoais identificados (RF-22; Apêndice B).
-4. Ponte para a proposta final à Raízes (D-037): construir × comprar, com honestidade sobre o que vale desenvolver sob medida.
-5. Diferença entre o que pontua no roteiro (a API) e o que é o diferencial do autor (a visão analítica, D-036).
--->
+Dando continuidade aos objetivos, a ideia que este trabalho leva aos gestores da Raízes do Nordeste é que hoje é possível fazer um projeto personalizado de ponta a ponta, de maneira segura, com os avanços da IA. Porém, isso demanda muita maturidade dos processos, e uma empresa em crescimento geralmente está amadurecendo enquanto se expande. Por isso, o objetivo é mostrar que consigo cumprir os objetivos técnicos, mas também registrar a minha experiência, ainda que pequena, sobre o mercado: muitas empresas, principalmente as menores, não dispõem de um orçamento alto para um desenvolvimento personalizado e acabam optando por parceiros que entregam ferramentas mais aderentes ao seu setor, que permitem alguma personalização, mas não muita.
+
+De modo geral, uma análise de mercado mostra que, em diversos setores, uma solução inovadora aparece apenas quando a empresa tem capacidade de também se assumir como uma empresa de tecnologia, o que demanda uma mudança de cultura muito forte ou parcerias estratégicas para produzir essa mudança. Além disso, quero mostrar a minha visão do mundo de dados: os processos são tão importantes quanto as ferramentas, talvez até mais, e precisam estar bem definidos antes de qualquer implementação. A gestão e a análise dos dados permitem uma visão mais holística do negócio e trazem inúmeras possibilidades de melhoria, que vão sustentar o crescimento acelerado da rede Raízes do Nordeste.
 
 # 2 Análise e requisitos
 
