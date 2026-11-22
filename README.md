@@ -102,6 +102,27 @@ com apenas 2 unidades em estoque, para exercitar o erro 409 `ESTOQUE_INSUFICIENT
 A senha `Demo@2026` é **fictícia** e vale só para uso local de demonstração; nunca a use fora
 dele.
 
+## Como testar
+
+Com o ambiente de pé (`make up`) e os dados de demonstração carregados (`make seed`):
+
+```bash
+make postman          # coleção ponta a ponta com newman, contra a API e o gateway mock reais
+make test             # unitários e arquitetura
+make test-integration # integração com PostgreSQL real (banco _teste)
+```
+
+- **Coleção:** [`postman/raizes-mvp.postman_collection.json`](postman/raizes-mvp.postman_collection.json),
+  em três pastas: `00 Autenticacao`, `01 Positivos` e `02 Negativos`. O token é obtido
+  automaticamente pela pasta de autenticação (login dos sete perfis de demonstração); não há token
+  a copiar.
+- **Ambiente:** [`postman/local.postman_environment.json`](postman/local.postman_environment.json)
+  (ajuste `baseUrl` para a sua `API_PORT`).
+- **Importação manual no Postman:** importe a coleção e o ambiente, selecione "Raizes local" e rode
+  a coleção inteira (Runner), na ordem das pastas. Detalhes em [postman/README.md](postman/README.md).
+- **Swagger local:** `http://localhost:${API_PORT}/docs`.
+- **Plano de testes e cenários T01 a T23:** [docs/testes/](docs/testes/README.md).
+
 ## Data Warehouse
 
 Camada analítica opcional (DuckDB + Parquet + dbt), alimentada pela outbox de eventos de domínio.
