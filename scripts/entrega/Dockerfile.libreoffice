@@ -1,0 +1,7 @@
+# LibreOffice headless para converter .docx em PDF (base fixa; fontes métricas compatíveis com Arial/Times/Calibri).
+FROM ubuntu:24.04
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        libreoffice-writer python3-uno poppler-utils \
+        fonts-liberation fonts-crosextra-carlito fonts-dejavu-core \
+    && rm -rf /var/lib/apt/lists/*
