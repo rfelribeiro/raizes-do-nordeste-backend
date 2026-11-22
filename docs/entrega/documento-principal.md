@@ -2110,19 +2110,169 @@ As decisões de escopo foram do autor: a trilha, o fluxo crítico, a priorizaç�
 <!--
 Diferencial do autor (D-017; não pontua diretamente, D-036). Outbox, medallion, Kimball, matriz de barramento.
 FONTE: docs/dados/, analytics/, ADRs 0007–0008.
-STATUS: ⬜ AUTORIA: 🧑 (modelagem dimensional é autoria do humano)
+STATUS: ✅ AUTORIA: 🧑 (modelagem dimensional é autoria do humano)
 -->
 
-<!-- ROTEIRO PARA O AUTOR:
-1. A tese (D-017, ADR 0007): dados como ativo de uma rede que não é empresa de tecnologia, e por que isso orienta a modelagem desde o início.
-2. Por que separar OLTP e OLAP: finalidades opostas, normalização (3FN) × modelo dimensional; usar a comparação da seção 3.2 e de docs/modelagem/der.md §1.
-3. A ponte entre os dois mundos: o outbox transacional (RF-22, D-019), gravado na mesma transação do caso de uso, sem dados pessoais em claro; por que não acesso direto nem CDC no MVP.
-4. A plataforma (ADR 0008, D-018): DuckDB e Parquet, com caminho de evolução para Lakehouse (object storage, Iceberg, Trino ou Spark).
-5. A arquitetura medallion bronze, silver e gold com dbt-core (D-021) e o que cada camada faz.
-6. A modelagem de Kimball (D-020): processos de negócio, granularidade, dimensões conformadas e a matriz de barramento (docs/dados/matriz-de-barramento.md); incluir um diagrama em estrela, de sua autoria.
-7. Privacidade na camada analítica: pseudonimização por HMAC do cliente, membros especiais para não identificado e anonimizado (D-029, D-031, D-051).
-8. O paralelo saldo + razão no OLTP com snapshot periódico + fato transacional no DW (D-048), e o que ficou congelado até fechar a API (D-036).
--->
+<!-- AUTORIA: rascunho da IA a partir das decisões do autor (D-017 a D-021, D-028 a D-032, D-048, D-062); a modelagem dimensional (processos, grãos, dimensões e matriz) é do autor; revisado e aprovado pelo autor em 2026-11-22 (D-061). -->
+
+## B.1 A tese: dados como ativo de uma rede que não é empresa de tecnologia
+
+A Raízes do Nordeste vende comida, não software. Mesmo assim, a matriz pede, no estudo de caso, vendas por unidade e por região, produtos mais consumidos, relatórios financeiros, auditoria de operações sensíveis e campanhas segmentadas de fidelidade. Tudo isso é análise de dados. A visão do autor, registrada na D-017, é que "não é uma empresa de tecnologia, mas dados são essenciais para qualquer empresa". Por isso, a camada analítica foi pensada desde o início do projeto, e não acrescentada depois: os eventos que a API publica já nascem com o formato que a análise precisa e sem dados pessoais em claro.
+
+Essa visão conversa com a tese central do trabalho. A rede não precisa construir um produto de dados sofisticado para começar uma cultura orientada por dados. Precisa de processos bem definidos, que gerem registros confiáveis, e de uma fundação simples, barata e com caminho de evolução. A tecnologia escolhida pode ser trocada; o modelo dos processos de negócio, não.
+
+## B.2 Por que separar o banco transacional do analítico
+
+O banco da API (OLTP) e o Data Warehouse (OLAP) têm finalidades opostas. O OLTP atende muitas escritas pequenas e precisa responder rápido no horário de pico; por isso é normalizado (terceira forma normal), com integridade garantida por chaves e restrições. O OLAP atende poucas leituras grandes, que agregam meses de histórico; por isso usa o modelo dimensional, desnormalizado, com o contexto de cada fato ao lado dele.
+
+Misturar as duas cargas traz dois riscos. O primeiro é operacional: um relatório pesado, rodando no mesmo banco, pode atrasar o pedido do cliente na hora do almoço, o que fere o requisito de disponibilidade do estudo de caso. O segundo é de evolução: se a análise lê as tabelas da API diretamente, qualquer mudança no esquema transacional quebra os relatórios. Separar os dois mundos protege a operação e deixa cada lado evoluir com a tecnologia adequada.
+
+## B.3 A ponte entre os dois mundos: o outbox transacional
+
+A API não envia dados ao DW diretamente. Cada caso de uso relevante grava um evento de domínio na tabela `outbox_eventos` na **mesma transação** em que grava o negócio (RF-22, D-019). Assim, ou o pedido e o evento existem juntos, ou nenhum dos dois existe: não há evento de um pedido que falhou, nem pedido sem evento. Um extrator incremental lê os eventos novos pela marca d'água (`id_sequencial`), grava arquivos Parquet e só depois avança a marca, o que torna a extração segura para reexecutar.
+
+Os eventos carregam apenas identificadores, valores, canal e status, nunca nome, e-mail ou documento. Essa regra é inegociável porque a primeira camada do DW é imutável: um dado pessoal em claro no evento ficaria guardado para sempre.
+
+Duas alternativas foram descartadas para esta fase. A leitura direta das tabelas da API por data de atualização é simples, mas perde estados intermediários e acopla a análise ao esquema transacional. A captura de mudanças pelo log do banco (CDC, com Debezium e Kafka) é a evolução natural do outbox, mas exige uma infraestrutura que não se justifica no volume atual.
+
+## B.4 A plataforma: DuckDB e Parquet, com caminho para Lakehouse
+
+O DW usa **DuckDB**, um motor analítico embutido que não exige servidor, sobre arquivos **Parquet**, um formato colunar aberto (ADR 0008, D-018). As transformações são escritas em SQL e versionadas com o **dbt-core** (D-021), que também executa os testes de dados e gera a documentação e a linhagem dos modelos. Tudo roda localmente com Docker e `make dw`, sem custo de nuvem, o que permite ao avaliador reproduzir o resultado.
+
+A escolha não prende a rede a essa plataforma. Como o armazenamento usa formato aberto e os modelos do dbt são SQL independente do motor, o caminho de evolução para um Lakehouse troca peças sem reescrever a modelagem: primeiro, levar os arquivos para um armazenamento de objetos com um formato de tabela aberto (Apache Iceberg); depois, trocar o motor por um distribuído (Trino ou Spark); por fim, substituir o extrator em lotes por CDC quando o volume pedir. É a mesma lógica do restante do trabalho: começar com o que resolve o problema de hoje e deixar o caminho aberto para crescer.
+
+## B.5 As camadas bronze, silver e gold
+
+A organização segue a arquitetura em medalhão:
+
+- **Bronze:** os eventos exatamente como saíram do outbox, em Parquet particionado por data, imutáveis e apenas acrescentados. É a fonte de verdade da análise: qualquer camada acima pode ser reconstruída a partir dela.
+- **Silver:** os eventos tipados e deduplicados por `id_evento` (`stg_outbox_eventos`). A extração garante entrega "ao menos uma vez"; a silver transforma isso em "exatamente uma vez", sem contagem dupla.
+- **Gold:** o modelo dimensional de Kimball, com dimensões (`dim_*`) e fatos (`fct_*`) prontos para consulta por SQL ou por uma ferramenta de BI.
+
+## B.6 A modelagem dimensional e a matriz de barramento
+
+A camada gold segue o método de Kimball (D-020) em quatro passos: escolher o processo de negócio, declarar o grão (o que uma linha representa), identificar as dimensões e identificar as medidas. O grão vem antes das dimensões porque decide quais delas cabem. A partir das necessidades do estudo de caso, o autor definiu nove processos de negócio e cruzou-os com as dimensões na **matriz de barramento** (Tabela 23). A matriz mostra quais dimensões são **conformadas**, isto é, compartilhadas com as mesmas chaves por vários processos (tempo, unidade, canal, cliente, produto, hora, campanha, motivo e colaborador). É isso que permite cruzar vendas, estoque e fidelidade na mesma análise e construir o DW de forma incremental, um processo por vez.
+
+**Tabela 23 — Matriz de barramento: processos de negócio × dimensões**
+
+| Processo (tabela fato) | Tipo | Tempo | Hora | Unidade | Produto | Canal | Cliente | Forma pgto | Campanha | Colaborador | Status | Motivo | Finalidade | Nº pedido |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 1. Itens de pedido (`fct_item_pedido`) | Transacional | X | X | X | X | X | X | | X | | | | | D |
+| 2. Pedidos (`fct_pedido`) | Transacional | X | X | X | | X | X | | X | X | X | | | D |
+| 3. Ciclo de vida do pedido (`fct_ciclo_pedido`) | Snapshot acumulativo | RP | | X | | X | | | | | X | | | D |
+| 4. Pagamentos (`fct_tentativa_pagamento`) | Transacional | X | X | X | | X | X | X | | | | X | | D |
+| 5. Movimentação de estoque (`fct_movimentacao_estoque`) | Transacional | X | X | X | X | | | | | X | | X | | |
+| 6. Saldo de estoque (`fct_saldo_estoque_diario`) | Snapshot periódico | X | | X | X | | | | | | | | | |
+| 7. Fidelidade (`fct_movimento_pontos`) | Transacional | X | | X | | X | X | | X | | | X | | |
+| 8. Operações sensíveis (`fct_operacao_sensivel`) | Transacional | X | X | X | X | X | | | X | X | | X | | D |
+| 9. Consentimentos LGPD (`fct_consentimento_diario`) | Snapshot periódico sem medida | X | | | | X | X | | | | | | X | |
+
+Legenda: X = dimensão presente; RP = role-playing (várias datas com papéis diferentes: criação, pagamento, preparo, entrega); D = número do pedido como dimensão degenerada.
+
+Fonte: elaborado pelo autor (docs/dados/matriz-de-barramento.md).
+
+Algumas escolhas merecem destaque. Itens de pedido e pedidos são fatos separados porque há medidas que só existem no cabeçalho, como o desconto global, e ratear essas medidas nos itens seria artificial. Os pagamentos são registrados por **tentativa**, e não por pedido, para preservar as recusas e as falhas do gateway, que são justamente a evidência de como a integração externa se comporta. O ciclo de vida do pedido é o único fato atualizado ao longo do tempo (snapshot acumulativo) e mede os tempos de atendimento no horário de pico. Por fim, toda dimensão tem o membro **-1 "Não identificado"**, de modo que as chaves dos fatos nunca são nulas: um pedido sem cliente cadastrado continua contando nas vendas por canal e por unidade, mas não alimenta segmentação nem fidelidade.
+
+A Figura 20 mostra a estrela do processo de pedidos, com as dimensões que ele compartilha com os demais processos.
+
+**Figura 20 — Esquema estrela do fato de pedidos (`fct_pedido`)**
+
+```mermaid
+erDiagram
+    fct_pedido }o--|| dim_tempo : "sk_data"
+    fct_pedido }o--|| dim_hora : "sk_hora"
+    fct_pedido }o--|| dim_unidade : "sk_unidade"
+    fct_pedido }o--|| dim_canal : "sk_canal"
+    fct_pedido }o--|| dim_cliente : "sk_cliente"
+    fct_pedido }o--|| dim_status_pedido : "sk_status_pedido"
+    fct_pedido {
+        uuid id_pedido "dimensão degenerada"
+        int sk_data FK
+        int sk_hora FK
+        int sk_unidade FK
+        int sk_canal FK
+        int sk_cliente FK
+        int sk_status_pedido FK
+        decimal valor_bruto
+        decimal valor_desconto
+        decimal valor_liquido
+    }
+    dim_tempo {
+        int sk_data PK
+        date data
+        boolean eh_periodo_junino
+        string nome_feriado
+    }
+    dim_hora {
+        int sk_hora PK
+        string periodo_dia
+        boolean eh_pico
+    }
+    dim_unidade {
+        int sk_unidade PK
+        uuid id_unidade
+    }
+    dim_canal {
+        int sk_canal PK
+        string nome_canal
+        string tipo_canal
+    }
+    dim_cliente {
+        int sk_cliente PK
+        string id_cliente_pseudonimo "HMAC-SHA256"
+    }
+    dim_status_pedido {
+        int sk_status_pedido PK
+        string nome_status_pedido
+        boolean eh_final
+    }
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+## B.7 Privacidade na camada analítica
+
+O DW não guarda nome, CPF, e-mail, telefone nem data de nascimento. O cliente é identificado por um **pseudônimo**, calculado com HMAC-SHA256 sobre o identificador interno e uma chave secreta que existe apenas no ambiente de execução e nunca é versionada (D-029, D-051). Sem a chave, não é possível refazer o vínculo com a pessoa; trocar a chave desfaz o vínculo de todos os registros de uma só vez. Além do membro -1, a dimensão de cliente tem o membro **-2 "Anonimizado"**: quando um titular exerce o direito de eliminação previsto na LGPD, os registros dele passam a apontar para esse membro, o que preserva os totais de vendas e elimina a identificação (D-031).
+
+## B.8 O mesmo padrão nos dois mundos: saldo e razão
+
+O banco transacional guarda o estoque e os pontos de fidelidade como **saldo + razão** (D-048): uma tabela com o saldo atual e outra, apenas acrescentada, com cada movimentação. O DW repete esse padrão com dois tipos de fato: o **snapshot periódico** (saldo de estoque por produto, unidade e dia) responde "quanto havia", inclusive nos dias sem movimento, e o **fato transacional** (movimentação de estoque) responde "por que mudou". O modelo analítico, portanto, não é um desenho à parte: ele espelha a forma como o negócio já foi modelado na operação.
+
+## B.9 O que foi implementado e o que fica como evolução
+
+Durante o desenvolvimento, o DW ficou congelado até que o fluxo principal da API estivesse pronto (D-036), para que a camada analítica não atrasasse os requisitos avaliados. Ao final, foram implementados o outbox, a extração para o bronze, a silver, a dimensão de tempo e os dois primeiros fatos da matriz, pedidos e tentativas de pagamento (D-062), com os eventos que a API já publica.
+
+**Tabela 24 — Modelos do DW implementados**
+
+| Camada | Modelo | O que representa |
+|---|---|---|
+| Bronze | `outbox_eventos` (Parquet) | eventos do outbox como foram capturados, particionados por data |
+| Silver | `stg_outbox_eventos` | eventos tipados e deduplicados |
+| Silver | `int_cliente_pseudonimo` | pseudônimo HMAC-SHA256 de cada cliente (o identificador em claro não chega à gold) |
+| Gold | `dim_tempo`, `dim_hora` | calendário com feriados e período junino; minutos do dia com período e horário de pico |
+| Gold | `dim_canal`, `dim_status_pedido`, `dim_forma_pagamento` | listas de referência dos valores da API |
+| Gold | `dim_unidade`, `dim_cliente` | versões mínimas: identificador da unidade e pseudônimo do cliente, com os membros -1 e -2 |
+| Gold | `fct_pedido` | um pedido, no status mais recente |
+| Gold | `fct_tentativa_pagamento` | uma tentativa de pagamento, aprovada ou recusada |
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+O pipeline roda com `make dw` e executa 113 testes de dados do dbt (chaves únicas e não nulas, integridade entre fatos e dimensões, valores aceitos e unicidade do grão), inclusive na integração contínua com o bronze vazio. Com os dados de demonstração gerados pela coleção Postman, o DW já responde perguntas de negócio, como mostra a Tabela 25.
+
+**Tabela 25 — Exemplo de consulta no DW com os dados de demonstração**
+
+| Pergunta | Resultado |
+|---|---|
+| Pedidos e valor líquido por canal | APP: 8 pedidos, R$ 192,00; BALCAO: 8 pedidos, R$ 192,00 |
+| Tentativas de pagamento por resultado | 8 aprovadas e 8 recusadas (taxa de recusa de 50%) |
+| Pedidos por status atual | 8 entregues e 8 aguardando pagamento |
+| Pedidos sem cliente identificado | 8 de 16 (membro -1), contados nas vendas, fora da segmentação |
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A). Dados fictícios, gerados pelos cenários de teste.
+
+Os eventos atuais não trazem todos os atributos da matriz. Faltam o número legível do pedido, a quantidade de itens, a campanha e o colaborador no pedido; nome, cidade, região e formato da unidade; faixa etária e perfil do cliente; e a latência do gateway. A tentativa de pagamento que esgota o tempo também não gera evento. Essas lacunas estão listadas em `docs/dados/matriz-de-barramento.md` e definem o que os próximos eventos precisam carregar.
+
+Os demais processos estão modelados e dependem de a API publicar novos eventos: os itens do pedido no evento de criação (para o fato de itens e os produtos mais vendidos), as movimentações de estoque e de pontos, os consentimentos e os cancelamentos. Essa ordem é proposital. A modelagem de dados vem primeiro e orienta quais eventos a operação precisa registrar; a implementação acompanha a maturidade dos processos, um processo de negócio por vez.
 
 # Apêndice C — Diagramas complementares
 
