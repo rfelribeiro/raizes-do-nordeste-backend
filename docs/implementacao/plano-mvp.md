@@ -80,15 +80,19 @@ integra no `main` e roda a verificação completa entre as ondas.
 Fronteiras de arquivos na onda 1 (para não haver conflito):
 
 - **A** é dono de `migrations/versions/*0002*`, `src/raizes/infrastructure/db/models/` (exceto
-  `outbox.py`) e `scripts/seed.py`.
+  `outbox.py`), `scripts/seed.py`, do `Makefile` e de uma seção nova "Dados de demonstração" no
+  `README.md`.
 - **B** é dono de `src/raizes/infrastructure/security/`, `src/raizes/api/composition/`,
   `src/raizes/api/security.py`, `src/raizes/api/pagination.py`, `src/raizes/application/errors.py`,
   `src/raizes/api/errors.py`, `src/raizes/application/ports/{unit_of_work,security,users}.py`,
   `src/raizes/application/identity/`, `src/raizes/api/v1/auth.py`, `src/raizes/main.py`,
   `src/raizes/api/v1/router.py`, `tests/architecture/`, `tests/integration/conftest.py`.
-- **C** é dono de `src/raizes/domain/{orders,stock}/`,
-  `src/raizes/application/ports/{orders,stock,payment_gateway,audit,consent}.py`,
-  `services/gateway_mock/` e do serviço `gateway-mock` no `docker-compose.yml`.
+- **C** é dono de `src/raizes/domain/{orders,stock,consent}/`,
+  `src/raizes/application/ports/{orders,catalog,stock,payment_gateway,audit,consent}.py`,
+  `src/raizes/infrastructure/payment/` (cliente HTTP do gateway), `src/gateway_mock/` (o serviço
+  mock, pacote separado de `raizes`) e do serviço `gateway-mock` no `docker-compose.yml`.
+- **D** só mexe em `docs/requisitos/README.md`, `docs/entrega/documento-principal.md` e no bloco
+  "Estado atual" do `README.md`.
 
 ## 4. Convenções obrigatórias
 
