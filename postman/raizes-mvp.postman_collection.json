@@ -2,7 +2,7 @@
   "info": {
     "name": "Raizes do Nordeste - MVP",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Colecao do fluxo A (pedido, pagamento mock, status, consentimento, auditoria). Repetivel: cada execucao cria pedidos novos. Pre-requisitos: make up, make migrate, make seed. Ambiente: local.postman_environment.json (senha de demonstracao FICTICIA).\n\n| Cenario | Descricao | Requisito/regra | Status esperado | Tipo |\n|---|---|---|---|---|\n| 00 | Login dos 7 perfis | RF-02 | 200 | Positivo |\n| 00 | Login com senha errada | RF-02, RNF-03 | 401 | Negativo |\n| P01 | Cliente cria pedido APP | RF-07, RN-12 | 201 | Positivo |\n| P02 | Listar com canalPedido=APP | RF-08 | 200 | Positivo |\n| P03 | Cliente obtem o proprio pedido | RF-08 | 200 | Positivo |\n| P04 | Pagamento recusado (tok_recusado) | RF-11, RF-12, UC-05 | 201 (RECUSADO) | Positivo (pagamento negado) |\n| P05 | Pedido segue AGUARDANDO_PAGAMENTO | UC-05 | 200 | Positivo |\n| P06 | Pagamento aprovado (tok_aprovado) | RF-11, UC-05 | 201 (PAGO) | Positivo |\n| P07 | Cozinha: EM_PREPARO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P08 | Cozinha: PRONTO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P09 | Atendente: ENTREGUE | RF-09, RN-04 | 200 | Positivo |\n| P10 | Atendente cria pedido BALCAO | RF-07, RN-14 | 201 | Positivo |\n| P11 | Registrar consentimento MARKETING | RF-14 | 201 | Positivo |\n| P12 | Listar consentimentos | RF-14 | 200 | Positivo |\n| P13 | Auditoria PEDIDO_CRIADO (admin) | RF-13, UC-11 | 200 | Positivo (auditoria) |\n| N01 | Criar pedido sem token | RNF-03 | 401 | Negativo |\n| N02 | Cozinha cria pedido | RN-14, RNF-03 | 403 | Negativo |\n| N03 | Cliente muda status | RN-04, RNF-03 | 403 | Negativo |\n| N04 | canalPedido ausente | RF-07, RN-12 | 422 | Negativo |\n| N05 | Canal incompativel com o perfil | RN-14 | 422 | Negativo |\n| N06 | Pedido inexistente | RNF-03 | 404 | Negativo |\n| N07 | Cliente2 le pedido de outro cliente | RNF-05 | 404 | Negativo |\n| N08 | Quantidade acima do estoque | RF-07, RNF-11 | 409 ESTOQUE_INSUFICIENTE | Negativo |\n| N09 | Cozinha pede PRONTO em pedido ENTREGUE (transicao invalida) | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |\n| N10 | Pagar pedido ja pago | UC-05 | 409 | Negativo |"
+    "description": "Colecao do fluxo A (pedido, pagamento mock, status, consentimento, auditoria). Repetivel: cada execucao cria pedidos novos. Pre-requisitos: make up, make migrate, make seed. Ambiente: local.postman_environment.json (senha de demonstracao FICTICIA).\n\n| Cenario | Descricao | Requisito/regra | Status esperado | Tipo |\n|---|---|---|---|---|\n| 00 | Login dos 7 perfis | RF-02 | 200 | Positivo |\n| 00 | Login com senha errada | RF-02, RNF-03 | 401 | Negativo |\n| P01 | Cliente cria pedido APP | RF-07, RN-12 | 201 | Positivo |\n| P02 | Listar com canalPedido=APP | RF-08 | 200 | Positivo |\n| P03 | Cliente obtem o proprio pedido | RF-08 | 200 | Positivo |\n| P04 | Pagamento recusado (tok_recusado) | RF-11, RF-12, UC-05 | 201 (RECUSADO) | Positivo (pagamento negado) |\n| P05 | Pedido segue AGUARDANDO_PAGAMENTO | UC-05 | 200 | Positivo |\n| P06 | Pagamento aprovado (tok_aprovado) | RF-11, UC-05 | 201 (PAGO) | Positivo |\n| P07 | Cozinha: EM_PREPARO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P08 | Cozinha: PRONTO | RF-09, RN-03, RN-04 | 200 | Positivo |\n| P09 | Atendente: ENTREGUE | RF-09, RN-04 | 200 | Positivo |\n| P10 | Atendente cria pedido BALCAO | RF-07, RN-14 | 201 | Positivo |\n| P11 | Registrar consentimento MARKETING | RF-14 | 201 | Positivo |\n| P12 | Listar consentimentos | RF-14 | 200 | Positivo |\n| P13 | Auditoria PEDIDO_CRIADO (admin) | RF-13, UC-11 | 200 | Positivo (auditoria) |\n| N01 | Criar pedido sem token | RNF-03 | 401 | Negativo |\n| N02 | Cozinha cria pedido | RN-14, RNF-03 | 403 | Negativo |\n| N03 | Cliente muda status | RN-04, RNF-03 | 403 | Negativo |\n| N04 | canalPedido ausente | RF-07, RN-12 | 422 | Negativo |\n| N05 | Canal incompativel com o perfil | RN-14 | 422 | Negativo |\n| N06 | Pedido inexistente | RNF-03 | 404 | Negativo |\n| N07 | Cliente2 le pedido de outro cliente | RNF-05 | 404 | Negativo |\n| N08 | Quantidade acima do estoque | RF-07, RNF-11 | 409 ESTOQUE_INSUFICIENTE | Negativo |\n| N09 | Cozinha pede PRONTO em pedido ENTREGUE (transicao invalida) | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |\n| N10 | Pagar pedido ja pago | UC-05 | 409 | Negativo |\n| N11 | Quantidade negativa | RF-07 | 422 | Negativo |\n| N12 | Produto inexistente | RF-07 | 404 | Negativo |"
   },
   "item": [
     {
@@ -1714,6 +1714,121 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"formaPagamento\": \"CREDITO\",\n  \"tokenPagamento\": \"tok_aprovado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N11 - Quantidade negativa (422)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('422 com erro padrao VALIDACAO_FALHOU apontando a quantidade do item', function () { pm.response.to.have.status(422);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "pm.expect(e.error).to.eql('VALIDACAO_FALHOU');",
+                  "  pm.expect(e.details.some(d => /quantidade/.test(d.field))).to.be.true; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": \"{{produtoTapiocaId}}\",\n      \"quantidade\": -1\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "N12 - Produto inexistente (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('404 com erro padrao', function () { pm.response.to.have.status(404);",
+                  "const e = pm.response.json();",
+                  "['error','message','details','timestamp','path','requestId'].forEach(k => pm.expect(e, 'campo '+k).to.have.property(k));",
+                  "pm.expect(e.details).to.be.an('array');",
+                  "  pm.expect(e.error).to.be.a('string').and.not.empty; });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pedidos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "pedidos"
+              ]
+            },
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{tokenCliente}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"unidadeId\": \"{{unidade1Id}}\",\n  \"canalPedido\": \"APP\",\n  \"itens\": [\n    {\n      \"produtoId\": \"00000000-0000-4000-8000-0000000009a9\",\n      \"quantidade\": 1\n    }\n  ]\n}",
               "options": {
                 "raw": {
                   "language": "json"

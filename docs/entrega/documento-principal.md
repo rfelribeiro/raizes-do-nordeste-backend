@@ -550,7 +550,7 @@ No Data Warehouse, o identificador do cliente é transformado por HMAC-SHA256, c
 EXIGE: repositório público com histórico de commits, README reprodutível, OpenAPI/Swagger,
 coleção Postman, DER compatível com o banco (RT p. 9–10); MVP mínimo (L291–L313); evidências (L315–L330).
 FONTE: README.md, docker-compose, migrations, /docs da API, git log.
-STATUS: ✏️ (6.1 e 6.2 rascunhadas; 6.3 e 6.4 dependem da implementação)
+STATUS: ✏️ (6.3 e 6.4 escritas; faltam as capturas do Swagger, do autor)
 -->
 
 ## 6.1 Repositório e organização do código
@@ -592,40 +592,119 @@ make test    # executa os testes unitários e de arquitetura, sem banco
 
 Depois de `make up`, o Swagger fica em `http://localhost:${API_PORT}/docs`, o OpenAPI em `/openapi.json` e os healthchecks em `/health/live` e `/health/ready`; a porta `API_PORT` vem do `.env`. Os testes de integração contra o PostgreSQL real são executados por `make test-integration`, e `make lint` e `make typecheck` verificam estilo e tipos. O arquivo `.env` é gerado localmente e nunca é versionado; `make clean` remove o volume do banco, necessário caso o `.env` seja recriado. As versões de imagens e dependências são travadas, e as migrações são aplicadas automaticamente ao iniciar o contêiner da API.
 
-<!-- PENDENTE: confirmar o fluxo completo (inclusive a subida do gateway mock no Compose e a coleção Postman) quando a implementação estiver pronta e após execução limpa do zero. -->
+O fluxo completo de execução, validado a partir de um ambiente limpo, acrescenta a carga inicial e a coleção de testes. O `make up` também sobe o serviço `gateway-mock`, o gateway de pagamento de mentira, que roda como contêiner separado no Compose e responde à API por HTTP. Em seguida, `make migrate` aplica as migrações, `make seed` carrega os dados fictícios de demonstração (unidades, cardápio, estoques e sete usuários de perfis distintos) e `make postman` executa a coleção ponta a ponta com o newman, em contêiner, contra a API e o gateway mock reais:
+
+```bash
+make up        # banco, API e gateway mock
+make migrate   # migrações (também aplicadas ao iniciar a API)
+make seed      # carga inicial de demonstração (idempotente)
+make postman   # coleção Postman via newman
+```
 
 ## 6.3 Fluxo crítico entregue
 
-<!-- Depende da implementação. Cobrir: pedido → pagamento mock → status, com evidências (RT p. 10). -->
+O fluxo crítico implementado é o do pedido até o status: o cliente faz login, cria o pedido, paga por um gateway mock e o pedido avança até a entrega, com cada passo auditado. Como decidido na priorização do MVP (D-057), a implementação cobre apenas essa fatia vertical, com persistência real em PostgreSQL, e o restante do sistema permanece modelado e documentado. A sequência é: `POST /api/v1/auth/login`, `POST /api/v1/pedidos`, `POST /api/v1/pedidos/{id}/pagamentos` e `PATCH /api/v1/pedidos/{id}/status`, além da consulta (`GET /pedidos`, com filtro por `canalPedido`), do consentimento (`/consentimentos`) e da auditoria (`GET /auditoria`).
+
+O pagamento é feito em um serviço HTTP separado, o gateway mock, que decide pelo valor do `tokenPagamento`: `tok_aprovado` aprova, `tok_recusado` recusa e `tok_timeout` simula a demora. A API chama o gateway fora da transação do banco, com limite de 3 segundos e duas novas tentativas; esgotadas as tentativas, responde 504. A Tabela 16 resume as regras exercitadas pelo fluxo e onde cada uma é verificada.
+
+**Tabela 16 — Regras cobertas pelo fluxo crítico**
+
+| Regra | Comportamento implementado | Verificação (cenário) |
+|---|---|---|
+| RN-12 e RN-14 | `canalPedido` obrigatório e compatível com o perfil (cliente: APP, WEB, PICKUP; atendente e gerente: BALCAO, TOTEM) | T15, T17 |
+| Preço e total | Preço do cardápio da unidade, congelado no item; total calculado pela API | T02 |
+| RNF-11 | Reserva de estoque na criação, com bloqueio de linha ordenado; sem venda acima do saldo (409 `ESTOQUE_INSUFICIENTE`) | T21 |
+| UC-05 (aprovado) | Pagamento aprovado: pedido PAGO e baixa do estoque reservado | T06 |
+| UC-05 (recusado) | Pagamento recusado: tentativa registrada com o motivo, pedido segue AGUARDANDO_PAGAMENTO e a reserva é mantida | T05 |
+| RN-03 e RN-04 | Máquina de estados do pedido e quem faz cada transição (cozinha: EM_PREPARO e PRONTO; atendente: ENTREGUE); transição inválida retorna 409 `TRANSICAO_INVALIDA` | T07, T14, T22 |
+| RNF-03 e RNF-05 | 401 sem token, 403 por perfil ou unidade, 404 para pedido alheio (sem revelar a existência) | T12, T13, T20 |
+| RF-13 | Auditoria na mesma transação da ação (`PEDIDO_CRIADO`, `STATUS_ALTERADO`, `PAGAMENTO_APROVADO`, `PAGAMENTO_RECUSADO`, `CONSENTIMENTO_REGISTRADO`) | T10 |
+| RF-22 | Eventos de domínio gravados na outbox, na mesma transação, para alimentar o Data Warehouse | Testes de integração da outbox |
+| RF-14 | Consentimento de fidelidade registrado, revogado e listado pelo próprio cliente | T09 |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
 
 ## 6.4 Evidências de funcionamento
 
-<!-- Depende da implementação. Capturas do Swagger, respostas da coleção Postman, saída dos testes (RT p. 10–11). -->
+As evidências são de três tipos. A primeira é a saída do newman: a coleção `postman/raizes-mvp.postman_collection.json` foi executada duas vezes seguidas, sem reiniciar o banco, e as duas execuções passaram por inteiro, com 34 requisições e 33 asserções, sem nenhuma falha. A repetição prova que a coleção não depende de estado anterior. A segunda é a saída do pytest: 375 testes unitários e de arquitetura (`make test`) e 83 testes de integração contra o PostgreSQL real (`make test-integration`) passaram, 458 no total. Os resumos, sem tokens, estão em `docs/testes/evidencias/newman-resumo.txt` e `docs/testes/evidencias/pytest-resumo.txt`.
+
+A terceira é a execução nominal dos cenários, que ficam nomeados na coleção e mapeados na Tabela 17: o fluxo feliz está em `P01 - Cliente cria pedido APP (201)`, `P06 - Pagamento aprovado tok_aprovado (201, pedido PAGO)` e `P07`, `P08` e `P09` (status até ENTREGUE); o pagamento negado, em `P04 - Pagamento recusado tok_recusado (201, pedido segue aguardando)`; a auditoria, em `P13 - Auditoria: admin encontra PEDIDO_CRIADO do pedido (200)`; e os erros, em `N01` a `N12`, sempre validando o erro padrão completo (`error`, `message`, `details`, `timestamp`, `path` e `requestId`).
+
+As capturas de tela do Swagger local (`http://localhost:${API_PORT}/docs`), mostrando os endpoints do fluxo e uma resposta de cada tipo, serão produzidas pelo autor e ficam em `docs/testes/evidencias/`. <!-- PENDENTE (autor): inserir as capturas do Swagger. -->
 
 # 7 Plano de testes e evidências
 
 <!--
 EXIGE: ≥10 cenários (mín. 6 positivos e 4 negativos) com entrada e saída esperada (RT p. 11);
 coberturas obrigatórias (L363); formato recomendado (L399); evidência executável (L336).
-FONTE: docs/testes/ (a produzir), coleção Postman, testes automatizados, relatório k6.
-STATUS: ⬜ (depende da implementação)
+FONTE: docs/testes/, coleção Postman, testes automatizados.
+STATUS: ✏️ (7.4 documentado, não medido: D-057)
 -->
 
 ## 7.1 Estratégia de validação
 
-<!-- Depende da implementação. -->
+A validação segue uma pirâmide de quatro níveis. Na base, os testes unitários de domínio e aplicação (`tests/unit/`) verificam a máquina de estados, as políticas por perfil, a reserva de estoque, o cliente do gateway e o formato do erro padrão, sem banco. Ao lado, os testes de arquitetura (`tests/architecture/`) garantem a regra de camadas. Acima, os testes de integração (`tests/integration/`) exercitam rotas, casos de uso, transações, auditoria, outbox e concorrência de estoque contra um PostgreSQL real, em um banco separado com sufixo `_teste`, de modo que o banco de desenvolvimento nunca é tocado; nesse nível, o gateway de pagamento é substituído por um falso. No topo, a coleção Postman executa o fluxo ponta a ponta via HTTP contra a API real, o banco real e o gateway mock real do Compose, e é a evidência executável pedida pelo roteiro.
+
+Os comandos são `make test`, `make test-integration` e, com o ambiente de pé e a carga carregada, `make postman`. A coleção é repetível: cada execução cria pedidos novos e os tokens são obtidos pela própria pasta de autenticação. O plano completo e o passo a passo estão em `docs/testes/README.md`.
 
 ## 7.2 Cenários de teste
 
-<!-- Depende da implementação. -->
+A Tabela 17 lista 23 cenários, 10 positivos e 13 negativos (o mínimo do roteiro é 6 e 4), com a requisição correspondente na coleção. Cobrem login com token válido, acesso sem token (401) e perfil sem permissão (403); campo obrigatório ausente e quantidade negativa (422); pedido válido (201), produto inexistente (404) e estoque insuficiente (409); pagamento aprovado e recusado, com status coerente; e auditoria de ação sensível.
+
+**Tabela 17 — Cenários de teste (T01 a T23)**
+
+| ID | Cenário | Endpoint | Pré-condição | Entrada | Esperado (status + pontos do response) | Evidência (nome na coleção) |
+|---|---|---|---|---|---|---|
+| T01 | Login válido | `POST /auth/login` | Carga inicial | E-mail e senha de demonstração | 200; `accessToken`, `tokenType` bearer, `expiresIn` 3600 | `Login cliente (200)` |
+| T02 | Cliente cria pedido válido | `POST /pedidos` | Token do cliente | `canalPedido` APP, 1 item | 201; `status` AGUARDANDO_PAGAMENTO, total calculado | `P01 - Cliente cria pedido APP (201)` |
+| T03 | Listar por canal | `GET /pedidos?canalPedido=APP` | Pedido de T02 | Filtro APP | 200; só pedidos APP, com paginação | `P02 - Listar pedidos com canalPedido=APP (200)` |
+| T04 | Consultar o próprio pedido | `GET /pedidos/{id}` | Pedido de T02 | `id` | 200; pedido com itens | `P03 - Cliente obtem o proprio pedido (200)` |
+| T05 | Pagamento recusado | `POST /pedidos/{id}/pagamentos` | Pedido aguardando pagamento | `tok_recusado` | 201; tentativa RECUSADA com motivo; pedido segue AGUARDANDO_PAGAMENTO | `P04 - Pagamento recusado tok_recusado (201, pedido segue aguardando)` e `P05` |
+| T06 | Pagamento aprovado | `POST /pedidos/{id}/pagamentos` | Pedido aguardando pagamento | `tok_aprovado` | 201; `statusPedido` PAGO | `P06 - Pagamento aprovado tok_aprovado (201, pedido PAGO)` |
+| T07 | Avanço de status | `PATCH /pedidos/{id}/status` | Pedido PAGO | EM_PREPARO, PRONTO, ENTREGUE | 200 em cada passo | `P07`, `P08` e `P09` |
+| T08 | Pedido de balcão pelo atendente | `POST /pedidos` | Token do atendente | `canalPedido` BALCAO | 201 | `P10 - Atendente cria pedido BALCAO na unidade 1 (201)` |
+| T09 | Consentimento | `POST` e `GET /consentimentos` | Token do cliente | Finalidade MARKETING | 201 e 200; vigente por finalidade | `P11` e `P12` |
+| T10 | Ação sensível audita | `GET /auditoria` | Pedido de T02 | `acao=PEDIDO_CRIADO` | 200; registro com o `id` do pedido | `P13 - Auditoria: admin encontra PEDIDO_CRIADO do pedido (200)` |
+| T11 | Senha errada | `POST /auth/login` | n/a | Senha incorreta | 401; erro padrão | `N - Login com senha errada (401)` |
+| T12 | Sem token | `POST /pedidos` | Nenhuma | Sem `Authorization` | 401 | `N01 - Criar pedido sem token (401)` |
+| T13 | Perfil sem permissão | `POST /pedidos` | Token da cozinha | Pedido válido | 403 | `N02 - Cozinha cria pedido (403)` |
+| T14 | Cliente muda status | `PATCH /pedidos/{id}/status` | Token do cliente | EM_PREPARO | 403 | `N03 - Cliente tenta mudar status (403)` |
+| T15 | Campo obrigatório ausente | `POST /pedidos` | Token do cliente | Sem `canalPedido` | 422; `details[].field` = `canalPedido` | `N04 - canalPedido ausente (422)` |
+| T16 | Quantidade negativa | `POST /pedidos` | Token do cliente | `quantidade` -1 | 422; `details[].field` na quantidade | `N11 - Quantidade negativa (422)` |
+| T17 | Canal incompatível | `POST /pedidos` | Token do cliente | `canalPedido` BALCAO | 422 | `N05 - Canal incompativel: cliente com BALCAO (422)` |
+| T18 | Produto inexistente | `POST /pedidos` | Token do cliente | `produtoId` desconhecido | 404 | `N12 - Produto inexistente (404)` |
+| T19 | Pedido inexistente | `GET /pedidos/{id}` | Token do cliente | UUID desconhecido | 404 | `N06 - Pedido inexistente (404)` |
+| T20 | Pedido de outro cliente | `GET /pedidos/{id}` | Token do cliente 2 | `id` alheio | 404 | `N07 - Cliente2 obtem pedido do cliente (404)` |
+| T21 | Estoque insuficiente | `POST /pedidos` | Estoque da carne de sol: 2 | `quantidade` 3 | 409 `ESTOQUE_INSUFICIENTE` | `N08 - Quantidade acima do estoque (409 ESTOQUE_INSUFICIENTE)` |
+| T22 | Transição inválida | `PATCH /pedidos/{id}/status` | Pedido ENTREGUE | PRONTO | 409 `TRANSICAO_INVALIDA` | `N09 - Cozinha pede PRONTO em pedido ENTREGUE: transicao invalida (409)` |
+| T23 | Pagar pedido já pago | `POST /pedidos/{id}/pagamentos` | Pedido PAGO | `tok_aprovado` | 409 | `N10 - Pagar pedido ja pago (409)` |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+Todos os negativos validam o erro padrão completo (`error`, `message`, `details`, `timestamp`, `path` e `requestId`). O mapeamento de cada cenário ao teste de integração equivalente está em `docs/testes/README.md`.
 
 ## 7.3 Evidências de execução
 
-<!-- Depende da implementação. -->
+Em 22/11/2026, com o ambiente subido do zero (`make up`, `make migrate`, `make seed`), a Tabela 18 reúne os resultados. O `make postman` foi executado duas vezes seguidas, sem reiniciar o banco, e ambas passaram sem falhas, o que confirma a repetibilidade da coleção.
+
+**Tabela 18 — Resultados da execução**
+
+| Comando | Resultado |
+|---|---|
+| `make postman` (execução 1) | 34 requisições, 33 asserções, 0 falhas |
+| `make postman` (execução 2) | 34 requisições, 33 asserções, 0 falhas |
+| `make test` | 375 aprovados (unitários e arquitetura) |
+| `make test-integration` | 83 aprovados (PostgreSQL real, banco `_teste`) |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+Os resumos ficam em `docs/testes/evidencias/` e as capturas do Swagger, produzidas pelo autor, na mesma pasta.
 
 ## 7.4 Teste de carga (desempenho no pico)
 
-<!-- Depende da implementação. Meta: p95 < 300 ms a 50 req/s (RNF-08). -->
+O teste de carga está **documentado, mas não foi medido no MVP**, por decisão do autor (D-057): o esforço de implementação concentrou-se na fatia mínima do fluxo A, e medir desempenho de uma aplicação executada em um computador pessoal, em contêineres, produziria números pouco representativos do ambiente de produção.
+
+A meta é a do RNF-08: p95 de latência abaixo de 300 ms com 50 requisições por segundo no horário de pico. Seria medida com o k6, em um script com executor de taxa constante de chegada (`constant-arrival-rate`, 50 iterações por segundo, por alguns minutos, após aquecimento), cada iteração fazendo login, criando um pedido e consultando-o, e com o critério de aceite declarado em `thresholds` (`http_req_duration: ['p(95)<300']`, além de uma taxa de falhas baixa em `http_req_failed`). O resultado seria registrado em `docs/testes/evidencias/` com a configuração da máquina, e o pagamento seria feito contra o gateway mock, para que a medição fosse da API e do banco.
 
 # 8 Conclusão
 

@@ -2,7 +2,7 @@
 
 Coleção `raizes-mvp.postman_collection.json` (formato v2.1) e ambiente `local.postman_environment.json`.
 Cobre o fluxo A: pedido, pagamento mock aprovado ou recusado, status, consentimento e auditoria
-(13 cenários positivos e 10 negativos, mais o login dos 7 perfis e o login com senha errada).
+(13 cenários positivos e 12 negativos, mais o login dos 7 perfis e o login com senha errada).
 Cada requisição tem testes `pm.test`; tokens e ids ficam em variáveis de coleção.
 
 A coleção é repetível: cada execução cria pedidos novos e não depende de contadores fixos.
@@ -56,6 +56,8 @@ Roda `postman/newman:6.1.3-alpine` em contêiner (`--network host`) com `baseUrl
 | N08 | Quantidade acima do estoque | RF-07, RNF-11 | 409 ESTOQUE_INSUFICIENTE | Negativo |
 | N09 | Cozinha pede PRONTO em pedido ENTREGUE (transicao invalida) | RN-03 | 409 TRANSICAO_INVALIDA | Negativo |
 | N10 | Pagar pedido ja pago | UC-05 | 409 | Negativo |
+| N11 | Quantidade negativa | RF-07 | 422 (`details[].field` na quantidade) | Negativo |
+| N12 | Produto inexistente | RF-07 | 404 | Negativo |
 
 Todos os negativos validam o erro padrão (`error`, `message`, `details`, `timestamp`, `path`,
 `requestId`; ver [docs/api](../docs/api/README.md)). Pagamento negado: P04. Auditoria: P13.

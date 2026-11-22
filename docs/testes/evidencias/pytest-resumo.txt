@@ -1,0 +1,9 @@
+Resumo da execução do pytest, 2026-11-22
+
+Comando: make test
+Resultado: 375 passed, 83 deselected, 1 warning (unitários e arquitetura, sem banco)
+
+Comando: make test-integration
+Resultado: 83 passed, 375 deselected, 1 warning (PostgreSQL real, banco <POSTGRES_DB>_teste)
+
+Total: 458 testes, 0 falhas.
