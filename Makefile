@@ -11,6 +11,8 @@ RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" api
 # Versões usadas para regenerar os arquivos .lock (rode `make lock` apenas ao mudar dependências).
 LOCK_IMAGE := python:3.14.10-slim
 PIP_TOOLS_VERSION := 7.6.2
+# Imagem do newman (CLI do Postman) usada por `make postman`.
+NEWMAN_VERSION := 6.1.3-alpine
 
 # Pipeline analítico (DW): serviço "analytics" do compose (profile opcional, não sobe no `make up`).
 DW_RUN := $(COMPOSE) run --rm --no-deps --entrypoint "" analytics
@@ -18,7 +20,7 @@ DW_RUN_DB := $(COMPOSE) run --rm --entrypoint "" analytics
 DBT := dbt
 
 .PHONY: help setup up down logs ps shell test test-integration test-all lint format typecheck \
-	migrate seed revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs
+	migrate seed postman revision secrets lock clean dw dw-ingest dw-build dw-test dw-docs dw-lock dw-dirs
 
 help: ## Lista os alvos disponíveis
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) | awk -F ':.*## ' '{printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}'
@@ -66,6 +68,12 @@ migrate: ## Aplica as migrações (alembic upgrade head)
 
 seed: ## Carga inicial de demonstração (idempotente; exige as migrações aplicadas)
 	$(COMPOSE) run --rm --entrypoint "" api python scripts/seed.py
+
+postman: ## Roda a coleção Postman com newman em contêiner (exige `make up` e `make seed`)
+	@port=$$(grep -E '^API_PORT=' .env | head -n1 | cut -d= -f2); \
+	docker run --network host -v "$(CURDIR)/postman":/etc/newman:ro postman/newman:$(NEWMAN_VERSION) \
+		run raizes-mvp.postman_collection.json -e local.postman_environment.json \
+		--env-var baseUrl=http://localhost:$${port:-8080}
 
 revision: ## Cria migração: make revision m="mensagem"
 	@test -n "$(m)" || { echo 'Informe a mensagem: make revision m="mensagem"'; exit 1; }
