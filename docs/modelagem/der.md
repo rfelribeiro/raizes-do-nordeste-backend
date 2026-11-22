@@ -247,6 +247,7 @@ erDiagram
         uuid id PK
         uuid id_pedido FK
         integer numero_tentativa
+        integer qtd_chamadas_gateway
         varchar forma_pagamento
         varchar status
         numeric valor
@@ -381,7 +382,7 @@ Restrições: `UNIQUE (id_unidade, id_produto)`; `CHECK (data_inicio_sazonal IS 
 
 Índices: `pk_estoques (id_unidade, id_produto)`; `ix_estoques_id_produto (id_produto)` (apoia a FK).
 
-Como cada tipo de movimento altera o saldo (🤖, ver seção 9): `ENTRADA` soma em `qtd_disponivel`; `RESERVA` move de `qtd_disponivel` para `qtd_reservada`; `LIBERACAO` faz o caminho inverso; `BAIXA` reduz `qtd_reservada` (venda confirmada); `AJUSTE_POSITIVO` soma e `AJUSTE_NEGATIVO` subtrai em `qtd_disponivel`. Os `CHECK >= 0` fazem o banco recusar uma reserva que deixaria o saldo negativo, mesmo que a aplicação falhe.
+Como cada tipo de movimento altera o saldo (🤖, ver seção 9): `ENTRADA` soma em `qtd_disponivel`; `RESERVA` move de `qtd_disponivel` para `qtd_reservada`; `LIBERACAO` faz o caminho inverso; `BAIXA` reduz `qtd_reservada` (venda confirmada); `AJUSTE_POSITIVO` soma e `AJUSTE_NEGATIVO` subtrai em `qtd_disponivel`. O cancelamento de um pedido `AGUARDANDO_PAGAMENTO` gera `LIBERACAO` (a reserva volta ao disponível); o de um pedido `PAGO`, cuja reserva já virou `BAIXA`, devolve a quantidade com `AJUSTE_POSITIVO` referenciando o pedido (D-054). Os `CHECK >= 0` fazem o banco recusar uma reserva que deixaria o saldo negativo, mesmo que a aplicação falhe.
 
 ### 3.7 `movimentacoes_estoque`
 
@@ -473,6 +474,7 @@ Cada solicitação ao gateway mock, com resultado e retorno. Preserva recusas, f
 | `id` | uuid | não | PK | Identificador substituto |
 | `id_pedido` | uuid | não | FK `pedidos(id)` | Pedido pago |
 | `numero_tentativa` | integer | não | CHECK `>= 1` | Sequência da tentativa dentro do pedido |
+| `qtd_chamadas_gateway` | integer | não | default `1`; CHECK entre `1` e `3` | Chamadas feitas ao gateway nesta tentativa: a primeira mais até 2 retentativas por timeout de 3 s (D-051, D-054). Uma tentativa corresponde a um `POST /pedidos/{id}/pagamentos` |
 | `forma_pagamento` | varchar(7) | não | CHECK em (`PIX`, `CREDITO`, `DEBITO`) | Forma de pagamento |
 | `status` | varchar(10) | não | CHECK em (`PENDENTE`, `APROVADO`, `RECUSADO`, `FALHA`, `ESTORNADO`) | Resultado da tentativa; `FALHA` = timeout esgotado (D-051) |
 | `valor` | numeric(10,2) | não | CHECK `> 0` | Valor cobrado (igual ao `valor_total` do pedido) |
@@ -568,7 +570,7 @@ Guarda a resposta de requisições `POST` que aceitam o header `Idempotency-Key`
 | `escopo` | varchar(60) | não | PK (composta) | Operação a que a chave pertence (por exemplo `POST /pedidos`) |
 | `id_usuario` | uuid | não | PK (composta), FK `usuarios(id)` | Quem enviou; evita colisão de chaves entre usuários |
 | `hash_requisicao` | char(64) | não | | SHA-256 (hexadecimal) do corpo; corpo diferente com a mesma chave gera 422 |
-| `status_http` | smallint | sim | | Status da resposta guardada; nulo enquanto a requisição original ainda processa (🤖) |
+| `status_http` | smallint | sim | | Status da resposta guardada; nulo enquanto a requisição original ainda processa (🤖). Uma repetição que chega nesse intervalo recebe **409** (D-054) |
 | `corpo_resposta` | jsonb | sim | | Corpo da resposta guardada; nulo enquanto processa |
 | `criado_em` | timestamptz | não | default `now()` | Criação |
 | `expira_em` | timestamptz | não | CHECK `> criado_em` | Validade (criação + 24 h) |
@@ -635,7 +637,8 @@ Guarda a resposta de requisições `POST` que aceitam o header `Idempotency-Key`
 | Máquina de estados do pedido (RN-01 a RN-04) | **Aplicação** | Camada de domínio valida a transição; 409 se inválida; grava `historico_status_pedido` |
 | Quem faz cada transição (RN-04) | **Aplicação** | Autorização por perfil |
 | Escopo do GERENTE (só a própria unidade) e do CLIENTE (só os próprios pedidos) | **Aplicação** | Filtro por `id_unidade_lotacao` e `id_cliente` do token (RF-03, RNF-03) |
-| Limite de 50% do valor dos itens no resgate (RN-09, D-051) | **Aplicação** | Cálculo no caso de uso; o banco só garante múltiplos de 100 |
+| Limite de 50% do valor dos itens no resgate (RF-18, D-051) | **Aplicação** | Cálculo no caso de uso; o banco só garante múltiplos de 100 |
+| Perfil × canal do pedido (RN-14, D-054) | **Aplicação** | Autorização no caso de uso de criação; combinação inválida gera 422 com `details[{field: "canalPedido", issue}]` |
 | Pedido só de item ofertado, disponível e no período sazonal (RN-12) | **Aplicação** | Consulta ao `itens_cardapio` na criação |
 | Acúmulo de pontos só com consentimento vigente (RN-08) | **Aplicação** | Consulta ao último registro de `consentimentos` |
 | Imutabilidade do `canal_pedido` (RN-11) | **Aplicação** | Nenhum caso de uso o atualiza (pode virar gatilho no futuro) |
@@ -677,7 +680,7 @@ Relações conceituais: uma campanha vale em **muitas unidades** (N:N, por uma t
 
 ## 8. Pontos em aberto resolvidos (D-052)
 
-Pontos levantados na primeira redação e resolvidos pela IA por boas práticas, a pedido do humano (D-052 🤖, pendente de validação):
+Pontos levantados na primeira redação e resolvidos pela IA por boas práticas, a pedido do humano (D-052 🤖, validada pelo humano em D-056):
 
 - **Ajuste de estoque:** `AJUSTE` foi dividido em `AJUSTE_POSITIVO` e `AJUSTE_NEGATIVO`; a quantidade continua positiva e o sentido vem do tipo.
 - **Executor do movimento de estoque:** `movimentacoes_estoque.id_usuario` é nulo quando o sistema executa, como em `historico_status_pedido`.
@@ -690,8 +693,8 @@ Não restam pendências estruturais; o restante é validação das premissas da 
 
 ## 9. Premissas de implementação (🤖)
 
-Tamanhos de `varchar`, nomes de restrições e índices, `UNIQUE (id_pedido, id_produto)` em `itens_pedido`, o índice parcial de pagamento efetivado e a semântica de `qtd_disponivel` (livre para reservar, fora a parte reservada) são definições da IA, pendentes de validação. O dinheiro usa `numeric(10,2)` (D-051); o DW usa `numeric(12,2)`, e o extrator converte sem perda (apenas uma nota: a precisão difere por convenção de cada camada).
+Tamanhos de `varchar`, nomes de restrições e índices, `UNIQUE (id_pedido, id_produto)` em `itens_pedido`, o índice parcial de pagamento efetivado e a semântica de `qtd_disponivel` (livre para reservar, fora a parte reservada) são definições da IA, validadas com a D-051 (D-056). O dinheiro usa `numeric(10,2)` (D-051); o DW usa `numeric(12,2)`, e o extrator converte sem perda (apenas uma nota: a precisão difere por convenção de cada camada).
 
 ---
 
-*Entidades, relações e padrões estruturais decididos pelo humano a partir de opções da IA (D-047 a D-049); tipos, constraints e índices definidos pela IA (D-051, pendente de validação). Redigido por Claude Sonnet 5.5 sob especificação do Claude Opus 5.5.*
+*Entidades, relações e padrões estruturais decididos pelo humano a partir de opções da IA (D-047 a D-049); tipos, constraints e índices definidos pela IA (D-051, validada pelo humano em D-056). Redigido por Claude Sonnet 5.5 sob especificação do Claude Opus 5.5.*

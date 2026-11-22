@@ -223,4 +223,4 @@ As propostas da IA listadas aqui na primeira versão foram validadas pelo humano
 
 ---
 
-*Escopo decidido pelo humano a partir de opções da IA (D-038 a D-045, D-047); detalhes técnicos definidos pela IA a pedido do humano (D-046, validada na D-050; D-051, pendente). Documento redigido por IA (Claude Sonnet 5.5) sob especificação do Claude Opus 5.5.*
+*Escopo decidido pelo humano a partir de opções da IA (D-038 a D-045, D-047); detalhes técnicos definidos pela IA a pedido do humano (D-046, validada na D-050; D-051, validada na D-056). Documento redigido por IA (Claude Sonnet 5.5) sob especificação do Claude Opus 5.5.*
