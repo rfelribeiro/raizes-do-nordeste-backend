@@ -1,0 +1,30 @@
+{
+  "pendente": true,
+  "consulta": "PENDENTE: pesquisa de mercado",
+  "capacidades": [
+    {"capacidade": "PDV e pedidos", "gratis": "PENDENTE", "prateleira": "PENDENTE", "sob_medida": "PENDENTE", "decisao": "comprar", "por_que": "PENDENTE: pesquisa de mercado"},
+    {"capacidade": "Pagamentos", "gratis": "PENDENTE", "prateleira": "PENDENTE", "sob_medida": "PENDENTE", "decisao": "integrar", "por_que": "PENDENTE: pesquisa de mercado"},
+    {"capacidade": "Estoque e ERP", "gratis": "PENDENTE", "prateleira": "PENDENTE", "sob_medida": "PENDENTE", "decisao": "integrar", "por_que": "PENDENTE: pesquisa de mercado"},
+    {"capacidade": "Dados e BI", "gratis": "PENDENTE", "prateleira": "PENDENTE", "sob_medida": "PENDENTE", "decisao": "construir", "por_que": "PENDENTE: pesquisa de mercado"}
+  ],
+  "tco": {
+    "moeda": "R$", "horizonte_anos": 3, "premissas": "PENDENTE: pesquisa de mercado",
+    "cenarios": [
+      {"nome": "Ecossistema de prateleira", "anos": [0, 0, 0], "nota": "PENDENTE"},
+      {"nome": "Construção própria", "anos": [0, 0, 0], "nota": "PENDENTE"}
+    ]
+  },
+  "ia": [
+    {"caso": "Atendimento", "como": "PENDENTE", "risco": "baixo", "lgpd": "PENDENTE"},
+    {"caso": "Previsão de demanda", "como": "PENDENTE", "risco": "baixo", "lgpd": "PENDENTE"},
+    {"caso": "Análise de vendas", "como": "PENDENTE", "risco": "baixo", "lgpd": "PENDENTE"},
+    {"caso": "Campanhas", "como": "PENDENTE", "risco": "médio", "lgpd": "PENDENTE"}
+  ],
+  "roadmap": [
+    {"fase": "5 unidades", "adotar": ["PENDENTE"]},
+    {"fase": "20 unidades", "adotar": ["PENDENTE"]},
+    {"fase": "50+ unidades", "adotar": ["PENDENTE"]}
+  ],
+  "sinais": ["PENDENTE: pesquisa de mercado"],
+  "fontes": []
+}

@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raízes do Nordeste: apresentação final</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Bitter:ital,wght@0,400;0,700;0,800;1,400;1,700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Ornamentos de xilogravura (traço chapado, estilo talho), reutilizados por <use> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="sol" viewBox="-100 -100 200 200">
+      <g id="sol-raios" fill="currentColor"></g>
+      <circle r="52" fill="currentColor"/>
+      <circle r="43" fill="none" stroke="var(--paper)" stroke-width="3"/>
+      <circle r="35" fill="none" stroke="var(--paper)" stroke-width="3" stroke-dasharray="5 5"/>
+      <circle r="16" fill="var(--paper)"/>
+      <circle r="7" fill="currentColor"/>
+    </symbol>
+    <symbol id="estrela" viewBox="-50 -50 100 100">
+      <rect x="-30" y="-30" width="60" height="60" fill="currentColor"/>
+      <rect x="-30" y="-30" width="60" height="60" fill="currentColor" transform="rotate(45)"/>
+      <polygon points="0,-46 7,-7 46,0 7,7 0,46 -7,7 -46,0 -7,-7" fill="none" stroke="var(--paper)" stroke-width="2.5"/>
+      <circle r="9" fill="var(--paper)"/><circle r="4" fill="currentColor"/>
+    </symbol>
+    <symbol id="mandacaru" viewBox="0 0 120 200">
+      <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M60 188 V34" stroke-width="22"/>
+        <path d="M60 128 H30 V78" stroke-width="16"/>
+        <path d="M60 100 H92 V52" stroke-width="16"/>
+      </g>
+      <g fill="none" stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round">
+        <path d="M60 40 V184"/><path d="M54 44 V182"/><path d="M66 44 V182"/>
+        <path d="M30 84 V124"/><path d="M92 58 V96"/>
+        <path d="M40 120 h8 M72 92 h8 M54 70 l-5 -4 M66 150 l5 -4 M54 150 l-5 -4"/>
+      </g>
+      <circle cx="60" cy="26" r="9" fill="var(--urucum)" stroke="currentColor" stroke-width="3"/>
+      <path d="M8 190 H112" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="casinha" viewBox="0 0 200 150">
+      <polygon points="12,66 100,12 188,66" fill="currentColor"/>
+      <g stroke="var(--paper)" stroke-width="2.4" fill="none" stroke-linecap="round">
+        <path d="M100 22 L40 62 M100 22 L70 62 M100 22 L100 62 M100 22 L130 62 M100 22 L160 62"/>
+      </g>
+      <rect x="30" y="66" width="140" height="66" fill="currentColor"/>
+      <rect x="88" y="88" width="26" height="44" fill="var(--paper)"/>
+      <rect x="44" y="82" width="26" height="22" fill="var(--paper)"/><path d="M57 82 V104 M44 93 H70" stroke="currentColor" stroke-width="3"/>
+      <rect x="132" y="82" width="26" height="22" fill="var(--paper)"/><path d="M145 82 V104 M132 93 H158" stroke="currentColor" stroke-width="3"/>
+      <g stroke="var(--paper)" stroke-width="2" stroke-linecap="round"><path d="M36 72 h10 M60 72 h10 M120 72 h10 M150 72 h14 M36 116 h14 M58 118 h14 M130 118 h12 M150 114 h14"/></g>
+      <path d="M0 134 H200" stroke="currentColor" stroke-width="6"/>
+    </symbol>
+    <symbol id="sanfona" viewBox="0 0 240 120">
+      <rect x="4" y="8" width="56" height="104" rx="8" fill="currentColor"/>
+      <rect x="180" y="8" width="56" height="104" rx="8" fill="currentColor"/>
+      <rect x="60" y="20" width="120" height="80" fill="currentColor"/>
+      <g stroke="var(--paper)" stroke-width="3" stroke-linecap="round">
+        <path d="M70 26 V94 M84 26 V94 M98 26 V94 M112 26 V94 M126 26 V94 M140 26 V94 M154 26 V94 M168 26 V94"/>
+      </g>
+      <g fill="var(--paper)">
+        <circle cx="22" cy="30" r="5"/><circle cx="42" cy="30" r="5"/><circle cx="22" cy="52" r="5"/><circle cx="42" cy="52" r="5"/><circle cx="22" cy="74" r="5"/><circle cx="42" cy="74" r="5"/><circle cx="22" cy="94" r="5"/><circle cx="42" cy="94" r="5"/>
+        <rect x="192" y="22" width="32" height="76" rx="3"/>
+      </g>
+      <g stroke="currentColor" stroke-width="3"><path d="M202 22 V98 M213 22 V98"/></g>
+    </symbol>
+    <symbol id="panela" viewBox="0 0 180 170">
+      <g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round">
+        <path d="M70 34 q-10 -12 0 -22 q10 -10 0 -22" transform="translate(0 12)"/>
+        <path d="M100 34 q-10 -12 0 -22 q10 -10 0 -22" transform="translate(0 4)"/>
+        <path d="M130 34 q-10 -12 0 -22 q10 -10 0 -22" transform="translate(0 12)"/>
+      </g>
+      <path d="M44 74 Q90 28 136 74 Z" fill="currentColor"/><circle cx="90" cy="38" r="9" fill="currentColor"/>
+      <rect x="14" y="70" width="152" height="14" rx="7" fill="currentColor"/>
+      <path d="M22 84 Q22 142 90 142 Q158 142 158 84 Z" fill="currentColor"/>
+      <path d="M6 96 q-4 14 10 14 M174 96 q4 14 -10 14" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"/>
+      <path d="M40 104 l10 10 l10 -10 l10 10 l10 -10 l10 10 l10 -10 l10 10 l10 -10 l10 10" fill="none" stroke="var(--paper)" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M44 124 h92" stroke="var(--paper)" stroke-width="3" stroke-dasharray="6 5"/>
+      <path d="M50 160 q10 -22 20 0 q10 -26 20 0 q10 -22 20 0 q10 -26 20 0" fill="currentColor" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M30 166 H150" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="espiga" viewBox="0 0 80 200">
+      <path d="M40 196 V70" stroke="currentColor" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <path d="M40 150 Q8 140 6 108 Q38 112 40 150 Z M40 130 Q72 120 74 88 Q42 92 40 130 Z" fill="currentColor"/>
+      <ellipse cx="40" cy="46" rx="20" ry="46" fill="currentColor"/>
+      <g stroke="var(--paper)" stroke-width="2.4" stroke-linecap="round"><path d="M40 6 V86 M28 20 V74 M52 20 V74 M22 40 h36 M24 56 h32 M28 28 h24"/></g>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="palco">
+
+<!-- ===================== 1. CAPA ===================== -->
+<section class="slide capa" id="s1" data-nome="Capa">
+  <div class="band"></div>
+  <svg class="cena" style="left:1180px;top:110px;width:600px;height:600px;color:var(--urucum)"><use href="#sol"/></svg>
+  <svg class="cena" style="left:1240px;top:800px;width:115px;height:190px"><use href="#mandacaru"/></svg>
+  <div class="titulo">
+    <div class="kicker">Rede fictícia de lanchonetes nordestinas</div>
+    <h1 style="margin-top:18px">Raízes<br>do <span>Nordeste</span></h1>
+    <p class="lema">Uma franquia tecnológica, não uma empresa de tecnologia.</p>
+    <p class="sub">Projeto Multidisciplinar · Trilha Back-end · UNINTER · 2026</p>
+  </div>
+  <!-- cena de rodapé -->
+  <svg class="cena" style="left:90px;top:850px;width:230px;height:170px"><use href="#casinha"/></svg>
+  <svg class="cena" style="left:1370px;top:870px;width:240px;height:120px"><use href="#sanfona"/></svg>
+  <svg class="cena" style="left:1700px;top:810px;width:170px;height:180px"><use href="#panela"/></svg>
+  <svg class="cena" style="left:1630px;top:820px;width:64px;height:170px"><use href="#espiga"/></svg>
+  <aside class="notes"><p>Boa tarde. Esta é a apresentação final do meu trabalho: a API back-end da Raízes do Nordeste, uma rede fictícia de lanchonetes nordestinas que quer crescer por franquia.</p><p>O lema resume a minha tese: a rede deve ser uma franquia tecnológica, não uma empresa de tecnologia.</p><p>Vou mostrar o que construí, como construí e, principalmente, como eu ajudaria a rede a decidir o que construir e o que comprar.</p></aside>
+</section>
+
+<!-- ===================== 2. CENÁRIO ===================== -->
+<section class="slide" id="s2" data-nome="O cenário">
+  <header class="cab"><div class="kicker">01 · O problema do negócio</div><h2>De uma operação simples a uma franquia</h2><svg class="orn" style="color:var(--urucum)"><use href="#sol"/></svg></header>
+  <div class="corpo">
+    <div class="grid g3" style="gap:32px">
+      <div class="card" style="padding:28px 32px"><h3>Expansão</h3><p class="sm">Da operação própria para <strong>franquias</strong>. A franqueadora exige padronização, rastreabilidade e transparência.</p></div>
+      <div class="card" style="padding:28px 32px"><h3>Unidades diferentes</h3><p class="sm">Cozinha <strong>completa</strong> em umas, formato <strong>reduzido</strong> em outras. Cada unidade tem o seu cardápio e o seu estoque.</p></div>
+      <div class="card" style="padding:28px 32px"><h3>Cardápio sazonal</h3><p class="sm">Produtos que só existem em certas épocas, em especial no <strong>São João</strong>, e receitas que variam por região.</p></div>
+      <div class="card" style="padding:28px 32px"><h3>LGPD</h3><p class="sm">Fidelidade e campanhas exigem <strong>consentimento explícito</strong>, anonimização quando cabe e auditoria de acessos.</p></div>
+      <div class="card" style="padding:28px 32px"><h3>Horário de pico</h3><p class="sm">Muitos pedidos ao mesmo tempo, disputando o <strong>último item</strong> em estoque.</p></div>
+      <div class="card" style="padding:28px 32px"><h3>Pagamento externo</h3><p class="sm">O gateway é de terceiros: pode <strong>recusar</strong>, atrasar ou não responder. O pedido não pode ficar inconsistente.</p></div>
+    </div>
+    <div style="margin-top:62px;display:flex;align-items:center;gap:24px">
+      <span style="font:400 38px var(--titulo)">5 canais de pedido</span>
+      <span class="tag u" style="font-size:26px">APP</span><span class="tag a" style="font-size:26px">TOTEM</span><span class="tag v" style="font-size:26px">BALCAO</span><span class="tag o" style="font-size:26px">PICKUP</span><span class="tag" style="font-size:26px">WEB</span>
+      <span class="sm" style="margin-left:auto;max-width:520px;line-height:1.25">O canal é um dado de domínio do pedido, não um detalhe de tela.</span>
+    </div>
+  </div>
+  <aside class="notes"><p>O estudo de caso descreve uma rede que sai de uma operação simples e vira franquia. Isso muda tudo: cada unidade pode ter cozinha completa ou reduzida, cardápio próprio e estoque próprio.</p><p>Há cinco canais de pedido, cardápio sazonal no período junino, LGPD para a fidelidade e picos de movimento.</p><p>E o pagamento é externo, então a API precisa saber lidar com recusa e com demora do gateway.</p></aside>
+</section>
+
+<!-- ===================== 3. TESE ===================== -->
+<section class="slide" id="s3" data-nome="A tese">
+  <header class="cab"><div class="kicker">02 · A tese</div><h2>Processos antes de ferramentas</h2><svg class="orn" style="color:var(--anil)"><use href="#estrela"/></svg></header>
+  <div class="corpo dist">
+    <p style="font:italic 700 42px/1.3 var(--corpo)">Comprar o que é commodity, integrar o que é crítico, construir só o que diferencia.</p>
+    <div class="grid g3" style="gap:30px">
+      <div class="card urucum-bg"><h3>Comprar</h3><p class="sm"><strong>Commodity:</strong> o que todo restaurante precisa de forma parecida. Não há vantagem em reinventar. Quem vende já ganhou escala.</p></div>
+      <div class="card anil-bg"><h3>Integrar</h3><p class="sm"><strong>Crítico:</strong> toca dinheiro, estoque e cliente. Exige contrato, API aberta e saída garantida para não perder os próprios dados.</p></div>
+      <div class="card verde-bg"><h3>Construir</h3><p class="sm"><strong>Diferencial:</strong> o que só a Raízes faz, como a visão analítica dos próprios dados. Só aí o custo sob medida se paga.</p></div>
+    </div>
+    <div class="citacao" style="margin-top:44px">“O sucesso da Raízes do Nordeste depende mais da maturidade dos seus processos e da sua operação do que da tecnologia que estará por trás, sustentando tudo.”<small>Do autor, Conclusão do documento</small></div>
+  </div>
+  <aside class="notes"><p>Esta é a ideia central. Construir software sob medida costuma não compensar para uma empresa que está crescendo.</p><p>O que o mercado faz é comprar o que é commodity, integrar o que é crítico e construir apenas o que diferencia o negócio.</p><p>Por isso, na conclusão do trabalho eu escrevi que o sucesso da rede depende mais dos processos do que da tecnologia.</p></aside>
+</section>
+
+<!-- ===================== 4. ROTEIRO x ENTREGUE ===================== -->
+<section class="slide" id="s4" data-nome="Roteiro × entregue">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>O que o roteiro pede × o que foi entregue</h2><svg class="orn" style="color:var(--verde)"><use href="#mandacaru"/></svg></header>
+  <div class="corpo">
+    <div class="row" style="gap:40px">
+      <div class="card" style="flex:1.25">
+        <h3>Fatia vertical: o fluxo A, de ponta a ponta</h3>
+        <ul class="lista ok" style="columns:2;column-gap:34px;font-size:31px;line-height:1.35">
+          <li>Login com <strong>JWT</strong></li>
+          <li>Pedido com <code>canalPedido</code></li>
+          <li>Estoque insuficiente: <strong>409</strong></li>
+          <li>Pagamento com gateway <strong>mock</strong></li>
+          <li>Atualização de <strong>status</strong></li>
+          <li><strong>Auditoria</strong> das operações</li>
+          <li><strong>Consentimento</strong> LGPD</li>
+          <li><strong>Outbox</strong> de eventos</li>
+          <li>Coleção <strong>Postman</strong></li>
+          <li>Erro padrão em JSON</li>
+        </ul>
+      </div>
+      <div class="card ink-bg" style="flex:1">
+        <h3 style="color:var(--ocre)">Decisão D-057</h3>
+        <p style="font-size:36px;line-height:1.3"><strong>Modelagem completa, implementação mínima.</strong></p>
+        <p class="sm" style="margin-top:14px">O esforço foi para decidir e documentar bem. O código cobre o fluxo crítico e deixa o resto modelado.</p>
+      </div>
+    </div>
+    <div class="grid g3" style="margin-top:44px;gap:32px">
+      <div class="card centro" style="padding:30px"><div class="big urucum">9</div><p class="sm">processos de negócio modelados no DW</p></div>
+      <div class="card centro" style="padding:30px"><div class="big anil">2</div><p class="sm">fatos já implementados: pedidos e tentativas de pagamento</p></div>
+      <div class="card centro" style="padding:30px"><div class="big verde">11</div><p class="sm">endpoints sob <code>/api/v1</code> e health checks</p></div>
+    </div>
+  </div>
+  <aside class="notes"><p>O roteiro pede uma API funcional. Eu escolhi uma fatia vertical: o fluxo A, do login até o pedido pago, passando por estoque, status, auditoria, consentimento e outbox.</p><p>Tudo isso tem coleção Postman.</p><p>A decisão D-057 foi modelar por completo, mas implementar o mínimo: das nove tabelas fato do DW, duas estão no ar. As outras sete estão modeladas e documentadas.</p></aside>
+</section>
+
+<!-- ===================== 5. ARQUITETURA ===================== -->
+<section class="slide" id="s5" data-nome="Arquitetura">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>Arquitetura em camadas, portas e adaptadores</h2><svg class="orn" style="color:var(--ink)"><use href="#casinha"/></svg></header>
+  <div class="corpo">
+    <svg viewBox="0 0 1728 790" width="1728" height="790" role="img" aria-label="Camadas: API, aplicação, domínio e infraestrutura">
+      <defs><marker id="seta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1b1511"/></marker></defs>
+      <!-- API -->
+      <rect x="20" y="20" width="800" height="150" fill="#1f3a6e" stroke="#1b1511" stroke-width="4"/>
+      <text x="48" y="68" class="t-lg t-w" font-size="34">API</text>
+      <text x="48" y="108" class="t-md t-w">Routers, schemas, dependências</text>
+      <text x="48" y="142" class="t-md t-w">Tradução de erros para o formato padrão</text>
+      <!-- Aplicação -->
+      <rect x="20" y="255" width="800" height="190" fill="#2b6637" stroke="#1b1511" stroke-width="4"/>
+      <text x="48" y="303" class="t-lg t-w" font-size="34">Aplicação</text>
+      <text x="48" y="343" class="t-md t-w">Casos de uso: criar pedido, pagar, mudar status</text>
+      <text x="48" y="381" class="t-md t-w">Portas (Protocols): repositórios, gateway</text>
+      <circle cx="820" cy="320" r="17" fill="#f4e9cf" stroke="#1b1511" stroke-width="4"/>
+      <circle cx="820" cy="385" r="17" fill="#f4e9cf" stroke="#1b1511" stroke-width="4"/>
+      <!-- Domínio -->
+      <rect x="20" y="530" width="800" height="190" fill="#a8231b" stroke="#1b1511" stroke-width="4"/>
+      <text x="48" y="578" class="t-lg t-w" font-size="34">Domínio</text>
+      <text x="48" y="618" class="t-md t-w">Entidades e regras de negócio</text>
+      <text x="48" y="656" class="t-md t-w">Sem nenhum framework: Python puro</text>
+      <!-- setas verticais -->
+      <path d="M420 172 V252" stroke="#1b1511" stroke-width="5" marker-end="url(#seta)"/>
+      <path d="M420 447 V527" stroke="#1b1511" stroke-width="5" marker-end="url(#seta)"/>
+      <text x="440" y="218" class="t-sm">depende de</text>
+      <text x="440" y="494" class="t-sm">depende de</text>
+      <!-- Infra -->
+      <rect x="1000" y="255" width="708" height="300" fill="#c58a14" stroke="#1b1511" stroke-width="4"/>
+      <text x="1028" y="303" class="t-lg" font-size="34">Infraestrutura</text>
+      <text x="1028" y="347" class="t-md">Repositórios PostgreSQL (SQLAlchemy)</text>
+      <text x="1028" y="385" class="t-md">Gateway de pagamento (mock)</text>
+      <text x="1028" y="423" class="t-md">Outbox, configuração, logs</text>
+      <text x="1028" y="480" class="t-md" font-weight="800">Implementa as portas</text>
+      <text x="1028" y="515" class="t-md" font-weight="800">definidas na Aplicação</text>
+      <path d="M998 352 H846" stroke="#1b1511" stroke-width="5" marker-end="url(#seta)" stroke-dasharray="10 6"/>
+      <text x="852" y="326" class="t-sm" font-weight="700">implementa</text>
+      <!-- externos -->
+      <path d="M1100 600 v80 q0 22 80 22 q80 0 80 -22 v-80 q0 -22 -80 -22 q-80 0 -80 22z" fill="#f4e9cf" stroke="#1b1511" stroke-width="4"/>
+      <text x="1180" y="652" class="t-md" text-anchor="middle" font-weight="800">PostgreSQL</text>
+      <rect x="1400" y="590" width="240" height="100" fill="#f4e9cf" stroke="#1b1511" stroke-width="4"/>
+      <text x="1520" y="632" class="t-md" text-anchor="middle" font-weight="800">Gateway</text>
+      <text x="1520" y="662" class="t-sm" text-anchor="middle">pagamento (mock)</text>
+      <path d="M1180 558 V576 M1520 558 V588" stroke="#1b1511" stroke-width="5" marker-end="url(#seta)"/>
+      <!-- regra automática -->
+      <rect x="1000" y="20" width="708" height="170" fill="#fbf5e4" stroke="#1b1511" stroke-width="4"/>
+      <text x="1028" y="64" class="t-md" font-weight="800">A regra de dependência é testada</text>
+      <text x="1028" y="102" class="t-sm">O domínio não importa framework nenhum.</text>
+      <text x="1028" y="136" class="t-sm">Um teste de arquitetura lê os imports e</text>
+      <text x="1028" y="168" class="t-sm">falha a CI se alguém quebrar a regra.</text>
+      <text x="48" y="768" class="t-sm" font-style="italic">Dependências apontam para dentro: a infraestrutura depende do domínio, nunca o contrário.</text>
+    </svg>
+  </div>
+  <aside class="notes"><p>A arquitetura é em quatro camadas, decisão minha. API traduz HTTP. Aplicação tem os casos de uso e define portas, que são interfaces. Domínio tem as regras, sem framework.</p><p>A infraestrutura implementa as portas: banco, gateway e outbox. Assim dá para trocar o mock por um gateway real sem mexer na regra.</p><p>E essa regra de dependência não é só desenho: um teste de arquitetura confere os imports.</p></aside>
+</section>
+
+<!-- ===================== 6. FLUXO CRÍTICO ===================== -->
+<section class="slide" id="s6" data-nome="Fluxo crítico">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>O fluxo crítico: pedido, pagamento, status</h2><svg class="orn" style="color:var(--urucum)"><use href="#panela"/></svg></header>
+  <div class="corpo">
+    <svg viewBox="0 0 1728 790" width="1728" height="790" role="img" aria-label="Diagrama de sequência simplificado do pedido ao pagamento">
+      <defs><marker id="seta2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1b1511"/></marker></defs>
+      <!-- atores -->
+      <g font-weight="800" class="t-md">
+        <rect x="70" y="0" width="200" height="54" fill="#f4e9cf" stroke="#1b1511" stroke-width="4"/><text x="170" y="36" text-anchor="middle" class="t-md" font-weight="800">Cliente</text>
+        <rect x="500" y="0" width="200" height="54" fill="#1f3a6e" stroke="#1b1511" stroke-width="4"/><text x="600" y="36" text-anchor="middle" class="t-md t-w" font-weight="800">API</text>
+        <rect x="930" y="0" width="200" height="54" fill="#2b6637" stroke="#1b1511" stroke-width="4"/><text x="1030" y="36" text-anchor="middle" class="t-md t-w" font-weight="800">PostgreSQL</text>
+        <rect x="1330" y="0" width="300" height="54" fill="#c58a14" stroke="#1b1511" stroke-width="4"/><text x="1480" y="36" text-anchor="middle" class="t-md" font-weight="800">Gateway de pagamento</text>
+      </g>
+      <g stroke="#1b1511" stroke-width="3" stroke-dasharray="3 9"><path d="M170 56 V790"/><path d="M600 56 V790"/><path d="M1030 56 V790"/><path d="M1480 56 V790"/></g>
+      <!-- mensagens -->
+      <g stroke="#1b1511" stroke-width="4" fill="none">
+        <path d="M172 112 H596" marker-end="url(#seta2)"/>
+        <path d="M602 182 H1026" marker-end="url(#seta2)"/>
+        <path d="M602 322 H1026" marker-end="url(#seta2)"/>
+        <path d="M596 372 H174" stroke-dasharray="12 7" marker-end="url(#seta2)"/>
+        <path d="M172 452 H596" marker-end="url(#seta2)"/>
+        <path d="M602 522 H1476" marker-end="url(#seta2)"/>
+        <path d="M1476 592 H606" stroke-dasharray="12 7" marker-end="url(#seta2)"/>
+        <path d="M602 672 H1026" marker-end="url(#seta2)"/>
+        <path d="M596 742 H174" stroke-dasharray="12 7" marker-end="url(#seta2)"/>
+      </g>
+      <g class="t-sm halo">
+        <text x="184" y="100" font-weight="700">1. POST /pedidos (canalPedido, itens)</text>
+        <text x="614" y="170" font-weight="700">2. bloqueia e reserva o estoque</text>
+        <text x="614" y="310" font-weight="700">3. grava pedido e outbox (commit)</text>
+        <text x="214" y="360" font-weight="700">201 AGUARDANDO_PAGAMENTO</text>
+        <text x="184" y="440" font-weight="700">4. POST /pedidos/{id}/pagamentos</text>
+        <text x="614" y="510" font-weight="700">5. cobra no gateway, fora da transação</text>
+        <text x="880" y="580" font-weight="700">aprovado ou recusado</text>
+        <text x="614" y="660" font-weight="700">6. PAGO + tentativa + outbox</text>
+        <text x="214" y="730" font-weight="700">201 com o resultado</text>
+      </g>
+      <!-- notas -->
+      <rect x="1060" y="130" width="640" height="100" fill="#a8231b" stroke="#1b1511" stroke-width="3"/>
+      <text x="1080" y="168" class="t-sm t-w" font-weight="800">Estoque insuficiente: 409</text>
+      <text x="1080" y="204" class="t-sm t-w">Nada é gravado e nenhum pedido nasce.</text>
+      <rect x="1060" y="252" width="440" height="0" fill="none"/>
+      <rect x="1060" y="402" width="640" height="68" fill="#fbf5e4" stroke="#1b1511" stroke-width="3"/>
+      <text x="1080" y="444" class="t-sm" font-weight="700">Timeout de 3 s por chamada</text>
+      <rect x="1060" y="618" width="640" height="100" fill="#fbf5e4" stroke="#1b1511" stroke-width="3"/>
+      <text x="1080" y="656" class="t-sm" font-weight="800">Sem resposta: 2 novas tentativas</text>
+      <text x="1080" y="694" class="t-sm">e depois 504; o pedido segue pagável.</text>
+    </svg>
+  </div>
+  <aside class="notes"><p>Este é o fluxo crítico. O cliente cria o pedido. Na mesma transação, a API trava a linha do estoque e reserva a quantidade. Se faltar item, devolve 409 e nada é gravado.</p><p>Depois vem o pagamento. A chamada ao gateway fica fora da transação do banco, para não segurar o banco esperando um terceiro.</p><p>O timeout é de três segundos, com até duas novas tentativas. Se ainda assim não responder, a API devolve 504 e o pedido continua aguardando pagamento.</p></aside>
+</section>
+
+<!-- ===================== 7. REGRAS ===================== -->
+<section class="slide" id="s7" data-nome="Regras">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>Regras que importam</h2><svg class="orn" style="color:var(--anil)"><use href="#estrela"/></svg></header>
+  <div class="corpo">
+    <svg viewBox="0 0 1728 200" width="1728" height="200" role="img" aria-label="Máquina de estados do pedido">
+      <defs><marker id="seta3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1b1511"/></marker></defs>
+      <g stroke="#1b1511" stroke-width="3.5" font-family="monospace">
+        <rect x="0" y="10" width="360" height="62" fill="#c58a14"/>
+        <rect x="430" y="10" width="140" height="62" fill="#2b6637"/>
+        <rect x="640" y="10" width="220" height="62" fill="#f4e9cf"/>
+        <rect x="930" y="10" width="150" height="62" fill="#f4e9cf"/>
+        <rect x="1150" y="10" width="170" height="62" fill="#1b1511"/>
+        <rect x="190" y="130" width="230" height="62" fill="#a8231b"/>
+      </g>
+      <g class="t-mono" text-anchor="middle" font-weight="700">
+        <text x="180" y="50" style="font-size:22px">AGUARDANDO_PAGAMENTO</text>
+        <text x="500" y="50" style="font-size:22px;fill:#fff">PAGO</text>
+        <text x="750" y="50" style="font-size:22px">EM_PREPARO</text>
+        <text x="1005" y="50" style="font-size:22px">PRONTO</text>
+        <text x="1235" y="50" style="font-size:22px;fill:#f4e9cf">ENTREGUE</text>
+        <text x="305" y="170" style="font-size:22px;fill:#fff">CANCELADO</text>
+      </g>
+      <g stroke="#1b1511" stroke-width="4" fill="none">
+        <path d="M362 41 H426" marker-end="url(#seta3)"/><path d="M572 41 H636" marker-end="url(#seta3)"/>
+        <path d="M862 41 H926" marker-end="url(#seta3)"/><path d="M1082 41 H1146" marker-end="url(#seta3)"/>
+        <path d="M180 74 V161 H186" marker-end="url(#seta3)"/><path d="M500 74 V161 H424" marker-end="url(#seta3)"/>
+      </g>
+      <g class="t-sm"><text x="1350" y="38" font-weight="700">Qualquer outra</text><text x="1350" y="68" font-weight="700">transição: 409</text>
+      <text x="524" y="130" font-weight="700">cancelar após pagar gera estorno</text></g>
+    </svg>
+    <div class="row" style="margin-top:24px;gap:36px">
+      <div class="col" style="flex:0 0 640px">
+        <div class="card" style="padding:18px 24px">
+          <h3 style="font-size:28px">RN-14: perfil × canal</h3>
+          <table style="font-size:23px">
+            <tr><th>Perfil</th><th>Pode criar pedido em</th></tr>
+            <tr><td>CLIENTE</td><td>APP, WEB, PICKUP</td></tr>
+            <tr><td>ATENDENTE</td><td>BALCAO, TOTEM</td></tr>
+            <tr><td>GERENTE</td><td>BALCAO, TOTEM</td></tr>
+          </table>
+          <p class="xs" style="margin-top:10px">Combinação inválida: 422, com o campo <code>canalPedido</code> nos detalhes.</p>
+        </div>
+        <div class="card" style="padding:18px 24px"><p class="sm"><strong>Erro padrão único</strong> (ADR-0011): <code>error</code> estável para o cliente tratar por programa, <code>message</code> legível, <code>requestId</code> para rastrear.</p></div>
+      </div>
+      <pre style="flex:1;font-size:21px;line-height:1.42">HTTP 409  ·  POST /api/v1/pedidos
+{
+  <span class="k">"error"</span>: <span class="s">"ESTOQUE_INSUFICIENTE"</span>,
+  <span class="k">"message"</span>: <span class="s">"Não há quantidade suficiente
+              para um ou mais itens."</span>,
+  <span class="k">"details"</span>: [{
+    <span class="k">"field"</span>: <span class="s">"produtoId"</span>,
+    <span class="k">"issue"</span>: <span class="s">"produto 00000000-…0304: disponível 2"</span>
+  }],
+  <span class="k">"timestamp"</span>: <span class="s">"2026-11-22T18:38:46Z"</span>,
+  <span class="k">"path"</span>: <span class="s">"/api/v1/pedidos"</span>,
+  <span class="k">"requestId"</span>: <span class="s">"6ac2d4444ea34045b978278160272f79"</span>
+}</pre>
+    </div>
+  </div>
+  <aside class="notes"><p>Três regras que valem destacar. A primeira é a máquina de estados: o pedido nasce aguardando pagamento e só avança por caminhos válidos. Qualquer outra transição devolve 409.</p><p>A segunda é a RN-14: o perfil define em quais canais se pode criar pedido. O cliente usa app, web e pick-up; o atendente usa balcão e totem.</p><p>A terceira é o erro padrão: toda falha sai no mesmo JSON. Este exemplo é real: cinco carnes de sol pedidas, duas em estoque.</p></aside>
+</section>
+
+<!-- ===================== 8. SEGURANÇA E LGPD ===================== -->
+<section class="slide" id="s8" data-nome="Segurança e LGPD">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>Segurança e LGPD desde o desenho</h2><svg class="orn" style="color:var(--verde)"><use href="#mandacaru"/></svg></header>
+  <div class="corpo dist dist2">
+    <div class="grid g3" style="gap:30px">
+      <div class="card"><h3>Senhas</h3><p class="sm">Guardadas com <strong>Argon2id</strong>, nunca em texto. Dados de demonstração são todos fictícios.</p></div>
+      <div class="card"><h3>Acesso</h3><p class="sm"><strong>JWT</strong> com validade de <strong>60 min</strong>. Cada operação confere o perfil e a unidade de quem pede.</p></div>
+      <div class="card"><h3>Coleta mínima</h3><p class="sm">Sem CPF e sem telefone. O que não é coletado não vaza.</p></div>
+      <div class="card"><h3>Consentimento</h3><p class="sm">Registrado <strong>por finalidade</strong>, com versão do termo e sem apagar o histórico.</p></div>
+      <div class="card"><h3>Auditoria</h3><p class="sm">Trilha das operações sensíveis e logs <strong>sem dados pessoais</strong>.</p></div>
+      <div class="card"><h3>No DW</h3><p class="sm">Os eventos levam só identificadores, <strong>pseudonimizados por HMAC</strong> na camada analítica.</p></div>
+    </div>
+    <div class="citacao" style="font-size:34px">Regra de ouro do repositório público: <strong>zero segredos</strong>. Um verificador roda no pre-commit e na CI.<small>ADR-0005</small></div>
+  </div>
+  <aside class="notes"><p>Segurança e LGPD entraram no desenho, não no fim. Senha com Argon2id, JWT de uma hora e autorização por perfil e por unidade.</p><p>A coleta é mínima: não pedi CPF nem telefone. O consentimento é por finalidade, com histórico.</p><p>A auditoria e os logs não guardam dado pessoal, e, no data warehouse, os identificadores são pseudonimizados com HMAC.</p></aside>
+</section>
+
+<!-- ===================== 9. QUALIDADE ===================== -->
+<section class="slide" id="s9" data-nome="Qualidade">
+  <header class="cab"><div class="kicker">03 · O que foi construído</div><h2>Qualidade e reprodutibilidade</h2><svg class="orn" style="color:var(--ink)"><use href="#sol"/></svg></header>
+  <div class="corpo">
+    <div class="grid" style="grid-template-columns:repeat(5,1fr);gap:22px">
+      <div class="card centro" style="padding:18px 10px"><div class="big m urucum" style="font-size:100px">377</div><p class="sm">testes unitários</p></div>
+      <div class="card centro" style="padding:18px 10px"><div class="big m anil" style="font-size:100px">83</div><p class="sm">testes de integração, com PostgreSQL real</p></div>
+      <div class="card centro" style="padding:18px 10px"><div class="big m verde" style="font-size:100px">34</div><p class="sm">requisições no Postman, 33 asserções, 0 falhas</p></div>
+      <div class="card centro" style="padding:18px 10px"><div class="big m ocre" style="font-size:100px">6</div><p class="sm">jobs na integração contínua</p></div>
+      <div class="card centro" style="padding:18px 10px"><div class="big m urucum" style="font-size:78px">&lt;1 min</div><p class="sm">de clone limpo a tudo de pé e testado</p></div>
+    </div>
+    <div class="row" style="margin-top:44px;gap:44px">
+      <pre style="flex:0 0 900px;font-size:27px;line-height:1.6"><span class="k">git</span> clone &lt;repositório&gt;
+<span class="k">make</span> setup   <span style="color:#a89c82"># .env local, hook de segredos</span>
+<span class="k">make</span> up      <span style="color:#a89c82"># Docker: banco + API + migrações</span>
+<span class="k">make</span> seed    <span style="color:#a89c82"># dados fictícios</span>
+<span class="k">make</span> test    <span style="color:#a89c82"># unitários + arquitetura</span>
+<span class="k">make</span> postman <span style="color:#a89c82"># coleção ponta a ponta</span></pre>
+      <div class="col" style="flex:1;gap:18px">
+        <p style="font-size:33px"><strong>Quem avalia reproduz.</strong> Seguindo só o README, em uma máquina limpa, o ambiente sobe e passa nos testes em menos de um minuto, sem contar o download das imagens.</p>
+        <p class="sm">Versões travadas, Docker como ambiente canônico e CI no GitHub: o que roda aqui roda lá.</p>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>Qualidade se prova com número. Trezentos e setenta e sete testes unitários e oitenta e três de integração, contra um PostgreSQL de verdade, incluindo a disputa pelo último item do estoque.</p><p>A coleção Postman tem trinta e quatro requisições e trinta e três asserções, sem falhas. A CI tem seis jobs.</p><p>E fiz o teste do clone limpo: seguindo só o README, tudo sobe e é testado em menos de um minuto.</p></aside>
+</section>
+
+<!-- ===================== 10. DADOS COMO ATIVO ===================== -->
+<section class="slide" id="s10" data-nome="Dados como ativo">
+  <header class="cab"><div class="kicker">04 · A visão analítica</div><h2>Dados como ativo da empresa</h2><svg class="orn" style="color:var(--anil)"><use href="#estrela"/></svg></header>
+  <div class="corpo">
+    <svg viewBox="0 0 1728 330" width="1728" height="330" role="img" aria-label="Pipeline: PostgreSQL, outbox, bronze, silver, gold">
+      <defs><marker id="seta4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#1b1511"/></marker></defs>
+      <g stroke="#1b1511" stroke-width="4">
+        <rect x="0" y="40" width="270" height="180" fill="#1f3a6e"/>
+        <rect x="340" y="40" width="270" height="180" fill="#fbf5e4"/>
+        <rect x="680" y="40" width="270" height="180" fill="#8a5a2b"/>
+        <rect x="1020" y="40" width="270" height="180" fill="#b9bec4"/>
+        <rect x="1360" y="40" width="368" height="180" fill="#e8b02c"/>
+        <g fill="none"><path d="M272 130 H336" marker-end="url(#seta4)"/><path d="M612 130 H676" marker-end="url(#seta4)"/><path d="M952 130 H1016" marker-end="url(#seta4)"/><path d="M1292 130 H1356" marker-end="url(#seta4)"/></g>
+      </g>
+      <g text-anchor="middle">
+        <text x="135" y="100" class="t-lg t-w">PostgreSQL</text><text x="135" y="140" class="t-md t-w">OLTP: a API</text><text x="135" y="176" class="t-sm t-w">pedidos, estoque</text>
+        <text x="475" y="100" class="t-lg">Outbox</text><text x="475" y="140" class="t-md">eventos de domínio</text><text x="475" y="176" class="t-sm">na transação do pedido</text>
+        <text x="815" y="100" class="t-lg t-w">Bronze</text><text x="815" y="140" class="t-md t-w">Parquet cru</text><text x="815" y="176" class="t-sm t-w">particionado, imutável</text>
+        <text x="1155" y="100" class="t-lg">Silver</text><text x="1155" y="140" class="t-md">limpo e tipado</text><text x="1155" y="176" class="t-sm">pseudonimizado</text>
+        <text x="1544" y="100" class="t-lg">Gold</text><text x="1544" y="140" class="t-md">estrela Kimball</text><text x="1544" y="172" class="t-sm">fct_pedido</text><text x="1544" y="202" class="t-sm">fct_tentativa_pagamento</text>
+      </g>
+      <text x="680" y="270" class="t-md" font-weight="800">DuckDB + dbt</text>
+      <text x="680" y="308" class="t-sm">transformam bronze → silver → gold, com 113 testes de dados</text>
+      <path d="M680 236 H1728" stroke="#1b1511" stroke-width="3" stroke-dasharray="4 8"/>
+    </svg>
+    <div class="grid g3" style="margin-top:40px;gap:32px">
+      <div class="card"><h3 style="font-size:34px">OLTP</h3><p class="sm">Muitas escritas pequenas, consistência imediata. É a vida do pedido.</p></div>
+      <div class="card"><h3 style="font-size:34px">OLAP</h3><p class="sm">Leituras grandes sobre histórico. Analisar não pode atrasar o pedido.</p></div>
+      <div class="card"><h3 style="font-size:34px">Rumo ao Lakehouse</h3><p class="sm">Parquet já é o formato aberto: object storage e Iceberg entram sem refazer o modelo.</p></div>
+    </div>
+    <pre style="margin-top:34px;font-size:25px;padding:14px 26px;line-height:1.5"><span class="k">make</span> dw-ingest  <span style="color:#a89c82"># outbox → bronze (Parquet)</span>
+<span class="k">make</span> dw-build   <span style="color:#a89c82"># dbt: silver e gold, com testes</span></pre>
+  </div>
+  <aside class="notes"><p>Aqui está o diferencial, e vem da minha área, que é dados. A API grava eventos numa tabela outbox, na mesma transação do pedido, então nenhum evento se perde.</p><p>Esses eventos viram arquivos Parquet na camada bronze, são limpos na silver e viram a estrela de Kimball na gold, com DuckDB e dbt. São cento e treze testes de dados.</p><p>Separar o transacional do analítico protege o pedido e prepara o caminho para um Lakehouse.</p></aside>
+</section>
+
+<!-- ===================== 11. MODELAGEM DIMENSIONAL ===================== -->
+<section class="slide" id="s11" data-nome="Modelagem dimensional">
+  <header class="cab"><div class="kicker">04 · A visão analítica</div><h2>Modelagem dimensional: a matriz de barramento</h2><svg class="orn" style="color:var(--urucum)"><use href="#espiga"/></svg></header>
+  <div class="corpo" style="font-size:24px">
+    <table id="matriz" style="font-size:23px">
+      <thead><tr><th>Processo (fato)</th><th class="c">Tempo</th><th class="c">Hora</th><th class="c">Unid.</th><th class="c">Prod.</th><th class="c">Canal</th><th class="c">Cliente</th><th class="c">Pgto</th><th class="c">Camp.</th><th class="c">Colab.</th><th class="c">Status</th><th class="c">Motivo</th><th class="c">Final.</th><th class="c">Situação</th></tr></thead>
+      <tbody id="matriz-corpo"></tbody>
+    </table>
+    <p class="xs" style="margin-top:10px">● dimensão presente · RP: Tempo com vários papéis de data (role-playing)</p>
+    <div class="row" style="margin-top:20px;gap:30px">
+      <div class="card" style="flex:1;padding:16px 24px"><p class="sm"><strong>Dimensões conformadas:</strong> mesmas chaves em todos os fatos. É o que permite cruzar vendas × estoque × fidelidade.</p></div>
+      <div class="card" style="flex:1;padding:16px 24px"><p class="sm"><strong>Implementado:</strong> <code>fct_pedido</code> e <code>fct_tentativa_pagamento</code>. Os outros 7 estão modelados e documentados, aguardando os eventos.</p></div>
+    </div>
+  </div>
+  <aside class="notes"><p>A modelagem dimensional é autoria minha. Segui os quatro passos de Kimball: processo, grão, dimensões e medidas.</p><p>A matriz de barramento cruza nove processos com as dimensões. Dimensão conformada é a que tem a mesma chave em todos os fatos, e é isso que deixa cruzar vendas com estoque e fidelidade.</p><p>Hoje dois fatos estão implementados: pedidos e tentativas de pagamento. Os outros sete dependem de eventos que a API mínima não emite.</p></aside>
+</section>
+
+<!-- ===================== 12. PAINEL ===================== -->
+<section class="slide" id="s12" data-nome="Painel">
+  <header class="cab"><div class="kicker">04 · A visão analítica</div><h2>O que a rede enxerga: o painel</h2><svg class="orn" style="color:var(--anil)"><use href="#sol"/></svg></header>
+  <div class="corpo" id="painel-corpo">
+    <div class="row" style="height:100%;gap:36px">
+      <div class="placeholder-painel moldura" data-pendente="dashboard" style="flex:1.6">
+        <svg style="width:150px;height:150px;color:var(--ink)"><use href="#sol"/></svg>
+        <div style="font:400 40px var(--titulo)">Painel (Streamlit)</div>
+        <div class="sm">Espaço reservado: captura do painel sobre dados simulados</div>
+      </div>
+      <div class="col" style="flex:1;justify-content:center">
+        <div class="card"><h3 style="font-size:28px">Mesmos fatos, outra pergunta</h3><p class="sm">Vendas por unidade e canal, tentativas de pagamento recusadas, tempo de resposta do gateway.</p></div>
+        <div class="card"><h3 style="font-size:28px">Dados simulados</h3><p class="sm">Nenhum dado real: o painel lê a camada gold, gerada a partir de eventos fictícios.</p></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes"><p>Para mostrar o valor dos dados, o painel lê a camada gold sobre dados simulados.</p><p>Aqui a pergunta muda: em vez de “o pedido foi criado?”, é “quanto vendemos por canal e por unidade?”, ou “quantos pagamentos o gateway recusou?”.</p><p>Todos os dados são fictícios.</p></aside>
+</section>
+
+<!-- ===================== 13. IA COMO EQUIPE ===================== -->
+<section class="slide" id="s13" data-nome="IA como equipe">
+  <header class="cab"><div class="kicker">05 · Como foi feito</div><h2>A IA como equipe, o autor como arquiteto</h2><svg class="orn" style="color:var(--verde)"><use href="#estrela"/></svg></header>
+  <div class="corpo" style="font-size:26px;line-height:1.32">
+    <div class="grid" style="grid-template-columns:1fr 0.85fr 1fr;gap:30px">
+      <div class="card" style="padding:26px 28px">
+        <h3 style="font-size:32px">Orquestração por custo</h3>
+        <p class="sm"><span class="tag u" style="font-size:20px;padding:5px 12px">Opus</span> especifica e revisa.</p>
+        <p class="sm" style="margin-top:10px"><span class="tag a" style="font-size:20px;padding:5px 12px">Sonnet</span> <span class="tag v" style="font-size:20px;padding:5px 12px">Haiku</span> executam o trabalho braçal.</p>
+        <p class="sm" style="margin-top:16px">Fluxo: Opus escreve a especificação, Sonnet e Haiku implementam, Opus revisa.</p><p class="xs" style="margin-top:12px;font-size:23px">Motivo: cota limitada do plano Pro. Agente caro decide, agente barato faz.</p>
+      </div>
+      <div class="card" style="padding:26px 28px">
+        <h3 style="font-size:32px">Decisões por origem</h3>
+        <div id="grafico-decisoes"></div>
+      </div>
+      <div class="card" style="padding:26px 28px">
+        <h3 style="font-size:32px">Não foi delegado</h3>
+        <ul class="lista nao sm" style="font-size:29px;line-height:1.5"><li>A <strong>visão</strong> analítica</li><li>A <strong>modelagem</strong> dimensional</li><li>Os <strong>textos</strong> autorais</li><li>As <strong>decisões</strong></li></ul>
+      </div>
+    </div>
+    <div class="card ink-bg" style="margin-top:40px;padding:22px 30px">
+      <p style="font-size:29px"><strong style="color:var(--ocre)">Privacidade:</strong> verificador de segredos, termos privados fora do git e histórico varrido antes de cada push. Toda decisão tem origem registrada em <code style="color:var(--ink)">docs/uso-de-ia/decisoes.md</code>.</p>
+    </div>
+  </div>
+  <aside class="notes"><p>Trabalhei com o Claude Code como equipe. O modelo mais caro, o Opus, especifica e revisa. Sonnet e Haiku fazem o trabalho braçal. Isso foi decisão minha, por causa da cota do plano.</p><p>Toda decisão foi registrada com a origem: humana, conjunta ou da IA. Este gráfico é gerado a partir do próprio registro.</p><p>O que não deleguei: a visão analítica, a modelagem dimensional, os textos autorais e as decisões.</p></aside>
+</section>
+
+<!-- ===================== 14. MATRIZ CONSTRUIR x COMPRAR ===================== -->
+<section class="slide" id="s14" data-nome="Construir × comprar">
+  <header class="cab"><div class="kicker">06 · Construir × comprar × integrar</div><h2>Matriz de decisão por capacidade</h2><svg class="orn" style="color:var(--urucum)"><use href="#panela"/></svg></header>
+  <div data-mercado-faixa></div>
+  <div class="corpo" data-mercado id="m-matriz"></div>
+  <aside class="notes"><p>Agora a parte mais importante da proposta. Para cada capacidade da rede, olho três caminhos: gratuito ou open source, pago de prateleira e sob medida.</p><p>Cada linha mostra a recomendação: comprar, integrar ou construir. Os valores e as fontes estão datados, porque preço muda.</p><p>A maior parte das capacidades é commodity: compra-se.</p></aside>
+</section>
+
+<!-- ===================== 15. TCO ===================== -->
+<section class="slide" id="s15" data-nome="TCO em 3 anos">
+  <header class="cab"><div class="kicker">06 · Construir × comprar × integrar</div><h2>Custo total de propriedade em 3 anos</h2><svg class="orn" style="color:var(--anil)"><use href="#estrela"/></svg></header>
+  <div data-mercado-faixa></div>
+  <div class="corpo" data-mercado id="m-tco"></div>
+  <aside class="notes"><p>O custo não é só a licença. Somando equipe, infraestrutura, manutenção, segurança e conformidade ao longo de três anos, o quadro muda.</p><p>Esta comparação coloca lado a lado o ecossistema de prateleira e a construção própria.</p><p>As premissas estão explícitas: quem discordar de uma premissa pode refazer a conta.</p></aside>
+</section>
+
+<!-- ===================== 16. IA E AUTOMAÇÃO ===================== -->
+<section class="slide" id="s16" data-nome="IA e automação">
+  <header class="cab"><div class="kicker">06 · Construir × comprar × integrar</div><h2>IA e automação aplicadas, com baixo risco</h2><svg class="orn" style="color:var(--verde)"><use href="#mandacaru"/></svg></header>
+  <div data-mercado-faixa></div>
+  <div class="corpo">
+    <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:24px">
+      <div class="card" style="padding:24px 24px"><h3 style="font-size:32px">Atendimento</h3><p class="sm">Chatbot no WhatsApp para status do pedido e dúvidas do cardápio.</p><p style="margin-top:12px"><span class="tag v" style="font-size:19px;padding:5px 12px">Risco baixo</span></p></div>
+      <div class="card" style="padding:24px 24px"><h3 style="font-size:32px">Previsão</h3><p class="sm">Demanda e compras por unidade, a partir do histórico de pedidos.</p><p style="margin-top:12px"><span class="tag v" style="font-size:19px;padding:5px 12px">Risco baixo</span></p></div>
+      <div class="card" style="padding:24px 24px"><h3 style="font-size:32px">Análise de vendas</h3><p class="sm">Perguntas em linguagem natural sobre a camada gold do DW.</p><p style="margin-top:12px"><span class="tag v" style="font-size:19px;padding:5px 12px">Risco baixo</span></p></div>
+      <div class="card" style="padding:24px 24px"><h3 style="font-size:32px">Campanhas</h3><p class="sm">Segmentação por frequência de consumo, só com consentimento.</p><p style="margin-top:12px"><span class="tag o" style="font-size:19px;padding:5px 12px">Risco médio</span></p></div>
+    </div>
+    <div class="row" style="margin-top:44px;gap:34px">
+      <div class="card ink-bg" style="flex:1.2;padding:24px 30px"><h3 style="color:var(--ocre);font-size:34px">Cuidado com a LGPD</h3><ul class="lista sm" style="font-size:28px"><li>Finalidade e <strong>consentimento</strong> antes de usar o dado.</li><li>Identificadores <strong>pseudonimizados</strong>; sem dado pessoal em prompts.</li><li>Uma pessoa revisa o que a IA sugere antes de agir.</li></ul></div>
+      <div class="card" style="flex:1;padding:24px 30px"><h3 style="font-size:34px">Opções de mercado</h3><ul class="lista sm" id="m-ia-opcoes" style="font-size:28px"></ul></div>
+    </div>
+  </div>
+  <aside class="notes"><p>IA tem lugar na rede, mas começando pelos casos de baixo risco: atendimento, previsão de demanda e de compras, análise de vendas e campanhas.</p><p>Em cada caso, o cuidado com a LGPD vem junto: consentimento, finalidade e dados pseudonimizados.</p><p>A base disso é a visão analítica que mostrei antes.</p></aside>
+</section>
+
+<!-- ===================== 17. ROADMAP ===================== -->
+<section class="slide" id="s17" data-nome="Roadmap">
+  <header class="cab"><div class="kicker">06 · Construir × comprar × integrar</div><h2>Roadmap por fase de crescimento</h2><svg class="orn" style="color:var(--ink)"><use href="#sanfona" /></svg></header>
+  <div data-mercado-faixa></div>
+  <div class="corpo" data-mercado id="m-roadmap"></div>
+  <aside class="notes"><p>O que adotar depende do tamanho da rede. Com cinco unidades, o mais simples possível. Com vinte, integração e dados. Com cinquenta ou mais, começam a aparecer motivos para construir.</p><p>Os sinais de que vale construir algo próprio estão listados: eles dizem quando o diferencial justifica o custo.</p></aside>
+</section>
+
+<!-- ===================== 18. RECOMENDAÇÃO ===================== -->
+<section class="slide" id="s18" data-nome="Recomendação">
+  <header class="cab"><div class="kicker">07 · Recomendação</div><h2>Recomendação e próximos passos</h2><svg class="orn" style="color:var(--urucum)"><use href="#sol"/></svg></header>
+  <div class="corpo dist">
+    <div class="grid g2" style="gap:36px">
+      <div class="card">
+        <h3>Recomendação</h3>
+        <ul class="lista sm">
+          <li><strong>Comprar</strong> o que é commodity.</li>
+          <li><strong>Integrar</strong> o que é crítico, exigindo API aberta e saída dos dados.</li>
+          <li><strong>Construir</strong> só o que diferencia: a visão analítica.</li>
+          <li>Usar esta API como <strong>régua</strong> para avaliar fornecedores.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Próximos passos</h3>
+        <ol class="sm" style="padding-left:34px">
+          <li style="margin:12px 0">Mapear e padronizar os <strong>processos</strong> das unidades.</li>
+          <li style="margin:12px 0">Escolher o ecossistema de prateleira para a fase atual.</li>
+          <li style="margin:12px 0">Garantir exportação dos dados desde o primeiro contrato.</li>
+          <li style="margin:12px 0">Manter o DW como ativo próprio, evoluindo para Lakehouse.</li>
+        </ol>
+      </div>
+    </div>
+    <div class="citacao" style="margin-top:40px">A decisão é da rede. Eu entro como <strong>interlocutor</strong>: traduzo o problema em opções, com custos, riscos e trade-offs.</div>
+  </div>
+  <aside class="notes"><p>A minha recomendação é simples e honesta: comprar o que é commodity, integrar o que é crítico e construir só a visão analítica.</p><p>Esta API não é uma recomendação de compra. Ela demonstra domínio técnico e serve de régua para avaliar fornecedores.</p><p>Os próximos passos começam pelos processos, não pela ferramenta. E a decisão final é da rede; eu sou o interlocutor.</p></aside>
+</section>
+
+<!-- ===================== 19. LIÇÕES ===================== -->
+<section class="slide" id="s19" data-nome="Lições aprendidas">
+  <header class="cab"><div class="kicker">08 · Lições aprendidas</div><h2>O que eu levo deste trabalho</h2><svg class="orn" style="color:var(--verde)"><use href="#espiga"/></svg></header>
+  <div class="corpo dist">
+    <div class="grid g3" style="gap:30px">
+      <div class="card"><h3>Decidir o escopo</h3><p class="sm">O maior desafio foi interpretar <strong>o quanto a API precisava ser funcional</strong>. Vindo da área de dados, o back-end foi a parte menos familiar.</p></div>
+      <div class="card"><h3>Perguntas certas</h3><p class="sm">Com a IA, poucos prompts e <strong>perguntas bem colocadas</strong> levaram a decisões mais direcionadas.</p></div>
+      <div class="card"><h3>Tecnologia por último</h3><p class="sm">A tecnologia costuma ser <strong>a última coisa a ser aprendida</strong> e a que mais dificulta o sucesso de um negócio.</p></div>
+    </div>
+    <div class="citacao" style="margin-top:44px">Meu papel seria o de <strong>facilitador</strong>: oferecer aos gestores um leque de opções, entre soluções próprias e de mercado, para aplicar processos bem definidos de maneira mais eficiente e sustentar o crescimento da rede.<small>Do autor, Conclusão do documento</small></div>
+    <p class="sm" style="margin-top:28px">Uma nova franquia receberia o suporte adequado enquanto toda a rede ainda aprende a usar a solução recém-implantada?</p>
+  </div>
+  <aside class="notes"><p>Três lições. A primeira: o mais difícil foi decidir o quanto a API precisava ser funcional. Eu venho de dados, não de back-end.</p><p>A segunda: com a IA, poucas perguntas bem feitas bastam para decidir melhor.</p><p>A terceira, a que mais importa: a tecnologia costuma ser a última a ser aprendida e a que mais atrapalha. Por isso o meu papel seria o de facilitador.</p></aside>
+</section>
+
+<!-- ===================== 20. ENCERRAMENTO ===================== -->
+<section class="slide capa" id="s20" data-nome="Encerramento">
+  <div class="band"></div>
+  <svg class="cena" style="left:1370px;top:100px;width:420px;height:420px;color:var(--ocre)"><use href="#sol"/></svg>
+  <div style="position:absolute;left:110px;top:130px;width:1200px">
+    <h1 style="font:400 150px/1 var(--titulo)">Obrigado!</h1>
+    <p style="font:italic 800 56px/1.2 var(--corpo);color:var(--urucum);margin-top:10px">Arretado!</p>
+    <table style="margin-top:50px;width:1190px;font-size:29px">
+      <tr><th style="width:290px">Repositório</th><td><code style="font-size:27px">github.com/rfelribeiro/raizes-do-nordeste-backend</code></td></tr>
+      <tr><th>Swagger local</th><td><code style="font-size:26px">http://localhost:8080/docs</code> (com <code>make up</code>)</td></tr>
+      <tr><th>Postman</th><td>pasta <code style="font-size:26px">postman/</code> do repositório</td></tr>
+      <tr><th>Documento (PDF)</th><td>gerado por <code style="font-size:26px">make documento</code></td></tr>
+      <tr><th>Vídeo</th><td data-link="video">link do YouTube na descrição</td></tr>
+    </table>
+  </div>
+  <svg class="cena" style="left:1380px;top:640px;width:150px;height:260px"><use href="#mandacaru"/></svg>
+  <svg class="cena" style="left:1560px;top:700px;width:200px;height:150px"><use href="#casinha"/></svg>
+  <svg class="cena" style="left:1560px;top:870px;width:200px;height:100px"><use href="#sanfona"/></svg>
+  <aside class="notes"><p>Era isso. O repositório é público e tem tudo para reproduzir: o Swagger, a coleção Postman e o documento em PDF.</p><p>O vídeo e os links estão na descrição.</p><p>Obrigado por assistir. Arretado!</p></aside>
+</section>
+
+<div id="chita"></div>
+<div id="nome-rodape">Raízes do Nordeste</div>
+<div id="progresso"></div>
+<div id="num"></div>
+<div id="dica"></div>
+<div id="notas"><b>Notas do apresentador</b><div id="notas-texto"></div></div>
+</div>
+
+<script src="dados/mercado.js"></script>
+<script src="mercado-render.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

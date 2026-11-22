@@ -1,0 +1,200 @@
+/* Identidade "Nordeste": papel de cordel, xilogravura, chita. */
+:root {
+  --paper: #f4e9cf;
+  --paper-2: #fbf5e4;
+  --paper-3: #e8d8b0;
+  --ink: #1b1511;
+  --urucum: #a8231b;
+  --ocre: #c58a14;
+  --ocre-t: #7a4f00;
+  --anil: #1f3a6e;
+  --verde: #2b6637;
+  --muted: #4a3f33;
+  --titulo: "Alfa Slab One", "Rockwell", "Roboto Slab", Georgia, "Times New Roman", serif;
+  --corpo: "Bitter", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "JetBrains Mono", "DejaVu Sans Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: #14100c; overflow: hidden; }
+body { font-family: var(--corpo); color: var(--ink); }
+
+#palco {
+  position: absolute; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform-origin: 0 0;
+  background: var(--paper);
+  overflow: hidden;
+}
+/* textura leve de papel */
+#palco::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 20% 15%, rgba(197,138,20,.10), transparent 40%),
+    radial-gradient(circle at 85% 80%, rgba(168,35,27,.07), transparent 45%);
+}
+
+.slide {
+  position: absolute; inset: 0; z-index: 1;
+  opacity: 0; visibility: hidden;
+  transition: opacity .35s ease, transform .35s ease;
+  transform: translateX(24px);
+  padding: 0 96px;
+}
+.slide.ativo { opacity: 1; visibility: visible; transform: none; }
+.slide.saindo { transform: translateX(-24px); }
+
+/* cabeçalho */
+.cab { position: absolute; left: 96px; right: 96px; top: 52px; height: 130px; }
+.kicker {
+  font: 700 24px/1 var(--corpo); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--urucum);
+}
+.cab h2 {
+  font: 400 62px/1.08 var(--titulo); color: var(--ink); margin-top: 12px; max-width: 1450px;
+}
+.cab::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: -4px; height: 8px;
+  background:
+    repeating-linear-gradient(90deg, var(--ink) 0 18px, transparent 18px 24px) center/100% 4px no-repeat;
+}
+.orn { position: absolute; right: 0; top: -8px; width: 150px; height: 150px; color: var(--ink); }
+.corpo { position: absolute; left: 96px; right: 96px; top: 214px; bottom: 76px; font-size: 30px; line-height: 1.38; }
+
+/* rodapé */
+#chita { position: absolute; left: 0; right: 0; bottom: 0; height: 30px; z-index: 5;
+  background: url(assets/chita.svg) repeat-x 0 0 / 96px 96px; border-top: 4px solid var(--ink); }
+#num { position: absolute; right: 40px; bottom: 40px; z-index: 6; font: 700 22px var(--corpo); color: var(--muted); }
+#progresso { position: absolute; left: 0; bottom: 34px; height: 6px; background: var(--urucum); z-index: 6; transition: width .3s; }
+#nome-rodape { position: absolute; left: 96px; bottom: 40px; z-index: 6; font: 700 20px var(--corpo); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+
+/* texto */
+p + p { margin-top: .6em; }
+strong { font-weight: 800; }
+em { font-style: italic; }
+.mono, code { font-family: var(--mono); font-size: .8em; }
+code { background: var(--paper-3); padding: 1px 8px; border: 1.5px solid var(--ink); border-radius: 3px; }
+.sm { font-size: 24px; line-height: 1.35; }
+.xs { font-size: 21px; line-height: 1.3; color: var(--muted); }
+.urucum { color: var(--urucum); } .anil { color: var(--anil); } .verde { color: var(--verde); } .ocre { color: var(--ocre-t); }
+.centro { text-align: center; }
+
+/* componentes */
+.card {
+  background: var(--paper-2); border: 3px solid var(--ink); box-shadow: 8px 8px 0 var(--ink);
+  padding: 22px 28px;
+}
+.card h3 { font: 400 32px/1.15 var(--titulo); margin-bottom: 10px; }
+.card.urucum-bg { background: var(--urucum); color: #fff; }
+.card.anil-bg { background: var(--anil); color: #fff; }
+.card.verde-bg { background: var(--verde); color: #fff; }
+.card.ink-bg { background: var(--ink); color: var(--paper); box-shadow: 8px 8px 0 var(--urucum); }
+.grid { display: grid; gap: 28px; }
+.g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); }
+.row { display: flex; gap: 28px; align-items: stretch; }
+.col { display: flex; flex-direction: column; gap: 22px; }
+.tag {
+  display: inline-block; font: 700 22px/1 var(--corpo); padding: 8px 16px; border: 2.5px solid var(--ink);
+  background: var(--paper-2); letter-spacing: .04em;
+}
+.tag.u { background: var(--urucum); color: #fff; } .tag.a { background: var(--anil); color: #fff; }
+.tag.v { background: var(--verde); color: #fff; } .tag.o { background: var(--ocre); color: var(--ink); }
+.big { font: 400 120px/1 var(--titulo); }
+.big.m { font-size: 84px; }
+.lista { list-style: none; }
+.lista li { position: relative; padding-left: 46px; margin: 12px 0; }
+.lista li::before { content: ""; position: absolute; left: 4px; top: .5em; width: 20px; height: 20px; background: var(--urucum); transform: rotate(45deg); border: 2px solid var(--ink); }
+.lista.ok li::before { content: "✓"; background: none; border: 0; transform: none; color: var(--verde); font-weight: 800; font-size: 34px; top: -.12em; left: 2px; width: auto; height: auto; }
+.lista.nao li::before { content: "✕"; background: none; border: 0; transform: none; color: var(--urucum); font-weight: 800; font-size: 30px; top: -.05em; left: 2px; width: auto; height: auto; }
+.citacao {
+  border-left: 10px solid var(--urucum); background: var(--paper-2); padding: 22px 32px; font-size: 32px;
+  line-height: 1.4; font-style: italic; border-top: 3px solid var(--ink); border-bottom: 3px solid var(--ink); border-right: 3px solid var(--ink);
+}
+.citacao small { display: block; font-style: normal; font-size: 22px; color: var(--muted); margin-top: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+pre {
+  background: var(--ink); color: #f6ecd2; font: 500 23px/1.5 var(--mono); padding: 22px 28px; border: 3px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--ocre); white-space: pre; overflow: hidden;
+}
+pre .k { color: #f0b84a; } pre .s { color: #9fd6a0; } pre .n { color: #f2917f; }
+
+table { border-collapse: collapse; width: 100%; font-size: 24px; background: var(--paper-2); }
+th, td { border: 2px solid var(--ink); padding: 9px 14px; text-align: left; vertical-align: top; }
+th { background: var(--ink); color: var(--paper); font-weight: 700; }
+td.c, th.c { text-align: center; }
+
+.cena { position: absolute; z-index: 0; color: var(--ink); }
+svg { display: block; }
+
+/* diagramas */
+svg text { font-family: var(--corpo); fill: var(--ink); }
+svg .t-sm { font-size: 22px; } svg .t-md { font-size: 26px; } svg .t-lg { font-size: 30px; font-weight: 800; }
+svg .t-w { fill: #fff; }
+svg .t-mono { font-family: var(--mono); font-size: 21px; }
+
+/* painel */
+.moldura { border: 4px solid var(--ink); box-shadow: 10px 10px 0 var(--ink); background: #fff; }
+.moldura img { display: block; width: 100%; height: auto; }
+
+/* capa e encerramento */
+.capa { padding: 0; }
+.capa .titulo { position: absolute; left: 110px; top: 215px; width: 1100px; }
+.capa h1 { font: 400 124px/1.0 var(--titulo); color: var(--ink); }
+.capa h1 span { color: var(--urucum); }
+.capa .lema { font: italic 700 42px/1.3 var(--corpo); margin-top: 38px; max-width: 1050px; border-left: 10px solid var(--ocre); padding-left: 26px; }
+.capa .sub { font: 700 26px/1.4 var(--corpo); letter-spacing: .1em; text-transform: uppercase; color: var(--anil); margin-top: 44px; }
+.band { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: url(assets/bandeirinhas.svg) repeat-x 0 8px / 240px 44px; z-index: 2; }
+
+/* notas do apresentador */
+#notas {
+  position: absolute; left: 60px; right: 60px; bottom: 56px; z-index: 20; display: none;
+  background: rgba(27,21,17,.96); color: var(--paper); border: 4px solid var(--ocre);
+  padding: 22px 32px; font-size: 27px; line-height: 1.4; max-height: 420px; overflow: auto;
+}
+body.notas #notas { display: block; }
+#notas b { color: var(--ocre); letter-spacing: .1em; text-transform: uppercase; font-size: 20px; display: block; margin-bottom: 6px; }
+.slide > .notes { display: none; }
+#dica { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); z-index: 30; background: var(--ink); color: var(--paper);
+  padding: 8px 22px; font: 700 22px var(--corpo); border: 3px solid var(--ocre); opacity: 0; transition: opacity .3s; }
+#dica.on { opacity: 1; }
+
+/* pendências visíveis */
+.pendente-faixa {
+  position: absolute; right: 96px; top: 186px; z-index: 4; background: var(--urucum); color: #fff;
+  font: 800 22px var(--corpo); padding: 6px 18px; border: 3px solid var(--ink); letter-spacing: .06em;
+}
+.placeholder-painel {
+  border: 4px dashed var(--ink); background:
+    repeating-linear-gradient(45deg, rgba(27,21,17,.05) 0 14px, transparent 14px 28px), var(--paper-2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center;
+}
+
+/* impressão: um slide por página */
+@page { size: 1920px 1080px; margin: 0; }
+@media print {
+  html, body { overflow: visible; height: auto; background: none; }
+  #palco { position: static; transform: none !important; width: 1920px; height: auto; overflow: visible; background: none; }
+  #palco::before, #notas, #dica, #progresso, #num, #nome-rodape, #chita { display: none !important; }
+  .slide {
+    position: relative; width: 1920px; height: 1080px; opacity: 1; visibility: visible; transform: none; overflow: hidden;
+    page-break-after: always; break-after: page; background: var(--paper);
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .slide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30px; border-top: 4px solid var(--ink); background: url(assets/chita.svg) repeat-x 0 0 / 96px 96px; }
+}
+
+/* ajustes de leitura */
+.sm { font-size: 28px; line-height: 1.38; }
+.lista li::before { top: .36em; }
+svg .halo text, svg text.halo { paint-order: stroke; stroke: var(--paper); stroke-width: 7px; stroke-linejoin: round; }
+.cab h2 { font-size: 56px; max-width: 1560px; }
+
+.corpo.dist { display: flex; flex-direction: column; justify-content: space-between; padding-bottom: 24px; }
+.corpo.dist .sm { font-size: 32px; line-height: 1.4; }
+.corpo.dist .card { padding: 30px 34px; }
+.corpo.dist .card h3 { font-size: 40px; margin-bottom: 14px; }
+.corpo.dist .citacao { font-size: 36px; }
+.corpo.dist .citacao small { font-size: 23px; }
+.corpo.dist .lista li { margin: 18px 0; }
+
+.corpo.dist2 .sm { font-size: 29px; line-height: 1.36; }
+.corpo.dist2 .card { padding: 24px 30px; }
+.corpo.dist2 .card h3 { font-size: 36px; margin-bottom: 10px; }

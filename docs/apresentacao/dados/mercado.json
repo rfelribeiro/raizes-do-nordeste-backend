@@ -1,0 +1,351 @@
+{
+ "data_consulta": "2026-11-22",
+ "capacidades": [
+  {
+   "nome": "PDV e gestão de pedidos",
+   "decisao": "comprar",
+   "justificativa": "Commodity com exigências fiscais e operação offline; sustenta o pico (RNF-09). Exigir exportação de pedidos para o DW.",
+   "opcoes": [
+    {
+     "nome": "Loyverse POS",
+     "tipo": "gratuita",
+     "preco": "US$ 0 no plano base; complementos sob consulta",
+     "fonte": "https://loyverse.com/en-us/pricing"
+    },
+    {
+     "nome": "Saipos",
+     "tipo": "prateleira",
+     "preco": "a partir de R$ 240,79/mês por loja (preço público; página possivelmente defasada)",
+     "fonte": "https://saipos.com/teste2025/planos-e-precos"
+    },
+    {
+     "nome": "Colibri (RS Solutions)",
+     "tipo": "prateleira",
+     "preco": "sob consulta",
+     "fonte": "https://www.bloomberglinea.com.br/tech/rs-solutions-compra-colibri-software-usado-por-15-mil-restaurantes-dizem-fontes/"
+    },
+    {
+     "nome": "Sob medida",
+     "tipo": "sob medida",
+     "preco": "estimativa R$ 0,42 mi a R$ 0,84 mi (3 devs, 6 a 12 meses)",
+     "fonte": "https://www.roberthalf.com/br/pt/vagas-detalhes/desenvolvedora-back-end-pleno/sao-paulo"
+    }
+   ]
+  },
+  {
+   "nome": "Cardápio digital, pedido online e totem",
+   "decisao": "comprar",
+   "justificativa": "Os canais APP, WEB, PICKUP e TOTEM (RF-07) já existem prontos; exigir canalPedido nos dados.",
+   "opcoes": [
+    {
+     "nome": "Pedido online do PDV (Saipos)",
+     "tipo": "prateleira",
+     "preco": "incluído no plano do PDV (a confirmar)",
+     "fonte": "https://saipos.com/teste2025/planos-e-precos"
+    },
+    {
+     "nome": "Goomer",
+     "tipo": "prateleira",
+     "preco": "R$ 59,94 a R$ 224,93/mês no plano anual (preço público de terceiro); totem sob consulta",
+     "fonte": "https://saipos.com/cardapio-digital/goomer"
+    },
+    {
+     "nome": "Anota AI (iFood)",
+     "tipo": "prateleira",
+     "preco": "~R$ 178,99 a R$ 249,99/mês (fontes divergentes)",
+     "fonte": "https://saipos.com/cardapio-digital/anota-ai"
+    },
+    {
+     "nome": "Open source maduro",
+     "tipo": "open source",
+     "preco": "não identificado",
+     "fonte": ""
+    }
+   ]
+  },
+  {
+   "nome": "Delivery e marketplaces",
+   "decisao": "comprar",
+   "justificativa": "A comissão paga audiência que a rede não constrói; o pedido volta pelo outbox (RF-22).",
+   "opcoes": [
+    {
+     "nome": "iFood Básico",
+     "tipo": "marketplace",
+     "preco": "~12% de comissão + 3,2% a 3,5% de pagamento online (terceiros)",
+     "fonte": "https://www.serasa.com.br/blog/abrir-loja-no-ifood/"
+    },
+    {
+     "nome": "iFood Entrega",
+     "tipo": "marketplace",
+     "preco": "~23% de comissão (terceiros)",
+     "fonte": "https://saipos.com/integracoes/ifood/planos-ifood"
+    },
+    {
+     "nome": "Canal próprio",
+     "tipo": "prateleira",
+     "preco": "sem comissão de marketplace; mensalidade do módulo",
+     "fonte": "https://saipos.com/cardapio-digital/goomer"
+    }
+   ]
+  },
+  {
+   "nome": "Pagamentos",
+   "decisao": "integrar",
+   "justificativa": "Crítico e regulado: contrata-se o gateway e constrói-se só a integração (RF-11, RNF-10).",
+   "opcoes": [
+    {
+     "nome": "Mercado Pago",
+     "tipo": "prateleira",
+     "preco": "Pix 0,49% (PJ); débito 1,41% a 1,99%; crédito à vista 3,31% a 4,98%",
+     "fonte": "https://www.mercadopago.com.br/blog/taxas-point-pro-3-reducao-progressiva-volume"
+    },
+    {
+     "nome": "Asaas",
+     "tipo": "prateleira",
+     "preco": "Pix R$ 0,99 (3 meses) depois R$ 1,99 por transação; boleto R$ 0,99 a R$ 1,99",
+     "fonte": "https://www.asaas.com/precos-e-taxas"
+    },
+    {
+     "nome": "Pagar.me",
+     "tipo": "prateleira",
+     "preco": "Pix ~1,19%; crédito à vista 2,39% a 4,39% (terceiro; proposta personalizada)",
+     "fonte": "https://www.idinheiro.com.br/negocios/melhores-gateways-de-pagamento/"
+    }
+   ]
+  },
+  {
+   "nome": "Estoque, ERP e ficha técnica",
+   "decisao": "comprar",
+   "justificativa": "Ficha técnica e CMV são commodity; a API só reserva e baixa estoque no pedido (RF-16).",
+   "opcoes": [
+    {
+     "nome": "Odoo Community / ERPNext",
+     "tipo": "open source",
+     "preco": "licença gratuita; hospedagem ERPNext a partir de ~US$ 5/mês",
+     "fonte": "https://frappe.io/cloud/pricing"
+    },
+    {
+     "nome": "Odoo Online",
+     "tipo": "prateleira",
+     "preco": "US$ 31,10 (Standard) a US$ 46,70 (Custom) por usuário/mês, anual",
+     "fonte": "https://odoo.com/pricing-plan"
+    },
+    {
+     "nome": "Estoque do PDV",
+     "tipo": "prateleira",
+     "preco": "incluído na mensalidade do PDV (a confirmar)",
+     "fonte": "https://saipos.com/teste2025/planos-e-precos"
+    }
+   ]
+  },
+  {
+   "nome": "Fidelidade, CRM e campanhas",
+   "decisao": "comprar",
+   "justificativa": "Consentimento por finalidade (RF-14, LGPD) e exportação do histórico; construir só se as regras de pontos virarem diferencial.",
+   "opcoes": [
+    {
+     "nome": "Fidelidade do Goomer (Automatizar)",
+     "tipo": "prateleira",
+     "preco": "R$ 110,94/mês no plano anual (terceiro)",
+     "fonte": "https://saipos.com/cardapio-digital/goomer"
+    },
+    {
+     "nome": "Fidelimax",
+     "tipo": "prateleira",
+     "preco": "sob consulta",
+     "fonte": "https://www.nuvemshop.com.br/loja-aplicativos-nuvem/fidelimax"
+    },
+    {
+     "nome": "Sob medida",
+     "tipo": "sob medida",
+     "preco": "estimativa R$ 95 mil a R$ 140 mil (2 devs, 2 a 3 meses)",
+     "fonte": "https://valorfinal.com.br/guia/custo-funcionario"
+    }
+   ]
+  },
+  {
+   "nome": "BI e painéis",
+   "decisao": "comprar",
+   "justificativa": "O diferencial é o modelo de dados, não a ferramenta de gráfico.",
+   "opcoes": [
+    {
+     "nome": "Looker Studio",
+     "tipo": "gratuita",
+     "preco": "grátis; Pro por usuário (US$ 9 em fonte de 2025)",
+     "fonte": "https://cloud.google.com/looker/docs/studio/looker-studio-pro-subscription-overview?hl=pt-br"
+    },
+    {
+     "nome": "Metabase",
+     "tipo": "open source",
+     "preco": "grátis auto-hospedado; nuvem a partir de US$ 100/mês + US$ 6 por usuário",
+     "fonte": "https://www.metabase.com/upgrade/"
+    },
+    {
+     "nome": "Power BI Pro",
+     "tipo": "prateleira",
+     "preco": "R$ 80,20 por usuário/mês (anual, sem impostos)",
+     "fonte": "https://www.microsoft.com/pt-br/power-platform/products/power-bi/pricing"
+    }
+   ]
+  },
+  {
+   "nome": "Automação e IA",
+   "decisao": "integrar",
+   "justificativa": "WhatsApp oficial sobre o cardápio (atendimento commodity); previsão de demanda só sobre dados próprios.",
+   "opcoes": [
+    {
+     "nome": "WhatsApp Business Platform",
+     "tipo": "prateleira",
+     "preco": "cobrança por mensagem; estimativas de terceiros: marketing ~R$ 0,38 a R$ 0,39, utilidade ~R$ 0,04 a R$ 0,08",
+     "fonte": "https://developers.facebook.com/documentation/business-messaging/whatsapp/pricing"
+    },
+    {
+     "nome": "Blip (Take)",
+     "tipo": "prateleira",
+     "preco": "sob consulta (concorrente estima a partir de R$ 2.600/mês)",
+     "fonte": "https://talqui.chat/en/alternativas/take-blip"
+    },
+    {
+     "nome": "Previsão de demanda (bibliotecas open source)",
+     "tipo": "open source",
+     "preco": "sem licença; custo é de pessoa",
+     "fonte": ""
+    }
+   ]
+  },
+  {
+   "nome": "Dados e DW",
+   "decisao": "construir",
+   "justificativa": "É o ativo da rede, em formato aberto, alimentado pelo outbox (RF-22); armazenamento pode ser gerenciado.",
+   "opcoes": [
+    {
+     "nome": "DuckDB + Parquet",
+     "tipo": "open source",
+     "preco": "licença gratuita; custo é operação",
+     "fonte": "https://duckdb.org"
+    },
+    {
+     "nome": "PostgreSQL gerenciado (RDS São Paulo)",
+     "tipo": "open source gerenciado",
+     "preco": "~US$ 100/mês (instância única) a ~US$ 200/mês (Multi-AZ), terceiro",
+     "fonte": "https://sparecores.com/database/aws/db.t4g.medium"
+    },
+    {
+     "nome": "BigQuery",
+     "tipo": "prateleira",
+     "preco": "US$ 6,25 por TiB consultado (1 TiB grátis/mês)",
+     "fonte": "https://cloud.google.com/bigquery/pricing"
+    },
+    {
+     "nome": "MotherDuck",
+     "tipo": "prateleira",
+     "preco": "Lite US$ 0; Business US$ 250/mês + uso",
+     "fonte": "https://motherduck.com/docs/about-motherduck/billing/pricing/"
+    }
+   ]
+  }
+ ],
+ "tco": {
+  "premissas": [
+   "Horizonte de 3 anos, reais constantes, cenários estáticos de 5, 20 e 50 unidades; dólar a R$ 5,50 (premissa sem fonte).",
+   "Fora do TCO nos dois cenários: hardware, taxas de pagamento, comissões de marketplace, WhatsApp, NFC-e e tributos.",
+   "Salário back-end SP (Robert Half): pleno mediana R$ 12.000, sênior R$ 16.000; equipe de construção a R$ 13.000 em média; encargos x1,8 (fontes citam 1,7 a 2,5).",
+   "Prateleira por unidade: Saipos R$ 240,79 + Goomer Integrar R$ 224,93 = R$ 465,72/mês, sem desconto por volume.",
+   "Matriz na prateleira: ERP + BI R$ 251,25 por usuário/mês (3, 5 e 8 usuários); camada de dados R$ 500/mês (estimativa).",
+   "Integração na prateleira: 0,25, 0,5 e 1,0 pessoa (R$ 21.600/mês cada); implantação R$ 1.500 por unidade só no ano 1 (estimativa).",
+   "Construção: 3, 4 e 6 desenvolvedores; infraestrutura R$ 2.200, R$ 4.500 e R$ 9.000/mês; segurança e conformidade R$ 60 mil (R$ 90 mil com 50 unidades) por ano (estimativas da IA, a validar pelo autor).",
+   "Ponto de equilíbrio grosseiro: 150 a 170 unidades, supondo custo de prateleira linear."
+  ],
+  "cenarios": [
+   {
+    "nome": "Prateleira, 5 unidades",
+    "ano1": 115288,
+    "ano2": 107788,
+    "ano3": 107788,
+    "total": 330864,
+    "moeda": "BRL"
+   },
+   {
+    "nome": "Prateleira, 20 unidades",
+    "ano1": 292448,
+    "ano2": 262448,
+    "ano3": 262448,
+    "total": 817344,
+    "moeda": "BRL"
+   },
+   {
+    "nome": "Prateleira, 50 unidades",
+    "ano1": 643752,
+    "ano2": 568752,
+    "ano3": 568752,
+    "total": 1781256,
+    "moeda": "BRL"
+   },
+   {
+    "nome": "Construção própria, 5 unidades",
+    "ano1": 928800,
+    "ano2": 928800,
+    "ano3": 928800,
+    "total": 2786400,
+    "moeda": "BRL"
+   },
+   {
+    "nome": "Construção própria, 20 unidades",
+    "ano1": 1237200,
+    "ano2": 1237200,
+    "ano3": 1237200,
+    "total": 3711600,
+    "moeda": "BRL"
+   },
+   {
+    "nome": "Construção própria, 50 unidades",
+    "ano1": 1882800,
+    "ano2": 1882800,
+    "ano3": 1882800,
+    "total": 5648400,
+    "moeda": "BRL"
+   }
+  ]
+ },
+ "roadmap": [
+  {
+   "fase": "5 unidades",
+   "adotar": [
+    "PDV com pedido online e totem de um fornecedor",
+    "Gateway de pagamento",
+    "Estoque do PDV ou ERP leve",
+    "Looker Studio ou Power BI",
+    "CRM simples com consentimento"
+   ],
+   "sinais_para_construir": [
+    "Fornecedor sem API ou exportação de pedidos"
+   ]
+  },
+  {
+   "fase": "20 unidades",
+   "adotar": [
+    "ERP multiunidade",
+    "Fidelidade com consentimento",
+    "WhatsApp oficial com chatbot",
+    "BI sobre modelo de dados central"
+   ],
+   "sinais_para_construir": [
+    "Regra de fidelidade sazonal não cabe no produto",
+    "Exigência de hospedagem no Brasil não atendida"
+   ]
+  },
+  {
+   "fase": "50+ unidades",
+   "adotar": [
+    "Contratos por volume",
+    "DW gerenciado (BigQuery ou Postgres em São Paulo)",
+    "Segundo gateway"
+   ],
+   "sinais_para_construir": [
+    "Custo por unidade da prateleira ultrapassa o de equipe própria (cerca de 150 a 170 unidades)",
+    "Limites de desempenho no pico",
+    "Previsão de demanda e regras de campanha como diferencial"
+   ]
+  }
+ ]
+}
