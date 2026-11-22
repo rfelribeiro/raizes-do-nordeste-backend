@@ -72,6 +72,8 @@ jobs:
       POSTGRES_PASSWORD: ci_ficticio_sem_valor
       POSTGRES_HOST: localhost
       POSTGRES_PORT: "5432"
+      # Segredo fictício, válido só neste job efêmero (a configuração exige a variável).
+      JWT_SECRET: ci_ficticio_sem_valor_apenas_para_testes_de_integracao
       PYTHONPATH: src
     steps:
       - uses: actions/checkout@v4
