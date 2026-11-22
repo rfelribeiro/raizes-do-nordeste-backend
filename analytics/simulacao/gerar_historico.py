@@ -25,7 +25,7 @@ import shutil
 import sys
 import uuid
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -422,7 +422,7 @@ def para_linhas_bronze(eventos: Sequence[Evento], semente: int) -> list[dict[str
 # =============================================================================================
 
 
-def _gravar_parquet(destino: Path, linhas: Sequence[dict[str, Any]]) -> None:
+def _gravar_parquet(destino: Path, linhas: Sequence[Mapping[str, Any]]) -> None:
     """Parquet com o MESMO esquema do bronze (`BRONZE_COLUMNS`), carregado em lote via CSV.
 
     O `INSERT` linha a linha do extrator real é lento para ~190 mil eventos; aqui as linhas
