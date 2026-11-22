@@ -1431,8 +1431,11 @@ A Tabela 10 lista as tecnologias empregadas, com a versão efetivamente travada 
 | Pydantic | 2.14.2 | Validação de entrada e saída e leitura de configuração |
 | SQLAlchemy | 2.1.6 | Mapeamento objeto-relacional e acesso ao banco, com o driver psycopg 3 (3.3.6) |
 | Alembic | 1.20.1 | Migrações versionadas do esquema, aplicadas na inicialização do contêiner |
+| argon2-cffi | 25.1.0 | Hash Argon2id das senhas (RNF-01) |
+| PyJWT | 2.15.1 | Emissão e validação do JWT de acesso (RNF-02) |
+| httpx | 0.28.1 | Cliente HTTP da chamada ao gateway de pagamento mock, com timeout e novas tentativas |
 | PostgreSQL | 17 (imagem `postgres:17.11-alpine`) | Banco transacional. Oferece transações ACID, bloqueio por linha para a reserva de estoque sob concorrência e JSONB para os payloads de pagamento e de eventos |
-| Docker Compose | v2 ou superior | Ambiente canônico: sobe API, banco e gateway mock com os mesmos comandos em qualquer máquina |
+| Docker Compose | v2 ou superior (validado com a v5.5.1) | Ambiente canônico: sobe API, banco e gateway mock com os mesmos comandos em qualquer máquina. O gateway mock e a API usam a mesma imagem Python 3.14.10 |
 | pytest | 9.2.0 | Testes unitários, de arquitetura e de integração |
 | ruff e mypy | 0.17.3 e 2.4.1 | Verificação de estilo e de tipos, executada na integração contínua |
 | DuckDB | 1.5.6 | Motor analítico embarcado, sobre arquivos Parquet, para o Data Warehouse |
@@ -1442,15 +1445,13 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 A escolha de Python com FastAPI foi do autor, a partir de recomendação da IA (D-006); as versões de Python e PostgreSQL foram definidas pela IA como detalhe de implementação (D-016). Alternativas como Java com Spring Boot, TypeScript com NestJS e C# com ASP.NET Core foram consideradas. O custo conhecido da escolha é o desempenho bruto inferior ao de plataformas compiladas, mitigável por escala horizontal, já que a API não guarda estado de sessão em memória. O PostgreSQL foi preferido a MySQL, SQL Server e bancos de documentos pela integridade transacional exigida por pedidos, estoque e pagamentos. A camada analítica é independente da API e alimentada exclusivamente pelo outbox (Apêndice B).
 
-<!-- PENDENTE: confirmar as versões da tabela após a implementação dos módulos de negócio (bibliotecas de hash Argon2id e de JWT ainda não constam nas dependências) e a versão do Docker Compose usada pelo examinador. -->
-
 # 4 API e endpoints
 
 <!--
 EXIGE: organização por recurso (RT p. 7), checklist por endpoint (L194), regras mínimas (L209),
 campos e padrões do contrato com canalPedido e erro padronizado (L220–L248); usar o template do anexo (L628).
 FONTE: docs/api/ (a produzir) + OpenAPI gerado pela API.
-STATUS: ✏️ (4.1 e 4.2 rascunhadas; 4.3 depende da implementação)
+STATUS: ✏️ (4.1 a 4.3 redigidas; exemplos reais da API)
 -->
 
 ## 4.1 Organização por recurso
@@ -1502,35 +1503,207 @@ Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
-Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 10 mostra a resposta a uma criação de pedido com `canalPedido` inválido.
+Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 4 mostra a resposta real da API a uma criação de pedido com `canalPedido` inválido; a mensagem de `issue` vem do Pydantic e permanece em inglês (ADR 0011).
 
-**Figura 10 — Exemplo de resposta 422 para `canalPedido` inválido**
+**Figura 4 — Resposta 422 real para `canalPedido` inválido**
 
 ```json
 {
   "error": "VALIDACAO_FALHOU",
-  "message": "Os dados enviados são inválidos.",
+  "message": "Um ou mais campos da requisição são inválidos.",
   "details": [
     {
       "field": "canalPedido",
-      "issue": "Valor inválido. Valores aceitos: APP, TOTEM, BALCAO, PICKUP, WEB"
+      "issue": "Input should be 'APP', 'TOTEM', 'BALCAO', 'PICKUP' or 'WEB'"
     }
   ],
-  "timestamp": "2026-11-21T12:00:00Z",
-  "path": "/pedidos",
-  "requestId": "9f2c0d6e1b7a4c58"
+  "timestamp": "2026-11-22T18:38:46Z",
+  "path": "/api/v1/pedidos",
+  "requestId": "572c8553bc3f4c17960615a819945cb6"
 }
 ```
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
-<!-- PENDENTE: a mensagem exata de `message` e de `issue` do exemplo é ilustrativa; substituir pela resposta real da API após a implementação (as mensagens de validação do Pydantic permanecem em inglês no campo issue, conforme o ADR 0011). -->
-
 ## 4.3 Endpoints do fluxo crítico
 
-<!-- Seguir o template do anexo do roteiro (RT p. 21) e o checklist por endpoint (L194). Depende da implementação. -->
+Os endpoints do fluxo A (pedido, pagamento e status) e a consulta de auditoria seguem o modelo do anexo do roteiro: finalidade, método e rota, autenticação e perfis, parâmetros, request, response, códigos de status e formato de erro. Todas as rotas de negócio ficam sob o prefixo `/api/v1`, e todos os exemplos são respostas reais da API em execução, com os dados da carga inicial (`make seed`): o `accessToken` aparece abreviado, os e-mails pertencem ao domínio reservado `@exemplo.com` e a senha de demonstração é fictícia. A descrição completa de todos os endpoints, inclusive consentimentos e health checks, está em `docs/api/README.md`, e o Swagger (`/docs`) reflete os mesmos contratos. A Tabela 9-A resume os endpoints.
 
-A preencher após a implementação.
+**Tabela 9-A — Endpoints do fluxo crítico**
+
+| Método e rota | Perfis | Sucesso | Erros principais |
+|---|---|---|---|
+| `POST /api/v1/auth/login` | Público | 200 | 401, 422 |
+| `POST /api/v1/pedidos` | CLIENTE (`APP`, `WEB`, `PICKUP`); ATENDENTE e GERENTE da unidade (`BALCAO`, `TOTEM`) | 201 | 401, 403, 404, 409 `ESTOQUE_INSUFICIENTE`, 422 |
+| `GET /api/v1/pedidos` | CLIENTE (os seus), colaborador (a sua unidade), ADMIN (todos) | 200 | 401, 422 |
+| `POST /api/v1/pedidos/{id}/pagamentos` | CLIENTE dono do pedido | 201 | 401, 403, 404, 409, 422, 504 |
+| `PATCH /api/v1/pedidos/{id}/status` | COZINHA, ATENDENTE, GERENTE | 200 | 401, 403, 404, 409 `TRANSICAO_INVALIDA`, 422 |
+| `GET /api/v1/auditoria` | ADMIN, GERENTE (a sua unidade) | 200 | 401, 403, 422 |
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Autenticação — Login**
+
+- Finalidade: autentica o usuário e emite o JWT usado nas demais chamadas.
+- Método/Rota: `POST /api/v1/auth/login`
+- Auth/Permissão: (X) público | Perfis: todos
+- Parâmetros: Path: nenhum | Query: nenhum
+- Request (JSON): `{"email": "cliente@exemplo.com", "senha": "Demo@2026"}` (senha fictícia de demonstração) <!-- segredos:permitir -->
+- Response 200 (JSON): `{"accessToken": "eyJ...", "tokenType": "bearer", "expiresIn": 3600}`
+- Status codes: 200; 401 credenciais inválidas; 422 corpo inválido.
+- Erros (padrão): 401 com `error` `NAO_AUTENTICADO` e `message` "E-mail ou senha inválidos.".
+
+**Pedidos — Criar pedido**
+
+- Finalidade: cria o pedido em `AGUARDANDO_PAGAMENTO` e reserva o estoque na mesma transação.
+- Método/Rota: `POST /api/v1/pedidos`
+- Auth/Permissão: (X) JWT | Perfis: CLIENTE (`APP`, `WEB`, `PICKUP`); ATENDENTE e GERENTE da unidade (`BALCAO`, `TOTEM`)
+- Parâmetros: Path: nenhum | Query: nenhum
+- Request (JSON):
+
+```json
+{
+  "unidadeId": "00000000-0000-4000-8000-000000000101",
+  "canalPedido": "APP",
+  "itens": [
+    {"produtoId": "00000000-0000-4000-8000-000000000301", "quantidade": 2}
+  ]
+}
+```
+
+- Response 201 (JSON):
+
+```json
+{
+  "id": "cd7d06be-f5d9-4213-829a-be1184d5c4a7",
+  "numeroPedido": 1,
+  "unidadeId": "00000000-0000-4000-8000-000000000101",
+  "clienteId": "00000000-0000-4000-8000-000000000401",
+  "canalPedido": "APP",
+  "status": "AGUARDANDO_PAGAMENTO",
+  "itens": [
+    {
+      "produtoId": "00000000-0000-4000-8000-000000000301",
+      "quantidade": 2,
+      "precoUnitario": "12.00",
+      "valorTotalItem": "24.00"
+    }
+  ],
+  "valorItens": "24.00",
+  "valorDesconto": "0.00",
+  "valorTotal": "24.00",
+  "expiraEm": "2026-11-22T18:53:46.145495Z",
+  "criadoEm": "2026-11-22T18:38:46.145495Z"
+}
+```
+
+- Status codes: 201; 401; 403; 404; 409 `ESTOQUE_INSUFICIENTE`; 422 (`canalPedido` ausente, inválido ou incompatível com o perfil).
+- Erros (padrão): a Figura 4 mostra o 422 de `canalPedido` inválido. A Figura 5 mostra o 409 de estoque insuficiente (carne de sol, com 5 unidades pedidas e 2 disponíveis).
+
+**Figura 5 — Resposta 409 real para estoque insuficiente**
+
+```json
+{
+  "error": "ESTOQUE_INSUFICIENTE",
+  "message": "Não há quantidade suficiente para um ou mais itens.",
+  "details": [
+    {"field": "produtoId", "issue": "produto 00000000-0000-4000-8000-000000000304: disponível 2"}
+  ],
+  "timestamp": "2026-11-22T18:38:46Z",
+  "path": "/api/v1/pedidos",
+  "requestId": "6ac2d4444ea34045b978278160272f79"
+}
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
+
+**Pedidos — Listar pedidos (filtro `canalPedido`)**
+
+- Finalidade: lista pedidos paginados, filtráveis por `canalPedido`, `status` e `unidadeId`, no escopo do perfil.
+- Método/Rota: `GET /api/v1/pedidos`
+- Auth/Permissão: (X) JWT | Perfis: CLIENTE (só os seus); COZINHA, ATENDENTE e GERENTE (só a sua unidade); ADMIN (todos)
+- Parâmetros: Path: nenhum | Query: `canalPedido`, `status`, `unidadeId`, `page` (padrão 1), `limit` (padrão 10, máximo 100). Exemplo: `GET /api/v1/pedidos?canalPedido=PICKUP&page=1&limit=10`
+- Request (JSON): sem corpo.
+- Response 200 (JSON): `{"items": [ <pedido> ], "page": 1, "limit": 10, "total": 1}`, em que cada pedido tem o formato da criação, por exemplo com `"canalPedido": "PICKUP"` e `"status": "PAGO"`.
+- Status codes: 200; 401; 422 (valor de filtro inválido).
+- Erros (padrão): 422 com `field` `query.canalPedido` e `issue` "Input should be 'APP', 'TOTEM', 'BALCAO', 'PICKUP' or 'WEB'".
+
+**Pagamentos — Solicitar pagamento**
+
+- Finalidade: solicita o pagamento ao gateway mock; aprovado, o pedido vira `PAGO` e o estoque reservado é baixado.
+- Método/Rota: `POST /api/v1/pedidos/{id}/pagamentos`
+- Auth/Permissão: (X) JWT | Perfis: CLIENTE dono do pedido
+- Parâmetros: Path: `id` (UUID do pedido) | Query: nenhum
+- Request (JSON): `{"formaPagamento": "PIX", "tokenPagamento": "tok_aprovado"}` (formas: `PIX`, `CREDITO`, `DEBITO`; tokens de teste: `tok_aprovado`, `tok_recusado`, `tok_timeout`)
+- Response 201 (JSON), pagamento aprovado:
+
+```json
+{
+  "tentativa": {
+    "id": "60df392b-7b2d-4b3f-9462-7c374afeac66",
+    "numeroTentativa": 1,
+    "formaPagamento": "PIX",
+    "status": "APROVADO",
+    "valor": "12.00",
+    "motivoRecusa": null,
+    "qtdChamadasGateway": 1,
+    "idTransacaoGateway": "txn_39ac1ce23aed4d60",
+    "solicitadoEm": "2026-11-22T18:39:02.039468Z",
+    "respondidoEm": "2026-11-22T18:39:02.057284Z"
+  },
+  "statusPedido": "PAGO"
+}
+```
+
+- Com `tok_recusado`, a resposta também é 201, mas a tentativa vem com `status` `RECUSADO`, `motivoRecusa` preenchido e `statusPedido` `AGUARDANDO_PAGAMENTO`; a reserva de estoque é mantida.
+- Status codes: 201; 401; 403; 404; 409 `PEDIDO_FORA_DE_AGUARDANDO_PAGAMENTO`; 422; 504 `TEMPO_ESGOTADO` (gateway sem resposta em 3 s, após 2 novas chamadas; o pedido permanece aguardando pagamento).
+- Erros (padrão): 409 com `message` "O pedido não está aguardando pagamento." e `details` `[{"field": "status", "issue": "PAGO"}]`; 504 com `message` "O gateway de pagamento não respondeu a tempo.".
+
+**Pedidos — Atualizar status**
+
+- Finalidade: avança o status do pedido pela máquina de estados (RN-03), conforme o perfil (RN-04).
+- Método/Rota: `PATCH /api/v1/pedidos/{id}/status`
+- Auth/Permissão: (X) JWT | Perfis: COZINHA (`PAGO` para `EM_PREPARO` e `PRONTO`); ATENDENTE e GERENTE (`PRONTO` para `ENTREGUE`; GERENTE só na própria unidade)
+- Parâmetros: Path: `id` (UUID do pedido) | Query: nenhum
+- Request (JSON): `{"status": "EM_PREPARO"}` (`motivo` é opcional)
+- Response 200 (JSON): o pedido com o novo `status`, no mesmo formato da criação (por exemplo, `"status": "EM_PREPARO"`).
+- Status codes: 200; 401; 403 (perfil sem permissão ou transição que o perfil não pode solicitar); 404; 409 `TRANSICAO_INVALIDA`; 422.
+- Erros (padrão): 409 com `message` "Transição de EM_PREPARO para EM_PREPARO não é permitida." e `details` `[{"field": "status", "issue": "EM_PREPARO -> EM_PREPARO"}]`. O perfil é verificado antes da máquina de estados, de modo que a tentativa da cozinha de marcar `ENTREGUE` devolve 403, e não 409.
+
+**Auditoria — Consultar trilha**
+
+- Finalidade: consulta a trilha de auditoria, do registro mais recente ao mais antigo, sem dados pessoais nos `detalhes`.
+- Método/Rota: `GET /api/v1/auditoria`
+- Auth/Permissão: (X) JWT | Perfis: ADMIN (toda a rede), GERENTE (só a sua unidade)
+- Parâmetros: Path: nenhum | Query: `acao`, `tipoRecurso`, `page`, `limit`. Exemplo: `GET /api/v1/auditoria?acao=PEDIDO_CRIADO&limit=1`
+- Request (JSON): sem corpo.
+- Response 200 (JSON):
+
+```json
+{
+  "items": [
+    {
+      "id": "e89514cf-6098-4888-8a73-21b1d9e4ed14",
+      "ocorridoEm": "2026-11-22T18:39:01.966094Z",
+      "usuarioId": "00000000-0000-4000-8000-000000000401",
+      "perfil": "CLIENTE",
+      "acao": "PEDIDO_CRIADO",
+      "tipoRecurso": "PEDIDO",
+      "idRecurso": "a9d1a04f-33d2-4051-824f-54df8784d69b",
+      "unidadeId": "00000000-0000-4000-8000-000000000101",
+      "canalPedido": "WEB",
+      "idRequisicao": "19fa3e4733cd413e9bebf1336f853ae3",
+      "detalhes": {"qtdItens": 1, "valorTotal": "12.00", "numeroPedido": 3}
+    }
+  ],
+  "page": 1,
+  "limit": 1,
+  "total": 3
+}
+```
+
+- Status codes: 200; 401; 403 (CLIENTE, COZINHA e ATENDENTE); 422.
+- Erros (padrão): 403 com `error` `SEM_PERMISSAO` e `message` "Você não tem permissão para esta operação.".
 
 # 5 LGPD, privacidade e segurança no back-end
 
