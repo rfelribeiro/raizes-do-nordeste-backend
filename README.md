@@ -10,8 +10,9 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 **Arquitetura:** aplicação única em 4 camadas (API, Aplicação, Domínio, Infraestrutura).
 
 > **Estado atual:** requisitos e modelagem concluídos (casos de uso, DER, classes, sequência e
-> estados); fundação transversal pronta (configuração, logs, erro padronizado, health checks,
-> migrações, testes, CI, outbox e DW). Os módulos de negócio da API estão em implementação.
+> estados). A implementação cobre só a fatia mínima exigida pelo roteiro (fluxo A: login, pedido,
+> pagamento mock, status, auditoria, consentimento e outbox), por decisão do autor (D-057): o
+> diferencial do trabalho é a análise construir × comprar.
 
 ## Para o avaliador: roteiro de leitura
 

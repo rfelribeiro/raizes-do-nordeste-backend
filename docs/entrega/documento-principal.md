@@ -111,30 +111,30 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## 2.2 Requisitos funcionais
 
-Os requisitos funcionais foram priorizados pelo método MoSCoW (ver seção 2.6): `M` (Must) para o indispensável, `S` (Should) para o que agrega valor e é integrado ao fluxo, e `C` (Could) para o que é apenas documentado. A coluna "Entrega" distingue o que foi implementado na API (MVP) do que ficou como regra documentada (conceitual). As rotas citadas são indicativas; o contrato definitivo está na seção 4.
+Os requisitos funcionais foram priorizados pelo método MoSCoW (ver seção 2.6): `M` (Must) para o indispensável, `S` (Should) para o que agrega valor e é integrado ao fluxo, e `C` (Could) para o que é apenas documentado. A coluna "Entrega" distingue o que foi implementado na API (MVP) do que ficou como regra documentada (conceitual) ou modelado sem código (D-057). As rotas citadas são indicativas; o contrato definitivo está na seção 4.
 
 **Tabela 2 — Requisitos funcionais**
 
 | ID | Requisito | Prioridade | Entrega | Justificativa |
 |---|---|---|---|---|
-| RF-01 | Cadastro de cliente (`POST /usuarios`), com nome, e-mail e senha obrigatórios; data de nascimento opcional e condicionada a consentimento; sem CPF nem telefone | M | MVP | Obrigatório no roteiro; minimização de dados (LGPD) |
+| RF-01 | Cadastro de cliente (`POST /usuarios`), com nome, e-mail e senha obrigatórios; data de nascimento opcional e condicionada a consentimento; sem CPF nem telefone | M | Modelado (não implementado, D-057) | Obrigatório no roteiro; minimização de dados (LGPD) |
 | RF-02 | Login com emissão de JWT (`POST /auth/login`) | M | MVP | Autenticação por token é mínimo do MVP |
 | RF-03 | Autorização por perfil, com escopo de unidade para o gerente | M | MVP | O MVP exige ao menos uma regra de autorização por perfil |
-| RF-04 | Gestão de unidades (`/unidades`): o administrador cadastra e altera, os demais consultam | M | MVP | Rede com matriz e unidades é o núcleo do caso |
-| RF-05 | Catálogo da rede (`/produtos`): produtos, categorias, preço de referência e indicação de produto sazonal | M | MVP | Padronização da franquia com variação controlada |
-| RF-06 | Cardápio por unidade: oferta, disponibilidade, período sazonal e preço local opcional | M | MVP | Cada unidade oferta um subconjunto do catálogo, com sazonalidade |
-| RF-07 | Criar pedido (`POST /pedidos`) com `canalPedido` obrigatório (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`); aceita o header `Idempotency-Key` | M | MVP | Multicanalidade é requisito obrigatório; a idempotência evita pedido duplicado em retentativa |
+| RF-04 | Gestão de unidades (`/unidades`): o administrador cadastra e altera, os demais consultam | M | Modelado (não implementado, D-057) | Rede com matriz e unidades é o núcleo do caso |
+| RF-05 | Catálogo da rede (`/produtos`): produtos, categorias, preço de referência e indicação de produto sazonal | M | Modelado (não implementado, D-057) | Padronização da franquia com variação controlada |
+| RF-06 | Cardápio por unidade: oferta, disponibilidade, período sazonal e preço local opcional | M | Modelado (não implementado, D-057) | Cada unidade oferta um subconjunto do catálogo, com sazonalidade |
+| RF-07 | Criar pedido (`POST /pedidos`) com `canalPedido` obrigatório (`APP`, `TOTEM`, `BALCAO`, `PICKUP`, `WEB`); aceita o header `Idempotency-Key` | M | MVP (implementado, sem idempotência, D-057) | Multicanalidade é requisito obrigatório; a idempotência evita pedido duplicado em retentativa |
 | RF-08 | Listar e consultar pedidos, com filtros `canalPedido`, `status` e unidade, e paginação; o cliente vê só os próprios pedidos | M | MVP | Filtro por canal é requisito mínimo; isolamento de dados |
 | RF-09 | Atualizar o status do pedido conforme a máquina de estados da seção 3.6 | M | MVP | Parte do fluxo crítico; garante transições válidas |
-| RF-10 | Cancelar pedido (`POST /pedidos/{id}/cancelamento`) | M | MVP | Operação sensível e auditável; devolve a reserva e estorna o pagamento |
-| RF-11 | Solicitar pagamento ao gateway mock e registrar a tentativa e o payload de retorno | M | MVP | Obrigatório: representar o envio e o retorno do pagamento |
+| RF-10 | Cancelar pedido (`POST /pedidos/{id}/cancelamento`) | M | Modelado (não implementado, D-057) | Operação sensível e auditável; devolve a reserva e estorna o pagamento |
+| RF-11 | Solicitar pagamento ao gateway mock e registrar a tentativa e o payload de retorno | M | MVP (implementado, sem idempotência, D-057) | Obrigatório: representar o envio e o retorno do pagamento |
 | RF-12 | Nova tentativa de pagamento após recusa, mantendo o pedido aguardando pagamento | M | MVP | Cobre o cenário de falha do mock e evita perder a venda |
 | RF-13 | Trilha de auditoria de ações sensíveis, consultável pelo administrador e, na própria unidade, pelo gerente | M | MVP | Critério de avaliação e requisito da matriz |
-| RF-14 | Registrar e revogar consentimento por finalidade, com base legal, data e versão do termo | M | MVP | Exigência explícita de LGPD no roteiro |
-| RF-15 | Consultar os próprios dados pessoais (direito de acesso do titular) | S | MVP | LGPD, art. 18 |
-| RF-16 | Estoque por produto e unidade: entrada somente pelo gerente (o administrador apenas consulta), reserva na criação do pedido, baixa e devolução; 409 quando o saldo for insuficiente | S | MVP | Restrição de venda por indisponibilidade; evita vender o que não existe no pico |
-| RF-17 | Fidelidade: acúmulo automático de 1 ponto por R$ 1,00 no pagamento aprovado, apenas com consentimento da finalidade `FIDELIDADE`; saldo e extrato | S | MVP | Fidelização com consentimento é requisito do caso |
-| RF-18 | Resgate de pontos como desconto: múltiplos de 100 pontos (100 pontos = R$ 5,00), limitado a 50% do valor dos itens | S | MVP | O roteiro lista "pontos e resgate simples" entre os itens obrigatórios |
+| RF-14 | Registrar e revogar consentimento por finalidade, com base legal, data e versão do termo | M | MVP (implementado: registrar, revogar e listar, D-057) | Exigência explícita de LGPD no roteiro |
+| RF-15 | Consultar os próprios dados pessoais (direito de acesso do titular) | S | Modelado (não implementado, D-057) | LGPD, art. 18 |
+| RF-16 | Estoque por produto e unidade: entrada somente pelo gerente (o administrador apenas consulta), reserva na criação do pedido, baixa e devolução; 409 quando o saldo for insuficiente | S | Modelado (não implementado, D-057) | Restrição de venda por indisponibilidade; evita vender o que não existe no pico |
+| RF-17 | Fidelidade: acúmulo automático de 1 ponto por R$ 1,00 no pagamento aprovado, apenas com consentimento da finalidade `FIDELIDADE`; saldo e extrato | S | Modelado (não implementado, D-057) | Fidelização com consentimento é requisito do caso |
+| RF-18 | Resgate de pontos como desconto: múltiplos de 100 pontos (100 pontos = R$ 5,00), limitado a 50% do valor dos itens | S | Modelado (não implementado, D-057) | O roteiro lista "pontos e resgate simples" entre os itens obrigatórios |
 | RF-19 | Campanhas e promoções como regra documentada | C | Conceitual | O roteiro aceita "ao menos como regra/documentação" |
 | RF-20 | Expiração do pedido não pago em 15 minutos, com devolução da reserva | C | Conceitual | Libera estoque reservado; a tarefa agendada não pontua diretamente |
 | RF-21 | Anonimização de cliente inativo há dois anos | C | Conceitual | Estratégia de retenção "quando aplicável" |
@@ -142,9 +142,11 @@ Os requisitos funcionais foram priorizados pelo método MoSCoW (ver seção 2.6)
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
+**Recorte da implementação (D-057).** A prioridade MoSCoW expressa o valor para o negócio; a coluna Entrega mostra o que foi codificado. O código cobre só a fatia vertical exigida pelo roteiro (fluxo A: pedido, pagamento mock e status, com autenticação, estoque, auditoria, consentimento e outbox). Os demais requisitos estão especificados, modelados no DER e nos casos de uso, e seriam atendidos por produtos de prateleira ou por evolução do código, conforme a análise construir × comprar.
+
 ## 2.3 Requisitos não funcionais
 
-Os requisitos não funcionais cobrem segurança, privacidade, observabilidade, desempenho, consistência e qualidade. Para cada um, a Tabela 3 informa o critério de aceite e a forma de verificação. A meta de disponibilidade (RNF-09) é documentada, mas não medida no MVP; a meta de desempenho (RNF-08) será verificada por teste de carga.
+Os requisitos não funcionais cobrem segurança, privacidade, observabilidade, desempenho, consistência e qualidade. Para cada um, a Tabela 3 informa o critério de aceite e a forma de verificação. A meta de disponibilidade (RNF-09) é documentada, mas não medida no MVP; a meta de desempenho (RNF-08) é documentada e não medida no MVP (D-057).
 
 **Tabela 3 — Requisitos não funcionais**
 
@@ -157,9 +159,9 @@ Os requisitos não funcionais cobrem segurança, privacidade, observabilidade, d
 | RNF-05 | Respostas sem exposição indevida de dados | M | Nenhuma resposta traz hash de senha; cliente não acessa dados de outro cliente | Testes de contrato; cenário negativo |
 | RNF-06 | Logs estruturados em JSON com `requestId`, sem dados pessoais | M | Toda requisição com `requestId`, o mesmo do corpo de erro | Teste que captura logs; busca de padrões de dados pessoais |
 | RNF-07 | Auditoria de ações sensíveis com retenção de um ano | M | Registro com autor, ação, alvo, unidade, canal, instante e `requestId` | Teste de integração por ação auditada |
-| RNF-08 | p95 inferior a 300 ms a 50 requisições por segundo na criação e consulta de pedido | S | Medição com k6 em Docker Compose, com dados de teste | Script k6 versionado e relatório |
+| RNF-08 | p95 inferior a 300 ms a 50 requisições por segundo na criação e consulta de pedido | S | Medição com k6 em Docker Compose, com dados de teste | Script k6 versionado e relatório (documentado, sem medição no MVP, D-057) |
 | RNF-09 | Disponibilidade de 99,5% no horário de funcionamento; healthchecks `/health/live` e `/health/ready`; API sem estado em memória | S | Meta documentada, não medida no MVP | Teste dos healthchecks; revisão da arquitetura |
-| RNF-10 | Pagamento com timeout de 3 s, até duas novas tentativas apenas em caso de timeout, e idempotência | M | Com `tok_timeout`, o pedido permanece aguardando pagamento; repetir a chamada não duplica a cobrança | Teste de integração com o mock |
+| RNF-10 | Pagamento com timeout de 3 s, até duas novas tentativas apenas em caso de timeout, e idempotência | M | Com `tok_timeout`, o pedido permanece aguardando pagamento; repetir a chamada não duplica a cobrança | Teste de integração com o mock (idempotência modelada, não implementada, D-057) |
 | RNF-11 | Transação única para pedido, reserva de estoque, auditoria e outbox, com bloqueio de linha | M | Falha em qualquer etapa desfaz tudo; reservas concorrentes nunca deixam saldo negativo | Teste de integração com concorrência |
 | RNF-12 | OpenAPI/Swagger refletindo os endpoints reais | M | Todos os endpoints expostos aparecem em `/docs` | Geração automática pelo framework |
 | RNF-13 | Erro padrão com `error`, `message`, `details`, `timestamp`, `path` e `requestId` | M | Todas as respostas 4xx e 5xx no formato | Testes de contrato por status de erro |
@@ -201,7 +203,7 @@ O canal acompanha o pedido durante todo o ciclo de vida: aparece nos registros d
 
 ## 2.6 Priorização do MVP (MoSCoW) e trade-offs
 
-O método MoSCoW classifica requisitos em quatro grupos: Must (indispensável), Should (importante, mas não bloqueante), Could (desejável) e Won't (fora do escopo desta entrega). Como conceito, a técnica obriga a justificar o que fica de fora, e não apenas o que entra, o que a torna adequada a um projeto com prazo e cota de trabalho limitados. Neste projeto, Must é o que, se ausente, impede o fluxo crítico, a segurança ou a LGPD; Should é implementado de forma mínima por estar integrado ao fluxo; Could é documentado como regra ou evolução.
+O método MoSCoW classifica requisitos em quatro grupos: Must (indispensável), Should (importante, mas não bloqueante), Could (desejável) e Won't (fora do escopo desta entrega). Como conceito, a técnica obriga a justificar o que fica de fora, e não apenas o que entra, o que a torna adequada a um projeto com prazo e cota de trabalho limitados. Neste projeto, Must é o que, se ausente, impede o fluxo crítico, a segurança ou a LGPD; Should é implementado de forma mínima quando integrado ao fluxo (no recorte D-057, entre os Should, só o outbox, RF-22); Could é documentado como regra ou evolução.
 
 O fluxo crítico escolhido foi pedido → pagamento mock → status, por concentrar as exigências do roteiro: canal, validação, erro padrão, integração com o mock em sucesso e falha, e auditoria. O estoque entra integrado a esse fluxo, com reserva na mesma transação, o que atende ao caminho alternativo previsto no roteiro e responde ao risco do horário de pico. Os critérios de decisão foram o prazo, o peso do item na avaliação (a implementação da API vale 25 pontos; segurança e LGPD, 15) e o risco, já que cada integração adicional amplia a superfície de falha. A Tabela 5 registra o que permaneceu conceitual e o motivo.
 
