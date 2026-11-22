@@ -68,6 +68,10 @@ class Redator:
         # tokens e segredos
         t = re.sub(r"(?i)\b(password|senha|secret|token|api_key)=\S+",
                    lambda m: m.group(1) + "=" + self._m("<segredo>"), t)
+        # mesmo segredo em JSON (ex.: corpo de login em comandos curl): "senha":"..."
+        t = re.sub(r'(?i)("(?:password|senha|secret|token|api_key|accessToken)\\?"\s*:\s*\\?")'
+                   r'([^"\\]+)',
+                   lambda m: m.group(1) + self._m("<segredo>"), t)
         for pad in (r"sk-ant-[\w-]+", r"sk-[A-Za-z0-9]{20,}", r"gh[pousr]_[A-Za-z0-9]{20,}",
                     r"github_pat_\w+", r"AKIA[0-9A-Z]{16}", r"xox[baprs]-[\w-]+",
                     r"eyJ[\w-]+\.[\w-]+\.[\w-]+"):

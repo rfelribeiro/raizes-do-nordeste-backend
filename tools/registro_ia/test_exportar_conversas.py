@@ -57,6 +57,12 @@ class TestRedacao(unittest.TestCase):
         self.assertNotIn("zzz", t)
         self.assertGreaterEqual(t.count("<segredo>"), 4)
 
+    def test_segredo_em_json(self):
+        t = self.R('-d \'{"login":"x","senha":"Qwe@123"}\' e {\\"accessToken\\": \\"abc.def\\"}')
+        self.assertNotIn("Qwe@123", t)
+        self.assertNotIn("abc.def", t)
+        self.assertIn('"senha":"<segredo>"', t)
+
     def test_termo_local_mais_longo_primeiro(self):
         t = self.R("veja termosecreto longo e TERMOSECRETO")
         self.assertEqual(t, "veja <redigido> e <redigido>")
