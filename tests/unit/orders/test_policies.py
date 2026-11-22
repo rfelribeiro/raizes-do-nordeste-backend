@@ -9,19 +9,18 @@ from raizes.domain.shared.errors import DomainError
 S = OrderStatus
 R = Role
 
-# Matriz RN-04: (perfil, de, para) permitidos, na própria unidade / como dono.
+# Matriz RN-04: (perfil, status alvo) permitidos, na própria unidade / como dono. A validade de
+# (atual -> alvo) é da máquina de estados do agregado (409), não da política.
 ALLOWED = {
-    (R.COZINHA, S.PAGO, S.EM_PREPARO),
-    (R.COZINHA, S.EM_PREPARO, S.PRONTO),
-    (R.ATENDENTE, S.PRONTO, S.ENTREGUE),
-    (R.ATENDENTE, S.AGUARDANDO_PAGAMENTO, S.CANCELADO),
-    (R.ATENDENTE, S.PAGO, S.CANCELADO),
-    (R.GERENTE, S.PAGO, S.EM_PREPARO),
-    (R.GERENTE, S.EM_PREPARO, S.PRONTO),
-    (R.GERENTE, S.PRONTO, S.ENTREGUE),
-    (R.GERENTE, S.AGUARDANDO_PAGAMENTO, S.CANCELADO),
-    (R.GERENTE, S.PAGO, S.CANCELADO),
-    (R.CLIENTE, S.AGUARDANDO_PAGAMENTO, S.CANCELADO),
+    (R.COZINHA, S.EM_PREPARO),
+    (R.COZINHA, S.PRONTO),
+    (R.ATENDENTE, S.ENTREGUE),
+    (R.ATENDENTE, S.CANCELADO),
+    (R.GERENTE, S.EM_PREPARO),
+    (R.GERENTE, S.PRONTO),
+    (R.GERENTE, S.ENTREGUE),
+    (R.GERENTE, S.CANCELADO),
+    (R.CLIENTE, S.CANCELADO),
 }
 
 
@@ -38,16 +37,16 @@ def test_role_status_matrix(role: Role, current: OrderStatus, target: OrderStatu
         order_unit_id=unit,
         is_owner=True,
     )
-    assert decision.allowed == ((role, current, target) in ALLOWED)
+    assert decision.allowed == ((role, target) in ALLOWED)
 
 
 @pytest.mark.parametrize("role", [R.COZINHA, R.ATENDENTE, R.GERENTE])
 def test_staff_of_other_unit_is_denied_even_for_allowed_transition(role: Role) -> None:
-    pair = next((c, t) for r, c, t in ALLOWED if r is role)
+    target = next(t for r, t in ALLOWED if r is role)
     decision = TransitionPolicy.evaluate(
         role=role,
-        current=pair[0],
-        target=pair[1],
+        current=S.PAGO,
+        target=target,
         user_unit_id=uuid4(),
         order_unit_id=uuid4(),
     )

@@ -8,26 +8,13 @@ from raizes.domain.shared.errors import DomainError
 
 _S = OrderStatus
 
-# RN-04: pares (de, para) que cada perfil pode solicitar. PAGO nunca é manual.
-_ROLE_TRANSITIONS: dict[Role, frozenset[tuple[OrderStatus, OrderStatus]]] = {
-    Role.COZINHA: frozenset({(_S.PAGO, _S.EM_PREPARO), (_S.EM_PREPARO, _S.PRONTO)}),
-    Role.ATENDENTE: frozenset(
-        {
-            (_S.PRONTO, _S.ENTREGUE),
-            (_S.AGUARDANDO_PAGAMENTO, _S.CANCELADO),
-            (_S.PAGO, _S.CANCELADO),
-        }
-    ),
-    Role.GERENTE: frozenset(
-        {
-            (_S.PAGO, _S.EM_PREPARO),
-            (_S.EM_PREPARO, _S.PRONTO),
-            (_S.PRONTO, _S.ENTREGUE),
-            (_S.AGUARDANDO_PAGAMENTO, _S.CANCELADO),
-            (_S.PAGO, _S.CANCELADO),
-        }
-    ),
-    Role.CLIENTE: frozenset({(_S.AGUARDANDO_PAGAMENTO, _S.CANCELADO)}),
+# RN-04: status de destino que cada perfil pode solicitar. PAGO nunca é manual. A validade da
+# transição (atual -> alvo) é só da máquina de estados (`Order.advance_status`, 409).
+_ROLE_TARGETS: dict[Role, frozenset[OrderStatus]] = {
+    Role.COZINHA: frozenset({_S.EM_PREPARO, _S.PRONTO}),
+    Role.ATENDENTE: frozenset({_S.ENTREGUE, _S.CANCELADO}),
+    Role.GERENTE: frozenset({_S.EM_PREPARO, _S.PRONTO, _S.ENTREGUE, _S.CANCELADO}),
+    Role.CLIENTE: frozenset({_S.CANCELADO}),
     Role.ADMIN: frozenset(),
 }
 _STAFF = frozenset({Role.COZINHA, Role.ATENDENTE, Role.GERENTE})
@@ -45,7 +32,8 @@ class PolicyDecision:
 class TransitionPolicy:
     """Decide se o perfil pode pedir a transição. A aplicação converte a negativa em 403.
 
-    Roda ANTES da máquina de estados (UC-06): primeiro quem, depois se a transição é válida.
+    Roda ANTES da máquina de estados (UC-06): primeiro quem pode pedir o status alvo (403),
+    depois se a transição é válida (409). `current` fica na assinatura por compatibilidade.
     """
 
     @staticmethod
@@ -62,7 +50,7 @@ class TransitionPolicy:
             return PolicyDecision(False, "colaborador só atua na própria unidade")
         if role is Role.CLIENTE and not is_owner:
             return PolicyDecision(False, "cliente só atua no próprio pedido")
-        if (current, target) not in _ROLE_TRANSITIONS.get(role, frozenset()):
+        if target not in _ROLE_TARGETS.get(role, frozenset()):
             return PolicyDecision(False, "perfil não pode solicitar esta transição")
         return PolicyDecision(True)
 
