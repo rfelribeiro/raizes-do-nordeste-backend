@@ -32,6 +32,10 @@ class MenuRepository(Protocol):
         """Ofertas encontradas; produto fora do cardápio da unidade fica ausente do dict."""
         ...
 
+    def existing_product_ids(self, product_ids: list[UUID]) -> set[UUID]:
+        """Quais dos ids existem no catálogo da rede (distingue 404 de produto não ofertado)."""
+        ...
+
 
 class UnitRepository(Protocol):
     def exists(self, unit_id: UUID) -> bool: ...
