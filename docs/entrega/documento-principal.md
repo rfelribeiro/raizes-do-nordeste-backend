@@ -18,6 +18,7 @@ Os comentários HTML não saem no documento final.
 A numeração das figuras e tabelas segue a ordem de aparição neste arquivo; as figuras que vierem
 dos arquivos de docs/modelagem/ (3.1, 3.4 e 3.5) devem ser numeradas na montagem final.
 -->
+<!-- Renumerar figuras e tabelas na montagem final. -->
 
 # Capa e folha de rosto
 
@@ -235,9 +236,425 @@ STATUS: ✏️ (3.2, 3.3, 3.6 e 3.7 rascunhadas; 3.1, 3.4 e 3.5 aguardam docs/mo
 
 <!-- Seguir o modelo de descrição do anexo do roteiro (RT p. 19). -->
 
-Esta seção apresenta os atores, os casos de uso do fluxo crítico e a descrição de cada um.
+Esta seção apresenta os atores, o diagrama de casos de uso e a descrição dos 27 casos de uso identificados a partir dos requisitos. Os seis casos de uso do fluxo implementado no MVP (UC-02, UC-04, UC-05, UC-06, UC-09 e UC-11) são descritos em detalhe, no modelo de descrição do roteiro da trilha; os demais são apresentados de forma resumida, na Tabela 7.
 
-<!-- INSERIR: conteúdo de docs/modelagem/casos-de-uso.md -->
+A Figura 1 mostra o diagrama de casos de uso. Os atores humanos ficam à esquerda (CLIENTE, ATENDENTE e COZINHA) e à direita (GERENTE e ADMIN); o gateway de pagamento, ator externo, aparece à direita. Os casos de uso com borda tracejada são conceituais (RF-19 a RF-21), documentados sem código no MVP. As setas tracejadas com rótulo representam relações de inclusão (`include`, obrigatória) e de extensão (`extend`, condicional).
+
+Para não sobrecarregar o diagrama, o GERENTE, que executa tudo o que o ATENDENTE e a COZINHA executam, mas somente na própria unidade (RN-04), aparece ligado apenas aos casos de uso que lhe são exclusivos ou que divide com o ADMIN. Pelo mesmo motivo, a autenticação (UC-02) é pré-condição de todos os casos de uso, exceto o cadastro (UC-01), e só a ligação do CLIENTE foi desenhada.
+
+**Figura 1 — Diagrama de casos de uso do sistema**
+
+```mermaid
+flowchart LR
+    CLI(["CLIENTE"])
+    ATE(["ATENDENTE"])
+    COZ(["COZINHA"])
+    GER(["GERENTE"])
+    ADM(["ADMIN"])
+    GW(["Gateway de pagamento mock"])
+
+    subgraph SIS["Sistema Raízes do Nordeste"]
+        direction TB
+        UC01["UC-01 Cadastrar Cliente"]
+        UC02["UC-02 Autenticar"]
+        UC03["UC-03 Consultar Cardápio da Unidade"]
+        UC04["UC-04 Realizar Pedido"]
+        UC05["UC-05 Solicitar Pagamento"]
+        UC06["UC-06 Atualizar Status do Pedido"]
+        UC07["UC-07 Cancelar Pedido"]
+        UC08["UC-08 Registrar Entrada de Estoque"]
+        UC09["UC-09 Gerir Consentimento"]
+        UC10["UC-10 Resgatar Pontos"]
+        UC11["UC-11 Consultar Auditoria"]
+        UC12["UC-12 Gerir Unidades"]
+        UC13["UC-13 Gerir Catálogo da Rede"]
+        UC14["UC-14 Gerir Cardápio da Unidade"]
+        UC15["UC-15 Consultar Pedidos"]
+        UC16["UC-16 Consultar Saldo de Estoque"]
+        UC17["UC-17 Consultar Saldo e Extrato de Pontos"]
+        UC18["UC-18 Consultar Meus Dados Pessoais"]
+        UC19["UC-19 Gerir Usuários e Perfis"]
+        UC20["UC-20 Nova Tentativa de Pagamento"]
+        UC21["UC-21 Acumular Pontos"]
+        UC22["UC-22 Estornar Pagamento"]
+        UC23["UC-23 Reservar Estoque"]
+        UC24["UC-24 Registrar Auditoria"]
+        UC25["UC-25 Gerir Campanhas"]
+        UC26["UC-26 Expirar Pedido não Pago"]
+        UC27["UC-27 Anonimizar Cliente Inativo"]
+    end
+
+    CLI --- UC01
+    CLI --- UC02
+    CLI --- UC03
+    CLI --- UC04
+    CLI --- UC05
+    CLI --- UC07
+    CLI --- UC09
+    CLI --- UC15
+    CLI --- UC17
+    CLI --- UC18
+    ATE --- UC04
+    ATE --- UC06
+    ATE --- UC07
+    ATE --- UC15
+    ATE --- UC03
+    COZ --- UC06
+    COZ --- UC15
+
+    GER --- UC06
+    GER --- UC07
+    GER --- UC08
+    GER --- UC11
+    GER --- UC14
+    GER --- UC16
+    ADM --- UC11
+    ADM --- UC12
+    ADM --- UC13
+    ADM --- UC15
+    ADM --- UC16
+    ADM --- UC19
+    UC05 --- GW
+    UC22 --- GW
+
+    UC04 -.->|"include"| UC23
+    UC04 -.->|"include"| UC24
+    UC10 -.->|"extend"| UC04
+    UC20 -.->|"extend"| UC05
+    UC21 -.->|"extend"| UC05
+    UC22 -.->|"extend"| UC07
+    UC07 -.->|"include"| UC24
+    UC06 -.->|"include"| UC24
+    UC26 -.->|"include"| UC24
+
+    classDef conceitual stroke-dasharray: 5 5
+    class UC25,UC26,UC27 conceitual
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+Notas de leitura do diagrama:
+
+- UC-21 (Acumular Pontos) estende UC-05: ocorre somente quando o pagamento é aprovado e há consentimento vigente de FIDELIDADE (RN-08).
+- UC-10 (Resgatar Pontos) estende UC-04, quando o pedido informa pontos a resgatar (RF-18).
+- UC-22 (Estornar Pagamento) estende UC-07, quando o pedido cancelado estava pago (RN-02).
+- UC-23 (Reservar Estoque) é incluído por UC-04, e UC-24 (Registrar Auditoria) é incluído por UC-04, UC-06, UC-07 e UC-26. As inclusões ocorrem sempre na mesma transação do caso de uso que as inclui (RNF-11).
+- A publicação de eventos no outbox (RF-22) faz parte de cada caso de uso que altera estado. Não é um caso de uso com ator e aparece nos diagramas de sequência da seção 3.5.
+
+**Atores e herança de permissões.** Os atores são os cinco perfis de acesso, cada um associado a um único usuário, e o gateway de pagamento, ator externo. A Tabela 6 resume o escopo de cada um. A herança é cumulativa e restrita à unidade: o GERENTE reúne as funções de ATENDENTE e de COZINHA na própria unidade, e o ADMIN administra a rede inteira, sem fazer transições de status (RN-04).
+
+**Tabela 6 — Atores, escopo e permissões**
+
+| Ator | Escopo | Permissões principais |
+|---|---|---|
+| `CLIENTE` | Os próprios dados e pedidos | Cadastrar-se e autenticar-se; criar pedido pelos canais APP, WEB e PICKUP; cancelar o próprio pedido enquanto aguarda pagamento; solicitar pagamento; consultar saldo e extrato de pontos; registrar e revogar consentimentos |
+| `ATENDENTE` | Unidade de lotação | Criar pedido em nome do cliente (canais BALCAO e TOTEM); consultar pedidos da unidade; conduzir PRONTO → ENTREGUE; cancelar pedido da unidade |
+| `COZINHA` | Unidade de lotação | Consultar pedidos da unidade; conduzir PAGO → EM_PREPARO → PRONTO |
+| `GERENTE` | Somente a própria unidade | Executar as funções de atendente e de cozinha; gerir o cardápio da unidade; registrar entrada de estoque; cancelar pedido; consultar a auditoria da unidade |
+| `ADMIN` | Rede inteira | Cadastrar e alterar unidades; gerir o catálogo da rede e os usuários; consultar pedidos, estoque (somente consulta) e auditoria de qualquer unidade; não faz transição de status |
+| Gateway de pagamento (mock) | Externo | Serviço HTTP separado; o resultado é determinado pelo token de teste (`tok_aprovado`, `tok_recusado`, `tok_timeout`) |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+**Descrição dos casos de uso detalhados.** Os casos de uso seguem o modelo de descrição do roteiro, com os campos Descrição, Ator principal, Demais atores, Pré-condições, Pós-condições, Fluxo base, Fluxo alternativo e Regras de negócio. Como o modelo prevê apenas um fluxo alternativo, os erros HTTP são registrados nele, marcados como [Exceção 4xx]. Os códigos seguem a Tabela 12 (seção 4.2), e todas as respostas de erro usam o formato padrão (RNF-13; D-035).
+
+### UC-02 – Autenticar
+
+**Descrição.** Autenticação por e-mail e senha, com emissão de um JWT de acesso (RF-02), usado em todas as chamadas seguintes. A autorização por perfil e por unidade (RF-03) é aplicada a partir das informações contidas no token.
+
+**Ator principal.** Qualquer usuário cadastrado (CLIENTE, ATENDENTE, COZINHA, GERENTE ou ADMIN).
+
+**Demais atores.** Não há.
+
+**Pré-condições.** O usuário existe, está ativo e não foi anonimizado.
+
+**Pós-condições.** É devolvido um JWT com validade de 60 minutos, contendo o identificador do usuário, o perfil e a unidade de lotação (RNF-02). Nada é gravado no banco, pois a API não mantém estado em memória (RNF-09).
+
+**Fluxo base.**
+
+1. O usuário envia `POST /auth/login` com e-mail e senha.
+2. A API valida o corpo da requisição.
+3. O caso de uso localiza o usuário pelo e-mail e confere o hash Argon2id da senha.
+4. O caso de uso verifica que a conta está ativa.
+5. O caso de uso emite o JWT.
+6. A API responde 200 com o token, o tipo e a validade.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 400] Corpo JSON malformado. [Exceção 422] Campo ausente.
+- 3a. [Exceção 401] E-mail inexistente ou senha incorreta. A mensagem é a mesma nos dois casos, para não revelar quais e-mails estão cadastrados.
+- 4a. [Exceção 401] Conta inativa ou anonimizada.
+- Em chamadas posteriores: [Exceção 401] token ausente, inválido ou expirado (RNF-03); [Exceção 403] perfil sem permissão ou unidade alheia.
+
+**Regras de negócio.**
+
+- A senha é armazenada como hash Argon2id, com salt (RNF-01).
+- 401 significa não autenticado; 403 significa autenticado, mas sem permissão (RNF-03).
+- Senha e token não aparecem em logs (RNF-06).
+
+### UC-04 – Realizar Pedido
+
+**Descrição.** Criação de um pedido em uma unidade, por um canal (`canalPedido`), com reserva de estoque na mesma transação (RF-07 e RF-16). O pedido nasce em AGUARDANDO_PAGAMENTO e é o primeiro passo do fluxo crítico pedido → pagamento → status.
+
+**Ator principal.** CLIENTE (canais APP, WEB e PICKUP) ou ATENDENTE e GERENTE, em nome do cliente (canais BALCAO e TOTEM; D-050).
+
+**Demais atores.** Não há.
+
+**Pré-condições.**
+
+1. Usuário autenticado (UC-02).
+2. A unidade existe e está ativa; se informado, o cliente existe e tem perfil CLIENTE.
+3. Cada produto está ofertado e disponível no cardápio da unidade (UC-03).
+
+**Pós-condições.**
+
+1. Em uma única transação (RNF-11) são gravados: o pedido em AGUARDANDO_PAGAMENTO, com o canal imutável; os itens, com preço congelado; a linha de histórico de status; a reserva no saldo e o movimento RESERVA; a auditoria PEDIDO_CRIADO; e os eventos `pedido_criado` e `estoque_movimentado` no outbox.
+2. A expiração do pedido é a data de criação acrescida de 15 minutos (RN-07).
+3. A resposta à chave `Idempotency-Key` fica guardada por 24 horas.
+
+**Fluxo base.**
+
+1. O usuário envia `POST /pedidos` com a unidade, o canal (`canalPedido`), os itens (produto e quantidade) e, opcionalmente, o cliente (obrigatório quando quem cria é o ATENDENTE e há identificação) e os pontos a resgatar.
+2. A API valida o token, o perfil e o corpo, inclusive os valores aceitos para `canalPedido`.
+3. O caso de uso consulta a chave de idempotência e a registra como em processamento.
+4. O caso de uso abre a transação e carrega os itens do cardápio da unidade.
+5. O domínio define o preço de cada item (local ou de referência), congela-o no item do pedido e calcula o valor dos itens.
+6. Os produtos são ordenados de forma determinística, e as linhas de estoque são travadas com `SELECT ... FOR UPDATE` (UC-23).
+7. O domínio reserva a quantidade de cada item.
+8. Se houver pontos a resgatar, aplica-se o UC-10, como extensão.
+9. O domínio cria o pedido em AGUARDANDO_PAGAMENTO, com a data de expiração.
+10. O caso de uso grava pedido, itens, histórico, movimentações, auditoria (UC-24) e eventos, guarda a resposta da chave de idempotência e confirma a transação.
+11. A API responde 201 com o pedido, o `canalPedido` e o cabeçalho `Location`.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 401] Token ausente, inválido ou expirado.
+- 2b. [Exceção 403] Perfil sem permissão para criar pedido (COZINHA e ADMIN), ou ATENDENTE e GERENTE criando pedido para unidade que não é a sua.
+- 2c. [Exceção 400] Corpo JSON malformado. [Exceção 422] `canalPedido` ausente ou lista de itens vazia.
+- 2d. [Exceção 422] `canalPedido` fora do conjunto aceito (APP, TOTEM, BALCAO, PICKUP, WEB), com detalhe no campo `canalPedido`; quantidade menor que 1. Nenhuma transação é aberta.
+- 2e. [Exceção 422] Canal incompatível com o perfil (RN-14): o CLIENTE usa somente APP, WEB e PICKUP; o ATENDENTE e o GERENTE, somente BALCAO e TOTEM.
+- 3a. Repetição da mesma chave com o mesmo corpo, com resposta já guardada: devolve a resposta original, sem novo pedido nem nova reserva (RN-13).
+- 3b. [Exceção 422] Mesma chave com corpo diferente.
+- 3c. [Exceção 409] Mesma chave ainda em processamento pela requisição original (RN-13; D-054).
+- 4a. [Exceção 404] Unidade ou produto inexistente.
+- 4b. [Exceção 422] Produto não ofertado, indisponível ou fora do período sazonal na unidade (RN-12).
+- 7a. [Exceção 409] Saldo insuficiente em algum item (RN-05), com o código `ESTOQUE_INSUFICIENTE`. A transação inteira é desfeita, e nenhum pedido, reserva ou registro de auditoria é gravado.
+- 8a. [Exceção 422] Resgate inválido (UC-10).
+- 10a. Falha em qualquer gravação: desfazimento total das quatro frentes (pedido, estoque, auditoria e outbox).
+
+**Regras de negócio.**
+
+- O canal é obrigatório na criação e imutável depois (RN-11).
+- Perfil e canal devem ser compatíveis (RN-14). O totem opera com uma conta de dispositivo de perfil ATENDENTE, lotada na unidade, e o cliente pode ser identificado opcionalmente.
+- A repetição de `Idempotency-Key` com o mesmo corpo devolve o resultado original (RN-13).
+- Só se pede produto ofertado, disponível e dentro do período sazonal (RN-12).
+- O preço é congelado no item no momento da criação (RN-10).
+- A reserva ocorre na criação, na mesma transação, com bloqueio de linha. Saldo insuficiente gera 409 e nenhum pedido (RN-05 e RN-06).
+- O pedido nasce em AGUARDANDO_PAGAMENTO (RN-01).
+
+### UC-05 – Solicitar Pagamento
+
+**Descrição.** Solicitação de pagamento de um pedido ao gateway mock, com registro da tentativa e do retorno (RF-11), nova tentativa após recusa (RF-12, UC-20) e acúmulo de pontos (UC-21). Cobre os resultados aprovado, recusado e timeout.
+
+**Ator principal.** CLIENTE, nos próprios pedidos.
+
+**Demais atores.** Gateway de pagamento (mock).
+
+**Pré-condições.**
+
+1. Usuário autenticado e dono do pedido.
+2. O pedido está em AGUARDANDO_PAGAMENTO e não expirou.
+3. Não existe tentativa aprovada para o pedido.
+
+**Pós-condições.**
+
+1. Aprovado: a tentativa fica com status APROVADO; o pedido passa a PAGO, com histórico registrado como mudança do sistema; a reserva é convertida em baixa; os pontos são acumulados, se houver consentimento vigente de FIDELIDADE; a auditoria e os eventos são gravados.
+2. Recusado: a tentativa fica RECUSADO, com o motivo; o pedido permanece em AGUARDANDO_PAGAMENTO (RN-01).
+3. Timeout esgotado: a tentativa fica FALHA; o pedido permanece em AGUARDANDO_PAGAMENTO, e nada é baixado.
+
+**Fluxo base (aprovado).**
+
+1. O cliente envia `POST /pedidos/{id}/pagamentos` com a forma de pagamento (PIX, CREDITO ou DEBITO) e o token de teste.
+2. A API valida o token, o corpo e a titularidade do pedido.
+3. O caso de uso verifica a chave de idempotência; a repetição devolve a resposta guardada.
+4. O caso de uso confere que o pedido está em AGUARDANDO_PAGAMENTO e grava uma tentativa PENDENTE com o valor do pedido.
+5. O caso de uso chama o gateway pela porta `GatewayPagamento`, com timeout de 3 segundos e a chave de idempotência.
+6. O gateway responde aprovado, com o identificador da transação e o payload.
+7. Em nova transação, o caso de uso trava o pedido, e o domínio marca a tentativa como APROVADO e o pedido como PAGO.
+8. O domínio converte a reserva em baixa no estoque.
+9. Se houver consentimento vigente de FIDELIDADE, acumula-se 1 ponto por R$ 1,00 pago (UC-21, extensão).
+10. O caso de uso grava auditoria e eventos e confirma a transação.
+11. A API responde 201 com a tentativa e o status PAGO.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 401] Token ausente ou inválido.
+- 2b. [Exceção 403] Requisição de colaborador: no MVP, somente o cliente solicita pagamento.
+- 2c. [Exceção 404] Pedido inexistente ou pertencente a outro cliente, para não revelar sua existência (RNF-03).
+- 2d. [Exceção 400] Corpo JSON malformado. [Exceção 422] Campo ausente ou forma de pagamento fora do conjunto aceito.
+- 3a. Repetição da mesma chave com o mesmo corpo: devolve a resposta original, sem nova cobrança (RN-13). Corpo diferente: [Exceção 422].
+- 4a. [Exceção 409] Pedido fora de AGUARDANDO_PAGAMENTO (já pago, cancelado ou em preparo), expirado, ou com tentativa já efetivada.
+- 5a. **Timeout** (`tok_timeout`): sem resposta em 3 segundos, a chamada é repetida até duas vezes, apenas por timeout, num total de três chamadas (cerca de 9 segundos). Esgotadas as tentativas, a tentativa fica FALHA, o pedido permanece em AGUARDANDO_PAGAMENTO, e a API responde 504 no formato padrão (RNF-10; D-051). A recusa não é repetida automaticamente.
+- 6a. **Recusado** (`tok_recusado`): o gateway devolve o motivo; a tentativa fica RECUSADO; o pedido permanece em AGUARDANDO_PAGAMENTO, e a reserva é mantida. A API responde 201 com o status RECUSADO e o motivo, e o cliente pode repetir com outra forma de pagamento ou outro token (UC-20).
+- 7a. Se, entre a chamada ao gateway e a gravação, o pedido deixou de estar em AGUARDANDO_PAGAMENTO (por exemplo, por cancelamento), a tentativa é gravada com o resultado do gateway, e a divergência é registrada na auditoria para conciliação.
+- 9a. Sem consentimento vigente de FIDELIDADE, o pagamento é concluído normalmente, sem acúmulo de pontos.
+
+**Regras de negócio.**
+
+- O pedido só passa a PAGO pelo resultado do pagamento, nunca por chamada manual (RN-04).
+- A idempotência evita cobrança duplicada, e um índice único parcial impede duas cobranças efetivadas no mesmo pedido (RN-13).
+- Uma recusa mantém o pedido em AGUARDANDO_PAGAMENTO (RN-01).
+- O timeout é de 3 segundos, com até duas novas tentativas somente em caso de timeout (RNF-10).
+- A reserva só é devolvida em cancelamento ou expiração; uma recusa isolada não a devolve (RN-06).
+- O pagamento aprovado converte a reserva em baixa (RN-06). Acumula-se 1 ponto por R$ 1,00, somente com consentimento de FIDELIDADE vigente (RN-08).
+- A tentativa nunca guarda número de cartão, validade, código de segurança nem token do cliente.
+
+### UC-06 – Atualizar Status do Pedido
+
+**Descrição.** Avanço do pedido pela máquina de estados (RF-09). A COZINHA conduz PAGO → EM_PREPARO → PRONTO; o ATENDENTE conduz PRONTO → ENTREGUE; o GERENTE executa as duas etapas na própria unidade (RN-04).
+
+**Ator principal.** COZINHA.
+
+**Demais atores.** ATENDENTE (PRONTO → ENTREGUE) e GERENTE (ambas as etapas, na própria unidade).
+
+**Pré-condições.**
+
+1. Usuário autenticado, com perfil e unidade de lotação.
+2. O pedido pertence à unidade do usuário.
+
+**Pós-condições.**
+
+1. O status do pedido é atualizado; é gravada uma linha no histórico (quem, quando, status anterior e novo), a auditoria STATUS_ALTERADO, com o canal do pedido, e o evento de mudança de status no outbox.
+2. Em caso de falha (403, 404 ou 409), nada é alterado.
+
+**Fluxo base.**
+
+1. O usuário envia `PATCH /pedidos/{id}/status` com o novo status.
+2. A API valida o token e o corpo.
+3. O caso de uso carrega o pedido com bloqueio de linha.
+4. O caso de uso verifica se o perfil e a unidade do usuário permitem a transição solicitada.
+5. O domínio valida a transição na máquina de estados e atualiza o status.
+6. O caso de uso grava histórico, auditoria (UC-24) e eventos e confirma a transação.
+7. A API responde 200 com o pedido atualizado.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 401] Token ausente ou inválido.
+- 2b. [Exceção 400] Corpo JSON malformado. [Exceção 422] Status ausente ou fora do conjunto aceito.
+- 3a. [Exceção 404] Pedido inexistente.
+- 4a. [Exceção 403] Perfil não autorizado para o status solicitado (por exemplo, COZINHA pedindo ENTREGUE, ou qualquer perfil pedindo PAGO), ou pedido de outra unidade, inclusive de GERENTE de outra unidade.
+- 5a. [Exceção 409] Transição inválida na máquina de estados (por exemplo, PAGO → PRONTO, ou qualquer saída de ENTREGUE ou CANCELADO).
+
+**Regras de negócio.**
+
+- Quem executa cada transição: a COZINHA, PAGO → EM_PREPARO → PRONTO; o ATENDENTE, PRONTO → ENTREGUE; o GERENTE, ambas, na própria unidade (RN-04).
+- A verificação de perfil e unidade precede a verificação de transição: 403 tem prioridade sobre 409.
+- Qualquer outra transição retorna 409. ENTREGUE e CANCELADO são estados finais (RN-03).
+- O canal do pedido acompanha a auditoria e não é alterado (RN-11).
+
+### UC-09 – Gerir Consentimento
+
+**Descrição.** Registro e revogação de consentimento do titular, por finalidade (RF-14 e LGPD): FIDELIDADE, MARKETING e DATA_NASCIMENTO. Cada ação grava um novo registro, e a revogação não apaga o histórico. O consentimento vigente é o último registro de cada usuário e finalidade.
+
+**Ator principal.** CLIENTE, sobre os próprios consentimentos.
+
+**Demais atores.** Não há.
+
+**Pré-condições.** Usuário autenticado com perfil CLIENTE.
+
+**Pós-condições.**
+
+1. É gravado um novo registro em `consentimentos`, com finalidade, ação (CONCEDIDO ou REVOGADO), base legal, versão do termo e instante.
+2. Na revogação de FIDELIDADE, os pontos são debitados com o movimento REVOGACAO (D-050), e o acúmulo deixa de ocorrer.
+3. São gravados a auditoria e o evento `consentimento_registrado` no outbox, sem dado pessoal.
+
+**Fluxo base (conceder).**
+
+1. O cliente envia a concessão, com a finalidade e a versão do termo.
+2. A API valida o token, o perfil e o corpo.
+3. O caso de uso consulta o consentimento vigente da finalidade.
+4. O domínio cria o registro CONCEDIDO, com a base legal da finalidade (consentimento, art. 7º, I, da LGPD).
+5. O caso de uso grava o registro, a auditoria e o outbox, e confirma a transação.
+6. A API responde 201 com o consentimento registrado.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 401] Token ausente ou inválido. [Exceção 403] Perfil diferente de CLIENTE, ou tentativa de registrar em nome de outro titular.
+- 2b. [Exceção 400] Corpo JSON malformado. [Exceção 422] Finalidade ausente ou desconhecida (conjunto fechado de três valores), ou versão do termo vazia.
+- 3a. [Exceção 409] Concessão de finalidade já concedida, ou revogação de finalidade sem consentimento vigente.
+- Revogação: o fluxo é o mesmo, com registro REVOGADO. Se a finalidade for FIDELIDADE, o caso de uso debita o saldo de pontos com REVOGACAO na mesma transação.
+
+**Regras de negócio.**
+
+- Cada consentimento guarda finalidade, base legal, data e versão do termo (RNF-04).
+- A revogação é um novo registro, tão simples quanto a concessão, e debita o saldo de pontos de fidelidade (D-050).
+- O acúmulo de pontos e o uso da data de nascimento consultam o consentimento vigente (RN-08).
+
+### UC-11 – Consultar Auditoria
+
+**Descrição.** Consulta da trilha de auditoria de ações sensíveis (RF-13): quem fez o quê, em qual recurso, em que unidade e canal, quando, com o `requestId` correspondente. A retenção é de um ano (RNF-07).
+
+**Ator principal.** GERENTE, somente da própria unidade.
+
+**Demais atores.** ADMIN, com visão da rede inteira.
+
+**Pré-condições.** Usuário autenticado com perfil GERENTE ou ADMIN.
+
+**Pós-condições.** O histórico não é alterado, pois a trilha é somente de inserção. Consultas a dados pessoais de terceiros geram, elas mesmas, um registro (`DADOS_PESSOAIS_ACESSADOS`, LGPD).
+
+**Fluxo base.**
+
+1. O usuário envia `GET /auditoria`, com filtros opcionais.
+2. A API valida o token e os parâmetros.
+3. O caso de uso aplica o escopo: o ADMIN vê toda a rede; o GERENTE tem o filtro de unidade forçado para a sua.
+4. O caso de uso consulta a trilha paginada, do registro mais recente ao mais antigo.
+5. A API responde 200 com os registros, sem dados pessoais no campo de detalhes.
+
+**Fluxo alternativo.**
+
+- 2a. [Exceção 401] Token ausente ou inválido.
+- 2b. [Exceção 403] Perfil diferente de GERENTE ou ADMIN; GERENTE que solicita explicitamente outra unidade.
+- 2c. [Exceção 422] Parâmetro de filtro inválido (data inválida ou intervalo com início posterior ao fim).
+- 4a. Resultado vazio: 200 com lista vazia.
+
+**Regras de negócio.**
+
+- O GERENTE só vê a auditoria da própria unidade (RF-03 e RF-13).
+- Cada registro traz autor, ação, alvo, unidade, canal, instante e `requestId`, e não é excluído antes de um ano (RNF-07).
+- O campo de detalhes não contém dado pessoal (RNF-05).
+
+### Casos de uso não detalhados
+
+A Tabela 7 resume os demais casos de uso. Entre eles, UC-15 está implementado, e a reserva e a baixa de estoque (UC-23) ocorrem dentro do fluxo do pedido. Os demais estão modelados, mas não implementados no MVP (D-057), e UC-25 a UC-27 são conceituais (RF-19 a RF-21). As descrições completas estão em `docs/modelagem/casos-de-uso.md`, no repositório.
+
+**Tabela 7 — Casos de uso não detalhados (resumo)**
+
+| UC | Ator | Objetivo | RF |
+|---|---|---|---|
+| UC-01 Cadastrar Cliente | CLIENTE (visitante) | Criar a conta de cliente com nome, e-mail e senha; data de nascimento opcional e condicionada a consentimento | RF-01 |
+| UC-03 Consultar Cardápio da Unidade | CLIENTE, ATENDENTE, GERENTE, ADMIN | Listar os itens ofertados pela unidade, com preço vigente e indicação de sazonalidade | RF-06 |
+| UC-07 Cancelar Pedido | CLIENTE, ATENDENTE, GERENTE | Cancelar pedido antes do preparo, com devolução da reserva e, se pago, estorno | RF-10 |
+| UC-08 Registrar Entrada de Estoque | GERENTE | Repor o saldo disponível de um produto na própria unidade | RF-16 |
+| UC-10 Resgatar Pontos | CLIENTE | Usar pontos de fidelidade como desconto no pedido (extensão de UC-04) | RF-18 |
+| UC-12 Gerir Unidades | ADMIN (os demais consultam) | Cadastrar e alterar unidades da rede | RF-04, RF-03 |
+| UC-13 Gerir Catálogo da Rede | ADMIN | Manter produtos, categorias, preço de referência e indicação de produto sazonal | RF-05 |
+| UC-14 Gerir Cardápio da Unidade | GERENTE (própria unidade) | Definir oferta, disponibilidade, período sazonal e preço local dos itens | RF-06 |
+| UC-15 Consultar Pedidos | CLIENTE, ATENDENTE, COZINHA, GERENTE, ADMIN | Listar e consultar pedidos com filtros de canal, status e unidade, com paginação; o cliente vê somente os seus | RF-08 |
+| UC-16 Consultar Saldo de Estoque | GERENTE, ADMIN | Consultar o saldo disponível e o reservado por produto e unidade | RF-16 |
+| UC-17 Consultar Saldo e Extrato de Pontos | CLIENTE | Ver o saldo e o extrato de pontos de fidelidade | RF-17 |
+| UC-18 Consultar Meus Dados Pessoais | CLIENTE | Exercer o direito de acesso do titular (LGPD, art. 18) | RF-15 |
+| UC-19 Gerir Usuários e Perfis | ADMIN | Criar colaboradores, definir perfil e unidade de lotação, ativar e desativar contas | RF-03 |
+| UC-20 Nova Tentativa de Pagamento | CLIENTE; gateway | Repetir o pagamento após recusa, com outra forma ou token, enquanto o pedido aguarda pagamento (extensão de UC-05) | RF-12 |
+| UC-21 Acumular Pontos | Sistema (disparado pelo pagamento aprovado) | Creditar 1 ponto por R$ 1,00 pago, com consentimento vigente de FIDELIDADE (extensão de UC-05) | RF-17 |
+| UC-22 Estornar Pagamento | Sistema; gateway | Solicitar o estorno ao mock quando um pedido pago é cancelado (extensão de UC-07) | RF-10 |
+| UC-23 Reservar Estoque | Sistema (inclusão de UC-04) | Reservar a quantidade de cada item na mesma transação do pedido, com bloqueio de linha | RF-16 |
+| UC-24 Registrar Auditoria | Sistema (inclusão) | Gravar autor, ação, recurso, unidade, canal e `requestId` de toda ação sensível, na transação do caso de uso | RF-13, RF-22 |
+| UC-25 Gerir Campanhas (conceitual) | ADMIN | Definir tipos, vigência, unidades e público de campanhas e promoções; documentado, sem código | RF-19 |
+| UC-26 Expirar Pedido não Pago (conceitual) | Sistema (tarefa agendada) | Cancelar pedido não pago em 15 minutos e devolver a reserva; regra documentada | RF-20 |
+| UC-27 Anonimizar Cliente Inativo (conceitual) | Sistema | Anonimizar nome e e-mail de cliente inativo há dois anos, preservando os agregados; documentado | RF-21 |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
 
 ## 3.2 Modelo de dados (DER)
 
@@ -245,9 +662,9 @@ Esta seção apresenta os atores, os casos de uso do fluxo crítico e a descriç
 
 O modelo entidade-relacionamento (DER) descreve as tabelas do banco transacional, seus atributos e a cardinalidade das relações. O banco é o PostgreSQL, o mesmo usado pela API, e o modelo está em terceira forma normal (3FN): cada fato é gravado em um único lugar, e as restrições de chave, unicidade e verificação (`PRIMARY KEY`, `UNIQUE`, `CHECK`) protegem a consistência mesmo sob escritas concorrentes. O modelo analítico (Data Warehouse) é dimensional e desnormalizado de propósito; os dois modelos têm finalidades opostas e se comunicam apenas pelo outbox, nunca por acesso direto ao banco transacional (Apêndice B).
 
-Adotaram-se as seguintes convenções: chave primária `id` do tipo UUID, chaves estrangeiras no padrão `id_<entidade>`, valores monetários em `numeric(10,2)`, instantes em `timestamptz` com sufixo `_em` e enumerações como `varchar` com `CHECK`. A Figura 1 mostra a visão geral das entidades e relações; os atributos de cada tabela estão no dicionário físico do repositório (`docs/modelagem/der.md`).
+Adotaram-se as seguintes convenções: chave primária `id` do tipo UUID, chaves estrangeiras no padrão `id_<entidade>`, valores monetários em `numeric(10,2)`, instantes em `timestamptz` com sufixo `_em` e enumerações como `varchar` com `CHECK`. A Figura 2 mostra a visão geral das entidades e relações; os atributos de cada tabela estão no dicionário físico do repositório (`docs/modelagem/der.md`).
 
-**Figura 1 — Visão geral do DER do banco transacional**
+**Figura 2 — Visão geral do DER do banco transacional**
 
 ```mermaid
 erDiagram
@@ -281,9 +698,9 @@ erDiagram
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
-A tabela `outbox_eventos` não possui chave estrangeira: guarda o identificador do agregado como texto, para não acoplar o log de eventos ao esquema transacional. As demais tabelas se organizam em três contextos, descritos na Tabela 6.
+A tabela `outbox_eventos` não possui chave estrangeira: guarda o identificador do agregado como texto, para não acoplar o log de eventos ao esquema transacional. As demais tabelas se organizam em três contextos, descritos na Tabela 8.
 
-**Tabela 6 — Principais tabelas por contexto**
+**Tabela 8 — Principais tabelas por contexto**
 
 | Contexto | Tabela | Papel |
 |---|---|---|
@@ -324,9 +741,9 @@ O dicionário físico completo, com tipos, restrições e índices de cada tabel
 
 A API é uma aplicação única, implantada como uma unidade, organizada em quatro camadas: API, Aplicação, Domínio e Infraestrutura. A camada de API (`raizes.api`) traduz o protocolo HTTP: contém os roteadores, os esquemas de entrada e saída, as dependências de autenticação, o tratamento de erros no formato padrão e os *middlewares*; não contém regra de negócio nem acesso direto ao banco. A camada de Aplicação (`raizes.application`) reúne os casos de uso, que orquestram o trabalho, e as portas, interfaces (*Protocols*) que a infraestrutura implementa; não conhece o framework web nem o banco. A camada de Domínio (`raizes.domain`) contém entidades, objetos de valor e regras de negócio, sem dependência de framework. A camada de Infraestrutura (`raizes.infrastructure`) contém a configuração, os logs, o acesso ao banco e os gateways externos, e implementa as portas definidas pela aplicação.
 
-A regra de dependência determina que a API depende da Aplicação, a Aplicação depende do Domínio e o Domínio não depende de nenhuma outra camada. A Infraestrutura depende da Aplicação e do Domínio porque implementa as portas, o que caracteriza a inversão de dependência: o caso de uso conhece uma interface, e a implementação concreta é escolhida fora dele. A composição, isto é, a injeção da implementação concreta, ocorre apenas em `main.py` e em `api/dependencies.py`, a única exceção em que a API enxerga a infraestrutura de banco. A Figura 2 representa essas relações.
+A regra de dependência determina que a API depende da Aplicação, a Aplicação depende do Domínio e o Domínio não depende de nenhuma outra camada. A Infraestrutura depende da Aplicação e do Domínio porque implementa as portas, o que caracteriza a inversão de dependência: o caso de uso conhece uma interface, e a implementação concreta é escolhida fora dele. A composição, isto é, a injeção da implementação concreta, ocorre apenas em `main.py` e em `api/dependencies.py`, a única exceção em que a API enxerga a infraestrutura de banco. A Figura 3 representa essas relações.
 
-**Figura 2 — Camadas e sentido das dependências**
+**Figura 3 — Camadas e sentido das dependências**
 
 ```mermaid
 flowchart LR
@@ -343,15 +760,635 @@ A regra é verificada automaticamente pelo teste `tests/architecture/test_layers
 
 ## 3.4 Diagrama de classes do domínio
 
-Esta seção apresenta as entidades do domínio, seus atributos, operações e relacionamentos.
+Esta seção apresenta as entidades do domínio, seus atributos, operações e relacionamentos. O diagrama é apresentado em duas partes. A Figura 4 mostra o núcleo do fluxo crítico: o agregado Pedido, seus componentes e as regras de transição, pagamento e estorno. A Figura 5 mostra a camada de aplicação, com os casos de uso e as portas que a infraestrutura implementa. Os demais agregados (catálogo, estoque, identidade, fidelidade, consentimento e auditoria) seguem o mesmo padrão e estão em `docs/modelagem/classes.md`.
 
-<!-- INSERIR: conteúdo de docs/modelagem/classes.md -->
+Os estereótipos seguem a convenção `<<aggregate root>>` (raiz de agregado), `<<entity>>`, `<<value object>>`, `<<enumeration>>` e `<<domain service>>`. Os nomes de domínio estão em português, coerentes com o contrato da API e com o DER. No código Python, os identificadores são em inglês (por exemplo, `Pedido` corresponde a `Order`), conforme o ADR 0010.
+
+**Figura 4 — Núcleo do domínio: Pedido, pagamento e regras de transição**
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Pedido {
+        <<aggregate root>>
+        +UUID id
+        +int numeroPedido
+        +UUID idUnidade
+        +UUID idCliente
+        +UUID idUsuarioCriador
+        +CanalPedido canalPedido
+        +StatusPedido status
+        +Dinheiro valorItens
+        +Dinheiro valorDesconto
+        +Dinheiro valorTotal
+        +int qtdPontosResgatados
+        +datetime expiraEm
+        +criar(unidade, itens, canal, criador, cliente, agora)$ Pedido
+        +aplicarResgate(qtdPontos) void
+        +solicitarPagamento(forma) TentativaPagamento
+        +registrarRecusa(tentativa, motivo) void
+        +registrarFalha(tentativa) void
+        +confirmarPagamento(tentativa) void
+        +avancarStatus(novo, idAutor) void
+        +cancelar(idAutor, motivo) void
+        +estaExpirado(agora) bool
+        +valorDoItem(idProduto) Dinheiro
+    }
+    class ItemPedido {
+        <<entity>>
+        +UUID id
+        +UUID idProduto
+        +int qtdItem
+        +Dinheiro valorPrecoUnitario
+        +Dinheiro valorTotalItem
+        +Dinheiro valorDescontoItem
+        +valorLiquido() Dinheiro
+    }
+    class HistoricoStatusPedido {
+        <<value object>>
+        +StatusPedido statusAnterior
+        +StatusPedido statusNovo
+        +UUID idUsuario
+        +str motivo
+        +datetime ocorridoEm
+    }
+    class TentativaPagamento {
+        <<entity>>
+        +UUID id
+        +int numeroTentativa
+        +FormaPagamento formaPagamento
+        +StatusTentativa status
+        +Dinheiro valor
+        +str motivoRecusa
+        +str idTransacaoGateway
+        +int qtdChamadasGateway
+        +datetime solicitadoEm
+        +datetime respondidoEm
+        +aprovar(idTransacao) void
+        +recusar(motivo) void
+        +falhar() void
+        +estornar() void
+    }
+    class PoliticaTransicao {
+        <<domain service>>
+        +perfilPodeTransitar(perfil, de, para) bool
+        +transicaoValida(de, para) bool
+    }
+    class Dinheiro {
+        <<value object>>
+        +Decimal valor
+        +somar(outro) Dinheiro
+        +multiplicar(qtd) Dinheiro
+    }
+    class StatusPedido {
+        <<enumeration>>
+        AGUARDANDO_PAGAMENTO
+        PAGO
+        EM_PREPARO
+        PRONTO
+        ENTREGUE
+        CANCELADO
+    }
+    class CanalPedido {
+        <<enumeration>>
+        APP
+        TOTEM
+        BALCAO
+        PICKUP
+        WEB
+    }
+    class FormaPagamento {
+        <<enumeration>>
+        PIX
+        CREDITO
+        DEBITO
+    }
+    class StatusTentativa {
+        <<enumeration>>
+        PENDENTE
+        APROVADO
+        RECUSADO
+        FALHA
+        ESTORNADO
+    }
+    class DomainEvent {
+        <<abstract>>
+        +str event_type
+        +str aggregate_id
+        +payload() dict
+    }
+    class ErroDeDominio {
+        <<exception>>
+        +str codigo
+        +str message
+    }
+
+    Pedido "1" *-- "1..*" ItemPedido : contem
+    Pedido "1" *-- "1..*" HistoricoStatusPedido : registra
+    Pedido "1" *-- "0..*" TentativaPagamento : e pago por
+    Pedido --> StatusPedido
+    Pedido --> CanalPedido
+    TentativaPagamento --> FormaPagamento
+    TentativaPagamento --> StatusTentativa
+    Pedido ..> PoliticaTransicao : consulta
+    Pedido ..> DomainEvent : emite
+    Pedido ..> ErroDeDominio : lanca em violacao
+    Pedido --> Dinheiro
+    ItemPedido --> Dinheiro
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+O núcleo concentra as regras nos métodos da raiz. `Pedido.criar` aplica o par perfil e canal, congela o preço, define a expiração de 15 minutos e calcula o total. `Pedido.avancarStatus` e `Pedido.cancelar` aplicam a máquina de estados, e `Pedido.confirmarPagamento` só aceita o pagamento a partir de AGUARDANDO_PAGAMENTO, sem tentativa efetivada anterior. A permissão por perfil e unidade não fica no pedido: é decidida pelo caso de uso, com apoio do serviço de domínio `PoliticaTransicao`, e a violação dessa permissão resulta em 403. A violação da máquina de estados resulta em 409. A separação entre as duas situações é uma decisão de projeto.
+
+**Figura 5 — Camada de aplicação e portas, com inversão de dependência**
+
+```mermaid
+classDiagram
+    direction LR
+
+    namespace API {
+        class PedidosRouter {
+            +post_pedidos(corpo, idempotencyKey) Resposta
+            +post_pagamentos(idPedido, corpo) Resposta
+            +patch_status(idPedido, corpo) Resposta
+            +post_cancelamento(idPedido, corpo) Resposta
+        }
+        class TradutorDeErros {
+            +traduzir(erro) ErroPadrao
+        }
+    }
+
+    namespace Aplicacao {
+        class CriarPedido {
+            +executar(comando) Pedido
+        }
+        class SolicitarPagamento {
+            +executar(comando) TentativaPagamento
+        }
+        class AtualizarStatusPedido {
+            +executar(comando) Pedido
+        }
+        class CancelarPedido {
+            +executar(comando) Pedido
+        }
+        class RegistrarEntradaEstoque {
+            +executar(comando) Estoque
+        }
+        class GerirConsentimento {
+            +executar(comando) Consentimento
+        }
+        class UnidadeDeTrabalho {
+            <<interface>>
+            +commit() void
+            +rollback() void
+        }
+        class RepositorioPedidos {
+            <<interface>>
+            +obter(id) Pedido
+            +obterParaAtualizar(id) Pedido
+            +adicionar(pedido) void
+            +listar(filtro) list
+        }
+        class RepositorioEstoques {
+            <<interface>>
+            +obterParaAtualizar(idUnidade, idProdutos) list
+            +salvar(estoque) void
+        }
+        class RepositorioContasPontos {
+            <<interface>>
+            +obterParaAtualizar(idUsuario) ContaPontos
+        }
+        class RepositorioConsentimentos {
+            <<interface>>
+            +historico(idUsuario, finalidade) list
+            +adicionar(consentimento) void
+        }
+        class RepositorioIdempotencia {
+            <<interface>>
+            +reservar(chave, escopo, idUsuario, hash) EstadoChave
+            +guardarResposta(chave, status, corpo) void
+        }
+        class GatewayPagamento {
+            <<interface>>
+            +solicitar(pedido, forma, token, chave) RespostaGateway
+            +estornar(idTransacao, chave) RespostaGateway
+        }
+        class OutboxWriter {
+            <<interface>>
+            +add(events) void
+        }
+        class RegistradorAuditoria {
+            <<interface>>
+            +registrar(registro) void
+        }
+        class ApplicationError {
+            <<exception>>
+        }
+    }
+
+    namespace Dominio {
+        class Pedido
+        class Estoque
+        class ContaPontos
+        class TentativaPagamento
+        class PoliticaTransicao
+        class DomainEvent
+        class RegistroAuditoria
+        class ErroDeDominio
+    }
+
+    namespace Infraestrutura {
+        class RepositorioPedidosSqlAlchemy
+        class RepositorioEstoquesSqlAlchemy
+        class RepositorioContasPontosSqlAlchemy
+        class RepositorioConsentimentosSqlAlchemy
+        class RepositorioIdempotenciaSqlAlchemy
+        class UnidadeDeTrabalhoSqlAlchemy
+        class GatewayPagamentoHttp {
+            -timeout 3 s
+            -novasTentativasPorTimeout 2
+        }
+        class SqlAlchemyOutboxWriter
+        class RegistradorAuditoriaSqlAlchemy
+    }
+
+    PedidosRouter ..> CriarPedido : usa
+    PedidosRouter ..> SolicitarPagamento : usa
+    PedidosRouter ..> AtualizarStatusPedido : usa
+    PedidosRouter ..> CancelarPedido : usa
+    PedidosRouter ..> TradutorDeErros : erros
+    TradutorDeErros ..> ErroDeDominio : traduz
+    TradutorDeErros ..> ApplicationError : traduz
+
+    CriarPedido ..> RepositorioPedidos
+    CriarPedido ..> RepositorioEstoques
+    CriarPedido ..> RepositorioContasPontos
+    CriarPedido ..> RepositorioIdempotencia
+    CriarPedido ..> OutboxWriter
+    CriarPedido ..> RegistradorAuditoria
+    CriarPedido ..> UnidadeDeTrabalho
+    CriarPedido ..> Pedido
+    CriarPedido ..> Estoque
+
+    SolicitarPagamento ..> RepositorioPedidos
+    SolicitarPagamento ..> RepositorioEstoques
+    SolicitarPagamento ..> RepositorioContasPontos
+    SolicitarPagamento ..> RepositorioConsentimentos
+    SolicitarPagamento ..> RepositorioIdempotencia
+    SolicitarPagamento ..> GatewayPagamento
+    SolicitarPagamento ..> OutboxWriter
+    SolicitarPagamento ..> RegistradorAuditoria
+    SolicitarPagamento ..> UnidadeDeTrabalho
+    SolicitarPagamento ..> TentativaPagamento
+    SolicitarPagamento ..> ContaPontos
+
+    AtualizarStatusPedido ..> RepositorioPedidos
+    AtualizarStatusPedido ..> PoliticaTransicao
+    AtualizarStatusPedido ..> OutboxWriter
+    AtualizarStatusPedido ..> RegistradorAuditoria
+
+    CancelarPedido ..> RepositorioPedidos
+    CancelarPedido ..> RepositorioEstoques
+    CancelarPedido ..> GatewayPagamento
+    CancelarPedido ..> OutboxWriter
+    CancelarPedido ..> RegistradorAuditoria
+
+    RegistrarEntradaEstoque ..> RepositorioEstoques
+    RegistrarEntradaEstoque ..> RegistradorAuditoria
+    RegistrarEntradaEstoque ..> OutboxWriter
+
+    GerirConsentimento ..> RepositorioConsentimentos
+    GerirConsentimento ..> RepositorioContasPontos
+    GerirConsentimento ..> RegistradorAuditoria
+
+    RegistradorAuditoria ..> RegistroAuditoria
+    OutboxWriter ..> DomainEvent
+
+    RepositorioPedidosSqlAlchemy ..|> RepositorioPedidos
+    RepositorioEstoquesSqlAlchemy ..|> RepositorioEstoques
+    RepositorioContasPontosSqlAlchemy ..|> RepositorioContasPontos
+    RepositorioConsentimentosSqlAlchemy ..|> RepositorioConsentimentos
+    RepositorioIdempotenciaSqlAlchemy ..|> RepositorioIdempotencia
+    UnidadeDeTrabalhoSqlAlchemy ..|> UnidadeDeTrabalho
+    GatewayPagamentoHttp ..|> GatewayPagamento
+    SqlAlchemyOutboxWriter ..|> OutboxWriter
+    RegistradorAuditoriaSqlAlchemy ..|> RegistradorAuditoria
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+Na Figura 5, as setas de dependência apontam para as abstrações da aplicação. As implementações concretas da infraestrutura é que apontam para elas, pela relação de realização (`..|>`). Essa é a inversão de dependência descrita na seção 3.3. Nenhuma classe de caso de uso conhece SQLAlchemy, HTTP ou o gateway real. A injeção das implementações concretas ocorre somente em `main.py` e em `api/dependencies.py`, e o teste `tests/architecture/test_layers.py` verifica a regra automaticamente. Trocar o gateway de pagamento significa trocar o adaptador, sem alterar o caso de uso `SolicitarPagamento`.
+
+**Entidade, objeto de valor e agregado.** Uma entidade tem identidade própria que persiste no tempo: dois pedidos com os mesmos itens continuam sendo pedidos diferentes, e um pedido permanece o mesmo ao mudar de status. Um objeto de valor, como `Dinheiro` ou `PeriodoSazonal`, não tem identidade, é definido pelos seus atributos e é imutável. Um agregado é um grupo de objetos tratado como unidade de consistência, com uma raiz que é o único ponto de alteração: `Pedido` é a raiz de `ItemPedido`, `HistoricoStatusPedido` e `TentativaPagamento`, e protege invariantes como o total igual à soma dos itens menos o desconto, o canal imutável e a existência de uma única cobrança efetivada. Estoque e pontos são agregados próprios, mantidos fora do pedido de propósito, por serem linhas disputadas por muitos pedidos que exigem bloqueio isolado. Agregados se referenciam por identificador, e não por objeto. Na inversão de dependência, o caso de uso depende de uma abstração (a porta), e não da implementação, o que permite testar as regras com implementações em memória.
+
+A Tabela 9 relaciona cada classe de domínio à tabela correspondente do DER, descrito na seção 3.2.
+
+**Tabela 9 — Mapeamento entre classes de domínio e tabelas do DER**
+
+| Classe de domínio | Tabela(s) do DER | Observação |
+|---|---|---|
+| `Unidade` | `unidades` | Raiz; `FormatoUnidade` corresponde ao `CHECK` de `formato` |
+| `Usuario` | `usuarios` | Um perfil por usuário e lotação por perfil (D-049); a anonimização preenche `anonimizado_em` |
+| `Categoria` | `categorias` | Parte do catálogo da rede |
+| `Produto` | `produtos` | Catálogo da rede, com preço de referência |
+| `ItemCardapio` | `itens_cardapio` | Oferta da unidade; `PeriodoSazonal` é objeto de valor sobre as datas de início e fim da sazonalidade |
+| `Estoque` | `estoques` | Saldo com chave composta (unidade e produto); linha travada na reserva |
+| `MovimentacaoEstoque` | `movimentacoes_estoque` | Razão somente de inserção; `TipoMovimentoEstoque` corresponde ao `CHECK` de `tipo` |
+| `Pedido` | `pedidos` | Raiz do agregado; `CanalPedido` e `StatusPedido` correspondem a `CHECK`s; `numero_pedido` é gerado pelo banco |
+| `ItemPedido` | `itens_pedido` | Parte do agregado; preço congelado |
+| `HistoricoStatusPedido` | `historico_status_pedido` | Objeto de valor somente de inserção |
+| `TentativaPagamento` | `tentativas_pagamento` | Parte do agregado `Pedido`; `FormaPagamento` e `StatusTentativa` correspondem a `CHECK`s |
+| `Consentimento` | `consentimentos` | Somente de inserção; vigente é o último registro por usuário e finalidade |
+| `ContaPontos` | `saldos_pontos` | Saldo materializado (D-048); nome de domínio diferente do nome da tabela |
+| `MovimentoPontos` | `movimentos_pontos` | Razão somente de inserção; `TipoMovimentoPontos` corresponde ao `CHECK` de `tipo` |
+| `RegistroAuditoria` | `auditoria` | Somente de inserção; retenção de um ano |
+| `Dinheiro` | colunas `numeric(10,2)` | Objeto de valor sem tabela própria |
+| `DomainEvent` e subclasses | `outbox_eventos` | Gravados pela porta `OutboxWriter` na transação do caso de uso |
+| (sem classe de domínio) | `chaves_idempotencia` | Porta `RepositorioIdempotencia`; detalhe de protocolo HTTP, e não conceito de negócio |
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
 
 ## 3.5 Diagrama de sequência: pedido → pagamento → status
 
-Esta seção apresenta a interação entre cliente, API, banco e gateway de pagamento no fluxo crítico.
+Esta seção apresenta a interação entre cliente, API, banco e gateway de pagamento no fluxo crítico. Os participantes são identificados pela camada a que pertencem: a API conversa somente com o caso de uso; o caso de uso orquestra o domínio e as portas; a infraestrutura implementa as portas e acessa o PostgreSQL. Os erros saem no formato padrão (RNF-13). Os três diagramas cobrem o fluxo crítico, da criação do pedido à atualização do status.
 
-<!-- INSERIR: conteúdo de docs/modelagem/sequencia.md -->
+**Figura 6 — Diagrama de sequência da criação do pedido (UC-04)**
+
+```mermaid
+sequenceDiagram
+    actor C as Cliente
+    participant API as API (camada API)
+    participant UC as CasoDeUso CriarPedido (aplicacao)
+    participant D as Dominio (Pedido, Estoque)
+    participant R as Repos (portas)
+    participant AO as Auditoria e Outbox (portas)
+    participant BD as PostgreSQL
+
+    C->>API: POST /pedidos com canalPedido, itens e Idempotency-Key
+    API->>API: valida JWT, perfil e schema
+    alt token ausente, invalido ou expirado
+        API-->>C: 401 erro padrao
+    else perfil sem permissao ou unidade alheia
+        API-->>C: 403 erro padrao
+    else corpo JSON malformado
+        API-->>C: 400 erro padrao
+    else campo ausente ou canalPedido fora do enum APP TOTEM BALCAO PICKUP WEB
+        API-->>C: 422 details field canalPedido
+    else canalPedido incompativel com o perfil (RN-14)
+        API-->>C: 422 details field canalPedido
+    end
+    API->>UC: executar(comando)
+    UC->>R: reservar chave de idempotencia (chave, escopo, usuario, hash)
+    R->>BD: INSERT em chaves_idempotencia ON CONFLICT
+    alt chave ja concluida com o mesmo corpo
+        BD-->>R: resposta guardada
+        R-->>UC: estado repetido
+        UC-->>API: resposta original sem novo pedido
+        API-->>C: status e corpo originais
+    else mesma chave com corpo diferente
+        UC-->>API: erro de aplicacao
+        API-->>C: 422 erro padrao
+    else mesma chave ainda em processamento
+        UC-->>API: erro de aplicacao
+        API-->>C: 409 erro padrao
+    else chave nova
+        Note over UC,BD: inicio da transacao unica (RNF-11)
+        UC->>R: itens do cardapio da unidade e precos
+        R->>BD: SELECT em itens_cardapio e produtos
+        BD-->>R: linhas
+        R-->>UC: itens ofertaveis
+        alt produto ou unidade inexistente
+            UC-->>API: NotFoundError
+            API-->>C: 404 erro padrao
+        else produto indisponivel ou fora do periodo sazonal
+            UC-->>API: erro de regra RN-12
+            API-->>C: 422 erro padrao
+        end
+        UC->>D: Pedido.criar(unidade, itens, canal, criador, cliente)
+        D-->>UC: pedido AGUARDANDO_PAGAMENTO com preco congelado e expiraEm
+        UC->>R: obterParaAtualizar estoques em ordem de produto
+        R->>BD: SELECT ... FOR UPDATE em estoques
+        BD-->>R: linhas travadas
+        loop para cada item do pedido
+            UC->>D: Estoque.reservar(qtd, idPedido)
+            alt saldo insuficiente
+                D-->>UC: ESTOQUE_INSUFICIENTE
+                UC->>BD: ROLLBACK (nada gravado)
+                UC-->>API: erro de dominio
+                API-->>C: 409 ESTOQUE_INSUFICIENTE
+            else reservado
+                D-->>UC: MovimentacaoEstoque RESERVA
+            end
+        end
+        opt pedido informa pontos a resgatar (UC-10)
+            UC->>R: obterParaAtualizar conta de pontos
+            R->>BD: SELECT ... FOR UPDATE em saldos_pontos
+            UC->>D: Pedido.aplicarResgate e ContaPontos.resgatar
+            alt multiplo, limite de 50 por cento ou saldo invalidos
+                D-->>UC: erro de dominio
+                UC->>BD: ROLLBACK
+                UC-->>API: erro
+                API-->>C: 422 ou 409 erro padrao
+            end
+        end
+        UC->>R: adicionar pedido, itens, historico e movimentacoes
+        R->>BD: INSERT em pedidos, itens_pedido, historico_status_pedido e movimentacoes_estoque
+        R->>BD: UPDATE em estoques
+        UC->>AO: auditoria PEDIDO_CRIADO com canal, e eventos pedido_criado e estoque_movimentado
+        AO->>BD: INSERT em auditoria e outbox_eventos
+        UC->>R: guardar resposta da chave de idempotencia
+        R->>BD: UPDATE em chaves_idempotencia
+        UC->>BD: COMMIT
+        UC-->>API: pedido criado
+        API-->>C: 201 com pedido e canalPedido
+    end
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+A leitura do diagrama começa pelas validações que ocorrem antes de qualquer transação: token, perfil, esquema e canal, em que o canal fora do conjunto aceito ou incompatível com o perfil resulta em 422. Em seguida, a chave de idempotência decide entre devolver a resposta guardada, rejeitar um corpo divergente ou prosseguir. Dentro da transação única, os itens são precificados, as linhas de estoque são travadas em ordem determinística e as reservas são feitas pelo domínio. Se o saldo for insuficiente, ocorre `ROLLBACK` e a resposta é 409 com o código `ESTOQUE_INSUFICIENTE`. Caso contrário, pedido, itens, movimentações, auditoria, eventos e a resposta da chave são gravados juntos e confirmados por um único `COMMIT`, o que garante a atomicidade exigida pelo RNF-11.
+
+**Figura 7 — Diagrama de sequência da solicitação de pagamento (UC-05)**
+
+```mermaid
+sequenceDiagram
+    actor C as Cliente
+    participant API as API (camada API)
+    participant UC as CasoDeUso SolicitarPagamento (aplicacao)
+    participant D as Dominio (Pedido, Estoque, ContaPontos)
+    participant R as Repos (portas)
+    participant GW as Gateway mock (GatewayPagamento)
+    participant AO as Auditoria e Outbox (portas)
+    participant BD as PostgreSQL
+
+    C->>API: POST /pedidos/{id}/pagamentos com forma, token de teste e Idempotency-Key
+    API->>API: valida JWT e schema
+    alt sem token valido
+        API-->>C: 401 erro padrao
+    else corpo JSON malformado
+        API-->>C: 400 erro padrao
+    else campo ausente ou forma de pagamento fora do enum
+        API-->>C: 422 erro padrao
+    end
+    API->>UC: executar(comando)
+
+    Note over UC,BD: transacao 1 curta, sem chamada externa dentro dela
+    UC->>R: obter pedido e conferir titularidade
+    R->>BD: SELECT em pedidos
+    alt pedido inexistente ou de outro cliente
+        UC-->>API: NotFoundError
+        API-->>C: 404 erro padrao
+    else colaborador de outra unidade
+        UC-->>API: acesso negado
+        API-->>C: 403 erro padrao
+    end
+    UC->>R: reservar chave de idempotencia
+    alt chave repetida com o mesmo corpo
+        UC-->>API: resposta original
+        API-->>C: status e corpo originais sem nova cobranca
+    else mesma chave com corpo diferente
+        UC-->>API: erro de aplicacao
+        API-->>C: 422 erro padrao
+    end
+    UC->>D: Pedido.solicitarPagamento(forma)
+    alt pedido fora de AGUARDANDO_PAGAMENTO, expirado ou ja com cobranca efetivada
+        D-->>UC: erro de regra
+        UC-->>API: erro de dominio
+        API-->>C: 409 erro padrao
+    else tentativa PENDENTE criada
+        D-->>UC: TentativaPagamento PENDENTE com valor do pedido
+    end
+    UC->>R: adicionar tentativa
+    R->>BD: INSERT em tentativas_pagamento e COMMIT
+
+    loop ate 3 chamadas: a primeira mais 2 novas, so por timeout (RNF-10)
+        UC->>GW: solicitar pagamento (token, valor, chave) com timeout de 3 s
+        alt tok_timeout: sem resposta em 3 s
+            GW--xUC: timeout
+            Note over UC: repete a chamada se ainda restam tentativas
+        else resposta recebida
+            GW-->>UC: aprovado ou recusado com payload
+            Note over UC: sai do laco
+        end
+    end
+
+    alt aprovado (tok_aprovado)
+        Note over UC,BD: transacao 2
+        UC->>R: obterParaAtualizar pedido, estoques e conta de pontos
+        R->>BD: SELECT ... FOR UPDATE
+        UC->>D: TentativaPagamento.aprovar e Pedido.confirmarPagamento
+        D-->>UC: pedido PAGO, historico sem usuario
+        loop para cada item
+            UC->>D: Estoque.baixar(qtd, idPedido)
+            D-->>UC: MovimentacaoEstoque BAIXA
+        end
+        UC->>R: consentimento vigente de FIDELIDADE
+        R->>BD: SELECT do ultimo registro em consentimentos
+        opt consentimento vigente CONCEDIDO (RN-08)
+            UC->>D: ContaPontos.acumular(valor pago)
+            D-->>UC: MovimentoPontos ACUMULO de 1 ponto por R$ 1,00
+        end
+        UC->>R: persistir tentativa, pedido, historico, estoques e pontos
+        R->>BD: UPDATE e INSERT
+        UC->>AO: auditoria e eventos pagamento_aprovado, estoque_movimentado e pontos_movimentados
+        AO->>BD: INSERT em auditoria e outbox_eventos
+        UC->>BD: COMMIT
+        UC-->>API: tentativa APROVADO e pedido PAGO
+        API-->>C: 201 com status PAGO
+    else recusado (tok_recusado)
+        Note over UC,BD: transacao 2
+        UC->>D: TentativaPagamento.recusar(motivo)
+        D-->>UC: pedido segue AGUARDANDO_PAGAMENTO, reserva mantida
+        UC->>R: persistir tentativa RECUSADO com motivo
+        R->>BD: UPDATE em tentativas_pagamento
+        UC->>AO: auditoria e evento pagamento_recusado
+        AO->>BD: INSERT em auditoria e outbox_eventos
+        UC->>BD: COMMIT
+        UC-->>API: tentativa RECUSADO
+        API-->>C: 201 com status RECUSADO e motivo (pode tentar de novo)
+    else timeout esgotado (tok_timeout)
+        Note over UC,BD: transacao 2
+        UC->>D: TentativaPagamento.falhar()
+        D-->>UC: tentativa FALHA, pedido segue AGUARDANDO_PAGAMENTO
+        UC->>R: persistir tentativa FALHA
+        R->>BD: UPDATE em tentativas_pagamento
+        UC->>AO: auditoria da falha do gateway
+        UC->>BD: COMMIT
+        UC-->>API: erro de dependencia
+        API-->>C: 504 erro padrao apos cerca de 9 s
+    end
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+O pagamento envolve duas transações curtas e uma chamada externa entre elas. Na primeira, o sistema confere a titularidade e a idempotência e registra a tentativa PENDENTE, confirmando-a antes de chamar o gateway, para que nenhum bloqueio de linha fique retido durante a espera. A chamada ao gateway tem timeout de 3 segundos e é repetida até duas vezes, somente em caso de timeout (RNF-10). Conforme o resultado, a segunda transação confirma o pagamento (pedido PAGO, baixa de estoque e, se houver consentimento de FIDELIDADE, acúmulo de pontos), registra a recusa (com o pedido mantido em AGUARDANDO_PAGAMENTO) ou registra a falha por timeout, que resulta em 504.
+
+**Figura 8 — Diagrama de sequência da atualização de status pela cozinha (UC-06)**
+
+```mermaid
+sequenceDiagram
+    actor K as Cozinha
+    participant API as API (camada API)
+    participant UC as CasoDeUso AtualizarStatusPedido (aplicacao)
+    participant D as Dominio (Pedido, PoliticaTransicao)
+    participant R as Repos (portas)
+    participant AO as Auditoria e Outbox (portas)
+    participant BD as PostgreSQL
+
+    K->>API: PATCH /pedidos/{id}/status com novo status
+    API->>API: valida JWT e schema
+    alt token ausente, invalido ou expirado
+        API-->>K: 401 erro padrao
+    else corpo JSON malformado
+        API-->>K: 400 erro padrao
+    else status ausente ou fora do enum
+        API-->>K: 422 erro padrao
+    end
+    API->>UC: executar(comando com perfil e unidade do token)
+    Note over UC,BD: transacao unica
+    UC->>R: obterParaAtualizar pedido
+    R->>BD: SELECT ... FOR UPDATE em pedidos
+    alt pedido inexistente
+        BD-->>R: nenhuma linha
+        UC-->>API: NotFoundError
+        API-->>K: 404 erro padrao
+    end
+    BD-->>R: pedido
+    R-->>UC: Pedido
+    UC->>D: PoliticaTransicao.perfilPodeTransitar(perfil, status atual, novo)
+    D-->>UC: permitido ou negado
+    UC->>UC: confere se a unidade do pedido e a de lotacao do usuario
+    alt perfil nao autorizado para o status pedido ou pedido de outra unidade
+        UC->>BD: ROLLBACK
+        UC-->>API: acesso negado
+        API-->>K: 403 erro padrao
+    else autorizado
+        UC->>D: Pedido.avancarStatus(novo, idAutor)
+        alt transicao invalida (por exemplo PAGO para PRONTO, ou saida de ENTREGUE ou CANCELADO)
+            D-->>UC: erro de dominio
+            UC->>BD: ROLLBACK
+            UC-->>API: erro de dominio
+            API-->>K: 409 erro padrao
+        else transicao valida
+            D-->>UC: status atualizado e linha de historico
+            UC->>R: persistir pedido e historico
+            R->>BD: UPDATE em pedidos e INSERT em historico_status_pedido
+            UC->>AO: auditoria STATUS_ALTERADO com canal e evento pedido_status_alterado
+            AO->>BD: INSERT em auditoria e outbox_eventos
+            UC->>BD: COMMIT
+            UC-->>API: pedido atualizado
+            API-->>K: 200 com o novo status
+        end
+    end
+```
+
+Fonte: elaborado pelo autor, com apoio de IA (2026).
+
+O diagrama mostra que a verificação de permissão (perfil e unidade) precede a validação da máquina de estados: um perfil sem autorização para o status solicitado recebe 403, mesmo quando a transição também seria inválida. O pedido é carregado com bloqueio de linha, de modo que atualizações concorrentes se serializam. Uma transição válida grava a atualização do pedido e do histórico, a auditoria STATUS_ALTERADO e o evento no outbox, todos na mesma transação. Uma transição inválida, como PAGO para PRONTO, resulta em 409 e em `ROLLBACK`.
+
 
 ## 3.6 Diagrama de estados do pedido
 
@@ -359,7 +1396,7 @@ Esta seção apresenta a interação entre cliente, API, banco e gateway de paga
 
 O pedido percorre uma máquina de estados com seis estados e transições controladas pela camada de domínio. Ele nasce em `AGUARDANDO_PAGAMENTO`, com a reserva de estoque já efetuada. A recusa do pagamento não altera o estado: o pedido permanece aguardando, e a tentativa fica registrada com o motivo, de modo que o cliente possa tentar novamente (RN-01). O pagamento aprovado leva a `PAGO`; a partir daí o pedido segue para `EM_PREPARO`, `PRONTO` e `ENTREGUE`. O cancelamento é possível a partir de `AGUARDANDO_PAGAMENTO` e de `PAGO`, caso em que gera estorno no mock; depois do início do preparo, não se cancela (RN-02). `ENTREGUE` e `CANCELADO` são estados finais, e qualquer transição não prevista resulta em 409 (RN-03).
 
-**Figura 3 — Diagrama de estados do pedido**
+**Figura 9 — Diagrama de estados do pedido**
 
 ```mermaid
 stateDiagram-v2
@@ -383,9 +1420,9 @@ Cada transição tem um responsável definido (RN-04). A transição para `PAGO`
 
 <!-- FONTE: ADRs 0001, 0003, 0004, 0008; D-016. STATUS: ✏️ AUTORIA: 🤖 → 🧑 -->
 
-A Tabela 7 lista as tecnologias empregadas, com a versão efetivamente travada nos arquivos de dependência do repositório e o papel de cada uma. As versões das imagens e das bibliotecas são fixas (ADR 0004), para que o examinador obtenha o mesmo comportamento da máquina do autor.
+A Tabela 10 lista as tecnologias empregadas, com a versão efetivamente travada nos arquivos de dependência do repositório e o papel de cada uma. As versões das imagens e das bibliotecas são fixas (ADR 0004), para que o examinador obtenha o mesmo comportamento da máquina do autor.
 
-**Tabela 7 — Tecnologias, versões e papéis**
+**Tabela 10 — Tecnologias, versões e papéis**
 
 | Tecnologia | Versão | Papel e justificativa |
 |---|---|---|
@@ -420,9 +1457,9 @@ STATUS: ✏️ (4.1 e 4.2 rascunhadas; 4.3 depende da implementação)
 
 <!-- FONTE: docs/api/README.md; docs/requisitos/README.md §3. STATUS: ✏️ -->
 
-A API é organizada por recurso, com rotas no plural e em português, conforme o roteiro e o ADR 0010. Os campos JSON usam `camelCase` em português (`canalPedido`, `clienteId`, `unidadeId`, `produtoId`, `quantidade`, `formaPagamento`, `precoUnitario`, `criadoEm`), e as enumerações usam maiúsculas sem acento (`AGUARDANDO_PAGAMENTO`). Cada requisição recebe um identificador de rastreio no header `X-Request-ID`, gerado quando ausente e devolvido na resposta; o mesmo valor aparece nos logs e no campo `requestId` do corpo de erro. A Tabela 8 relaciona os recursos previstos e o requisito que cada um atende.
+A API é organizada por recurso, com rotas no plural e em português, conforme o roteiro e o ADR 0010. Os campos JSON usam `camelCase` em português (`canalPedido`, `clienteId`, `unidadeId`, `produtoId`, `quantidade`, `formaPagamento`, `precoUnitario`, `criadoEm`), e as enumerações usam maiúsculas sem acento (`AGUARDANDO_PAGAMENTO`). Cada requisição recebe um identificador de rastreio no header `X-Request-ID`, gerado quando ausente e devolvido na resposta; o mesmo valor aparece nos logs e no campo `requestId` do corpo de erro. A Tabela 11 relaciona os recursos previstos e o requisito que cada um atende.
 
-**Tabela 8 — Recursos da API (rotas indicativas)**
+**Tabela 11 — Recursos da API (rotas indicativas)**
 
 | Recurso | Finalidade | Requisitos |
 |---|---|---|
@@ -447,9 +1484,9 @@ A especificação OpenAPI é gerada automaticamente pela aplicação em execuç�
 
 As listagens são paginadas pelos parâmetros `page` e `limit`, nos nomes do roteiro, como em `?page=1&limit=10`. Os filtros são combináveis: a listagem de pedidos aceita `canalPedido`, `status` e unidade, e a visibilidade do resultado depende do perfil, de modo que o cliente vê apenas os próprios pedidos, o pessoal da unidade vê os pedidos da unidade e o administrador vê a rede inteira. Um exemplo de consulta é `GET /pedidos?canalPedido=APP&status=AGUARDANDO_PAGAMENTO&page=1&limit=10`, acompanhada do header `Authorization: Bearer <token>`.
 
-Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela 9.
+Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela 12.
 
-**Tabela 9 — Códigos de status utilizados**
+**Tabela 12 — Códigos de status utilizados**
 
 | Código | Uso |
 |---|---|
@@ -465,9 +1502,9 @@ Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
-Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 4 mostra a resposta a uma criação de pedido com `canalPedido` inválido.
+Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 10 mostra a resposta a uma criação de pedido com `canalPedido` inválido.
 
-**Figura 4 — Exemplo de resposta 422 para `canalPedido` inválido**
+**Figura 10 — Exemplo de resposta 422 para `canalPedido` inválido**
 
 ```json
 {
@@ -508,9 +1545,9 @@ O tratamento de dados pessoais segue a Lei nº 13.709/2018 (LGPD), em especial a
 
 ## 5.1 Inventário de dados pessoais
 
-O princípio orientador é a minimização: coleta-se apenas o necessário a cada finalidade, e o sistema não registra CPF nem telefone. Os dados opcionais dependem de consentimento. A Tabela 10 relaciona cada dado, sua finalidade, a base legal, a obrigatoriedade e o prazo de retenção.
+O princípio orientador é a minimização: coleta-se apenas o necessário a cada finalidade, e o sistema não registra CPF nem telefone. Os dados opcionais dependem de consentimento. A Tabela 13 relaciona cada dado, sua finalidade, a base legal, a obrigatoriedade e o prazo de retenção.
 
-**Tabela 10 — Inventário de dados pessoais**
+**Tabela 13 — Inventário de dados pessoais**
 
 | Dado pessoal | Finalidade | Base legal | Obrigatório | Retenção |
 |---|---|---|---|---|
@@ -557,9 +1594,9 @@ STATUS: ✏️ (6.3 e 6.4 escritas; faltam as capturas do Swagger, do autor)
 
 <!-- FONTE: README.md (Estrutura de pastas). STATUS: ✏️ -->
 
-O código-fonte é versionado em repositório público, com histórico de commits, e não contém credenciais. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 11.
+O código-fonte é versionado em repositório público, com histórico de commits, e não contém credenciais. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 14.
 
-**Tabela 11 — Organização do repositório**
+**Tabela 14 — Organização do repositório**
 
 | Pasta | Conteúdo |
 |---|---|
@@ -748,7 +1785,7 @@ Este apêndice declara o uso de inteligência artificial no projeto, conforme ex
 
 A ferramenta utilizada foi o Claude Code, da Anthropic, em uma sessão principal com o modelo Claude Opus 5.5, que atuou como par de arquitetura do autor: explicou conceitos, apresentou opções com vantagens e desvantagens, especificou tarefas e revisou resultados. O trabalho mecânico, sob especificação escrita, foi delegado a subagentes dos modelos Claude Sonnet 5.5 (tarefas intermediárias, como código e documentos) e Claude Haiku 5.5 (coleta de dados e tarefas de menor custo). A divisão foi decisão do autor, motivada pela cota limitada do plano contratado: o modelo mais caro foi reservado para decisões e revisão. O plano utilizado foi o Claude Pro, de assinatura individual. A ferramenta foi usada dentro do Visual Studio Code, por meio da extensão oficial (versão 2.1.314), e pela linha de comando (CLI, versão 2.1.316), em ambiente Linux. Não se registram dados que identifiquem a máquina ou a conta do autor (`docs/uso-de-ia/01-infraestrutura.md`).
 
-**Tabela 12 — Ferramenta e modelos de IA utilizados**
+**Tabela 15 — Ferramenta e modelos de IA utilizados**
 
 | Item | Detalhe | Papel |
 |---|---|---|
@@ -761,9 +1798,9 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## A.2 Método de trabalho e registro de decisões
 
-O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha relevante, a IA apresentou opções com seus conceitos e consequências, e o autor escolheu, aprovou ou rejeitou. Cada decisão foi registrada em um log (`docs/uso-de-ia/decisoes.md`), com data, descrição e origem, classificada em três categorias: humana (🧑), quando o autor definiu sem proposta prévia ou escolheu algo diferente do recomendado pela IA; conjunta (🤝), quando a IA propôs ou recomendou e o autor escolheu ou aprovou explicitamente; e da IA (🤖), quando a IA decidiu um detalhe de implementação dentro do escopo delegado, que permanece pendente de validação humana até ser marcado como revisado. A Tabela 13 mostra a contagem por origem na data desta redação.
+O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha relevante, a IA apresentou opções com seus conceitos e consequências, e o autor escolheu, aprovou ou rejeitou. Cada decisão foi registrada em um log (`docs/uso-de-ia/decisoes.md`), com data, descrição e origem, classificada em três categorias: humana (🧑), quando o autor definiu sem proposta prévia ou escolheu algo diferente do recomendado pela IA; conjunta (🤝), quando a IA propôs ou recomendou e o autor escolheu ou aprovou explicitamente; e da IA (🤖), quando a IA decidiu um detalhe de implementação dentro do escopo delegado, que permanece pendente de validação humana até ser marcado como revisado. A Tabela 16 mostra a contagem por origem na data desta redação.
 
-**Tabela 13 — Decisões registradas, por origem**
+**Tabela 16 — Decisões registradas, por origem**
 
 | Origem | Quantidade |
 |---|---|
@@ -775,15 +1812,15 @@ O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A), a partir de `docs/uso-de-ia/decisoes.md`.
 
-<!-- PENDENTE: atualizar a contagem da Tabela 13 na versão final, pois o log continua recebendo decisões; as decisões 🤖 ainda sem validação humana devem ser revistas pelo autor antes da entrega. -->
+<!-- PENDENTE: atualizar a contagem da Tabela 16 na versão final, pois o log continua recebendo decisões; as decisões 🤖 ainda sem validação humana devem ser revistas pelo autor antes da entrega. -->
 
 Há registros em que o autor divergiu da recomendação da IA, como a opção por camadas explícitas em vez do monólito modular recomendado (D-007) e a opção por nomenclatura inteiramente em português em vez da combinação de API em português e dados em inglês (D-034).
 
 ## A.3 Prompts
 
-As transcrições completas das conversas, inclusive dos prompts enviados aos subagentes, são exportadas automaticamente por um hook do Claude Code e ficam em `docs/uso-de-ia/conversas/`, com redação automática de dados pessoais. A Tabela 14 traz três exemplos representativos de prompts do autor, parafraseados a partir do registro de decisões.
+As transcrições completas das conversas, inclusive dos prompts enviados aos subagentes, são exportadas automaticamente por um hook do Claude Code e ficam em `docs/uso-de-ia/conversas/`, com redação automática de dados pessoais. A Tabela 17 traz três exemplos representativos de prompts do autor, parafraseados a partir do registro de decisões.
 
-**Tabela 14 — Exemplos de prompts do autor (parafraseados)**
+**Tabela 17 — Exemplos de prompts do autor (parafraseados)**
 
 | Contexto | Prompt (paráfrase) | Resultado |
 |---|---|---|
@@ -795,9 +1832,9 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## A.4 Trechos aproveitados
 
-A Tabela 15 reproduz o inventário de artefatos produzidos com apoio de IA, com o responsável pela produção, quem especificou e o estado da revisão humana.
+A Tabela 18 reproduz o inventário de artefatos produzidos com apoio de IA, com o responsável pela produção, quem especificou e o estado da revisão humana.
 
-**Tabela 15 — Inventário de artefatos produzidos com apoio de IA**
+**Tabela 18 — Inventário de artefatos produzidos com apoio de IA**
 
 | Artefato | Produzido por | Especificado por | Revisão humana |
 |---|---|---|---|
