@@ -1000,8 +1000,26 @@
           }
         },
         {
-          "name": "P11 - Cliente registra consentimento MARKETING (201)",
+          "name": "P11 - Cliente registra consentimento MARKETING, concedendo ou revogando conforme o vigente (201)",
           "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Repetivel: concede MARKETING se nao estiver vigente; senao, revoga (UC-09).",
+                  "pm.sendRequest({",
+                  "  url: pm.variables.get('baseUrl') + '/api/v1/consentimentos',",
+                  "  method: 'GET',",
+                  "  header: { Authorization: 'Bearer ' + pm.collectionVariables.get('tokenCliente') }",
+                  "}, function (err, res) {",
+                  "  const vigentes = (!err && res.code === 200) ? res.json().vigentes : [];",
+                  "  const mk = vigentes.find(function (v) { return v.finalidade === 'MARKETING'; });",
+                  "  pm.collectionVariables.set('acaoMarketing', mk && mk.acao === 'CONCEDIDO' ? 'REVOGADO' : 'CONCEDIDO');",
+                  "});"
+                ]
+              }
+            },
             {
               "listen": "test",
               "script": {
@@ -1046,7 +1064,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"finalidade\": \"MARKETING\",\n  \"acao\": \"CONCEDIDO\",\n  \"versaoTermo\": \"v1\"\n}",
+              "raw": "{\n  \"finalidade\": \"MARKETING\",\n  \"acao\": \"{{acaoMarketing}}\",\n  \"versaoTermo\": \"v1\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
