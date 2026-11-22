@@ -30,3 +30,13 @@ class SqlAlchemyUserRepository:
             password_hash=row.senha_hash,
             is_active=bool(row.eh_ativo),
         )
+
+    def is_active_customer(self, user_id: UUID) -> bool:
+        found = self._session.execute(
+            text(
+                "SELECT 1 FROM usuarios "
+                "WHERE id = :id AND perfil = 'CLIENTE' AND eh_ativo AND anonimizado_em IS NULL"
+            ),
+            {"id": user_id},
+        ).first()
+        return found is not None

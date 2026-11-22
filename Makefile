@@ -47,8 +47,12 @@ shell: ## Abre um shell no contêiner da API
 test: ## Testes unitários e de arquitetura (sem banco)
 	$(RUN) pytest -m "not integration"
 
-test-integration: ## Testes de integração contra o PostgreSQL do compose
-	$(COMPOSE) run --rm --entrypoint "" api pytest -m integration
+test-integration: ## Testes de integração no banco <POSTGRES_DB>_teste (o de desenvolvimento não é tocado)
+	$(COMPOSE) run --rm --entrypoint "" api sh -c '\
+		python scripts/preparar_banco_teste.py && \
+		export POSTGRES_DB="$${POSTGRES_DB}_teste" && \
+		alembic upgrade head && \
+		pytest -m integration'
 
 test-all: test test-integration ## Todos os testes
 
