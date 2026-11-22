@@ -232,6 +232,8 @@ docs/arquitetura/visao-geral.md e ADRs.
 STATUS: ✏️ (3.2, 3.3, 3.6 e 3.7 rascunhadas; 3.1, 3.4 e 3.5 aguardam docs/modelagem/)
 -->
 
+**Modelagem completa, implementação mínima.** Os modelos deste capítulo descrevem a solução completa especificada nos requisitos, inclusive a idempotência das requisições (`Idempotency-Key`), o cancelamento, a fidelidade e a gestão de catálogo e estoque. O código entregue implementa só a fatia vertical exigida pelo roteiro (fluxo A), por decisão do autor (D-057): os elementos modelados e não implementados estão indicados na coluna "Entrega" da Tabela 2 e permanecem como especificação pronta para evolução ou para orientar a avaliação de produtos de mercado.
+
 ## 3.1 Diagrama e descrição dos casos de uso
 
 <!-- Seguir o modelo de descrição do anexo do roteiro (RT p. 19). -->
@@ -331,7 +333,7 @@ flowchart LR
     class UC25,UC26,UC27 conceitual
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 Notas de leitura do diagrama:
 
@@ -354,7 +356,7 @@ Notas de leitura do diagrama:
 | `ADMIN` | Rede inteira | Cadastrar e alterar unidades; gerir o catálogo da rede e os usuários; consultar pedidos, estoque (somente consulta) e auditoria de qualquer unidade; não faz transição de status |
 | Gateway de pagamento (mock) | Externo | Serviço HTTP separado; o resultado é determinado pelo token de teste (`tok_aprovado`, `tok_recusado`, `tok_timeout`) |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 **Descrição dos casos de uso detalhados.** Os casos de uso seguem o modelo de descrição do roteiro, com os campos Descrição, Ator principal, Demais atores, Pré-condições, Pós-condições, Fluxo base, Fluxo alternativo e Regras de negócio. Como o modelo prevê apenas um fluxo alternativo, os erros HTTP são registrados nele, marcados como [Exceção 4xx]. Os códigos seguem a Tabela 12 (seção 4.2), e todas as respostas de erro usam o formato padrão (RNF-13; D-035).
 
@@ -653,7 +655,7 @@ A Tabela 7 resume os demais casos de uso. Entre eles, UC-15 está implementado, 
 | UC-26 Expirar Pedido não Pago (conceitual) | Sistema (tarefa agendada) | Cancelar pedido não pago em 15 minutos e devolver a reserva; regra documentada | RF-20 |
 | UC-27 Anonimizar Cliente Inativo (conceitual) | Sistema | Anonimizar nome e e-mail de cliente inativo há dois anos, preservando os agregados; documentado | RF-21 |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 
 ## 3.2 Modelo de dados (DER)
@@ -898,7 +900,7 @@ classDiagram
     ItemPedido --> Dinheiro
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 O núcleo concentra as regras nos métodos da raiz. `Pedido.criar` aplica o par perfil e canal, congela o preço, define a expiração de 15 minutos e calcula o total. `Pedido.avancarStatus` e `Pedido.cancelar` aplicam a máquina de estados, e `Pedido.confirmarPagamento` só aceita o pagamento a partir de AGUARDANDO_PAGAMENTO, sem tentativa efetivada anterior. A permissão por perfil e unidade não fica no pedido: é decidida pelo caso de uso, com apoio do serviço de domínio `PoliticaTransicao`, e a violação dessa permissão resulta em 403. A violação da máquina de estados resulta em 409. A separação entre as duas situações é uma decisão de projeto.
 
@@ -1077,7 +1079,7 @@ classDiagram
     RegistradorAuditoriaSqlAlchemy ..|> RegistradorAuditoria
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 Na Figura 5, as setas de dependência apontam para as abstrações da aplicação. As implementações concretas da infraestrutura é que apontam para elas, pela relação de realização (`..|>`). Essa é a inversão de dependência descrita na seção 3.3. Nenhuma classe de caso de uso conhece SQLAlchemy, HTTP ou o gateway real. A injeção das implementações concretas ocorre somente em `main.py` e em `api/dependencies.py`, e o teste `tests/architecture/test_layers.py` verifica a regra automaticamente. Trocar o gateway de pagamento significa trocar o adaptador, sem alterar o caso de uso `SolicitarPagamento`.
 
@@ -1108,7 +1110,7 @@ A Tabela 9 relaciona cada classe de domínio à tabela correspondente do DER, de
 | `DomainEvent` e subclasses | `outbox_eventos` | Gravados pela porta `OutboxWriter` na transação do caso de uso |
 | (sem classe de domínio) | `chaves_idempotencia` | Porta `RepositorioIdempotencia`; detalhe de protocolo HTTP, e não conceito de negócio |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 
 ## 3.5 Diagrama de sequência: pedido → pagamento → status
@@ -1207,7 +1209,7 @@ sequenceDiagram
     end
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 A leitura do diagrama começa pelas validações que ocorrem antes de qualquer transação: token, perfil, esquema e canal, em que o canal fora do conjunto aceito ou incompatível com o perfil resulta em 422. Em seguida, a chave de idempotência decide entre devolver a resposta guardada, rejeitar um corpo divergente ou prosseguir. Dentro da transação única, os itens são precificados, as linhas de estoque são travadas em ordem determinística e as reservas são feitas pelo domínio. Se o saldo for insuficiente, ocorre `ROLLBACK` e a resposta é 409 com o código `ESTOQUE_INSUFICIENTE`. Caso contrário, pedido, itens, movimentações, auditoria, eventos e a resposta da chave são gravados juntos e confirmados por um único `COMMIT`, o que garante a atomicidade exigida pelo RNF-11.
 
@@ -1322,7 +1324,7 @@ sequenceDiagram
     end
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 O pagamento envolve duas transações curtas e uma chamada externa entre elas. Na primeira, o sistema confere a titularidade e a idempotência e registra a tentativa PENDENTE, confirmando-a antes de chamar o gateway, para que nenhum bloqueio de linha fique retido durante a espera. A chamada ao gateway tem timeout de 3 segundos e é repetida até duas vezes, somente em caso de timeout (RNF-10). Conforme o resultado, a segunda transação confirma o pagamento (pedido PAGO, baixa de estoque e, se houver consentimento de FIDELIDADE, acúmulo de pontos), registra a recusa (com o pedido mantido em AGUARDANDO_PAGAMENTO) ou registra a falha por timeout, que resulta em 504.
 
@@ -1385,7 +1387,7 @@ sequenceDiagram
     end
 ```
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 O diagrama mostra que a verificação de permissão (perfil e unidade) precede a validação da máquina de estados: um perfil sem autorização para o status solicitado recebe 403, mesmo quando a transição também seria inválida. O pedido é carregado com bloqueio de linha, de modo que atualizações concorrentes se serializam. Uma transição válida grava a atualização do pedido e do histórico, a auditoria STATUS_ALTERADO e o evento no outbox, todos na mesma transação. Uma transição inválida, como PAGO para PRONTO, resulta em 409 e em `ROLLBACK`.
 
@@ -1503,9 +1505,9 @@ Os códigos de status seguem o conjunto exigido pelo roteiro, resumido na Tabela
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
-Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 4 mostra a resposta real da API a uma criação de pedido com `canalPedido` inválido; a mensagem de `issue` vem do Pydantic e permanece em inglês (ADR 0011).
+Toda resposta de erro, de qualquer status 4xx ou 5xx e inclusive de rota inexistente e método não permitido, usa o mesmo formato JSON, definido pelo roteiro da trilha e adotado em lugar do RFC 9457 (D-035; ADR 0011). O campo `error` traz um código em maiúsculas (`ESTOQUE_INSUFICIENTE`, `VALIDACAO_FALHOU`, `NAO_AUTENTICADO`, entre outros); `message` descreve a falha; `details` lista os campos com problema, no formato `{field, issue}`; `timestamp` e `path` situam a requisição; e `requestId` correlaciona a resposta com os logs. Nas falhas de validação, o caminho do campo é normalizado para uma notação como `itens[0].quantidade`. O esquema `ErroPadrao` é registrado no OpenAPI, de modo que o Swagger documenta o padrão. A Figura 10 mostra a resposta real da API a uma criação de pedido com `canalPedido` inválido; a mensagem de `issue` vem do Pydantic e permanece em inglês (ADR 0011).
 
-**Figura 4 — Resposta 422 real para `canalPedido` inválido**
+**Figura 10 — Resposta 422 real para `canalPedido` inválido**
 
 ```json
 {
@@ -1527,9 +1529,9 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## 4.3 Endpoints do fluxo crítico
 
-Os endpoints do fluxo A (pedido, pagamento e status) e a consulta de auditoria seguem o modelo do anexo do roteiro: finalidade, método e rota, autenticação e perfis, parâmetros, request, response, códigos de status e formato de erro. Todas as rotas de negócio ficam sob o prefixo `/api/v1`, e todos os exemplos são respostas reais da API em execução, com os dados da carga inicial (`make seed`): o `accessToken` aparece abreviado, os e-mails pertencem ao domínio reservado `@exemplo.com` e a senha de demonstração é fictícia. A descrição completa de todos os endpoints, inclusive consentimentos e health checks, está em `docs/api/README.md`, e o Swagger (`/docs`) reflete os mesmos contratos. A Tabela 9-A resume os endpoints.
+Os endpoints do fluxo A (pedido, pagamento e status) e a consulta de auditoria seguem o modelo do anexo do roteiro: finalidade, método e rota, autenticação e perfis, parâmetros, request, response, códigos de status e formato de erro. Todas as rotas de negócio ficam sob o prefixo `/api/v1`, e todos os exemplos são respostas reais da API em execução, com os dados da carga inicial (`make seed`): o `accessToken` aparece abreviado, os e-mails pertencem ao domínio reservado `@exemplo.com` e a senha de demonstração é fictícia. A descrição completa de todos os endpoints, inclusive consentimentos e health checks, está em `docs/api/README.md`, e o Swagger (`/docs`) reflete os mesmos contratos. A Tabela 13 resume os endpoints.
 
-**Tabela 9-A — Endpoints do fluxo crítico**
+**Tabela 13 — Endpoints do fluxo crítico**
 
 | Método e rota | Perfis | Sucesso | Erros principais |
 |---|---|---|---|
@@ -1598,9 +1600,9 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 ```
 
 - Status codes: 201; 401; 403; 404; 409 `ESTOQUE_INSUFICIENTE`; 422 (`canalPedido` ausente, inválido ou incompatível com o perfil).
-- Erros (padrão): a Figura 4 mostra o 422 de `canalPedido` inválido. A Figura 5 mostra o 409 de estoque insuficiente (carne de sol, com 5 unidades pedidas e 2 disponíveis).
+- Erros (padrão): a Figura 10 mostra o 422 de `canalPedido` inválido. A Figura 11 mostra o 409 de estoque insuficiente (carne de sol, com 5 unidades pedidas e 2 disponíveis).
 
-**Figura 5 — Resposta 409 real para estoque insuficiente**
+**Figura 11 — Resposta 409 real para estoque insuficiente**
 
 ```json
 {
@@ -1718,9 +1720,9 @@ O tratamento de dados pessoais segue a Lei nº 13.709/2018 (LGPD), em especial a
 
 ## 5.1 Inventário de dados pessoais
 
-O princípio orientador é a minimização: coleta-se apenas o necessário a cada finalidade, e o sistema não registra CPF nem telefone. Os dados opcionais dependem de consentimento. A Tabela 13 relaciona cada dado, sua finalidade, a base legal, a obrigatoriedade e o prazo de retenção.
+O princípio orientador é a minimização: coleta-se apenas o necessário a cada finalidade, e o sistema não registra CPF nem telefone. Os dados opcionais dependem de consentimento. A Tabela 14 relaciona cada dado, sua finalidade, a base legal, a obrigatoriedade e o prazo de retenção.
 
-**Tabela 13 — Inventário de dados pessoais**
+**Tabela 14 — Inventário de dados pessoais**
 
 | Dado pessoal | Finalidade | Base legal | Obrigatório | Retenção |
 |---|---|---|---|---|
@@ -1767,9 +1769,9 @@ STATUS: ✏️ (6.3 e 6.4 escritas; faltam as capturas do Swagger, do autor)
 
 <!-- FONTE: README.md (Estrutura de pastas). STATUS: ✏️ -->
 
-O código-fonte é versionado em repositório público, com histórico de commits, e não contém credenciais. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 14.
+O código-fonte é versionado em repositório público, com histórico de commits, e não contém credenciais. A organização das pastas reflete a arquitetura em camadas e separa a API da camada analítica, conforme a Tabela 15.
 
-**Tabela 14 — Organização do repositório**
+**Tabela 15 — Organização do repositório**
 
 | Pasta | Conteúdo |
 |---|---|
@@ -1832,7 +1834,7 @@ O pagamento é feito em um serviço HTTP separado, o gateway mock, que decide pe
 | RF-22 | Eventos de domínio gravados na outbox, na mesma transação, para alimentar o Data Warehouse | Testes de integração da outbox |
 | RF-14 | Consentimento de fidelidade registrado, revogado e listado pelo próprio cliente | T09 |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## 6.4 Evidências de funcionamento
 
@@ -1889,7 +1891,7 @@ A Tabela 17 lista 23 cenários, 10 positivos e 13 negativos (o mínimo do roteir
 | T22 | Transição inválida | `PATCH /pedidos/{id}/status` | Pedido ENTREGUE | PRONTO | 409 `TRANSICAO_INVALIDA` | `N09 - Cozinha pede PRONTO em pedido ENTREGUE: transicao invalida (409)` |
 | T23 | Pagar pedido já pago | `POST /pedidos/{id}/pagamentos` | Pedido PAGO | `tok_aprovado` | 409 | `N10 - Pagar pedido ja pago (409)` |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 Todos os negativos validam o erro padrão completo (`error`, `message`, `details`, `timestamp`, `path` e `requestId`). O mapeamento de cada cenário ao teste de integração equivalente está em `docs/testes/README.md`.
 
@@ -1906,7 +1908,7 @@ Em 22/11/2026, com o ambiente subido do zero (`make up`, `make migrate`, `make s
 | `make test` | 375 aprovados (unitários e arquitetura) |
 | `make test-integration` | 83 aprovados (PostgreSQL real, banco `_teste`) |
 
-Fonte: elaborado pelo autor, com apoio de IA (2026).
+Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 Os resumos ficam em `docs/testes/evidencias/` e as capturas do Swagger, produzidas pelo autor, na mesma pasta.
 
@@ -1958,7 +1960,7 @@ Este apêndice declara o uso de inteligência artificial no projeto, conforme ex
 
 A ferramenta utilizada foi o Claude Code, da Anthropic, em uma sessão principal com o modelo Claude Opus 5.5, que atuou como par de arquitetura do autor: explicou conceitos, apresentou opções com vantagens e desvantagens, especificou tarefas e revisou resultados. O trabalho mecânico, sob especificação escrita, foi delegado a subagentes dos modelos Claude Sonnet 5.5 (tarefas intermediárias, como código e documentos) e Claude Haiku 5.5 (coleta de dados e tarefas de menor custo). A divisão foi decisão do autor, motivada pela cota limitada do plano contratado: o modelo mais caro foi reservado para decisões e revisão. O plano utilizado foi o Claude Pro, de assinatura individual. A ferramenta foi usada dentro do Visual Studio Code, por meio da extensão oficial (versão 2.1.314), e pela linha de comando (CLI, versão 2.1.316), em ambiente Linux. Não se registram dados que identifiquem a máquina ou a conta do autor (`docs/uso-de-ia/01-infraestrutura.md`).
 
-**Tabela 15 — Ferramenta e modelos de IA utilizados**
+**Tabela 19 — Ferramenta e modelos de IA utilizados**
 
 | Item | Detalhe | Papel |
 |---|---|---|
@@ -1971,29 +1973,29 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## A.2 Método de trabalho e registro de decisões
 
-O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha relevante, a IA apresentou opções com seus conceitos e consequências, e o autor escolheu, aprovou ou rejeitou. Cada decisão foi registrada em um log (`docs/uso-de-ia/decisoes.md`), com data, descrição e origem, classificada em três categorias: humana (🧑), quando o autor definiu sem proposta prévia ou escolheu algo diferente do recomendado pela IA; conjunta (🤝), quando a IA propôs ou recomendou e o autor escolheu ou aprovou explicitamente; e da IA (🤖), quando a IA decidiu um detalhe de implementação dentro do escopo delegado, que permanece pendente de validação humana até ser marcado como revisado. A Tabela 16 mostra a contagem por origem na data desta redação.
+O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha relevante, a IA apresentou opções com seus conceitos e consequências, e o autor escolheu, aprovou ou rejeitou. Cada decisão foi registrada em um log (`docs/uso-de-ia/decisoes.md`), com data, descrição e origem, classificada em três categorias: humana (🧑), quando o autor definiu sem proposta prévia ou escolheu algo diferente do recomendado pela IA; conjunta (🤝), quando a IA propôs ou recomendou e o autor escolheu ou aprovou explicitamente; e da IA (🤖), quando a IA decidiu um detalhe de implementação dentro do escopo delegado, que permanece pendente de validação humana até ser marcado como revisado. A Tabela 20 mostra a contagem por origem na data desta redação.
 
-**Tabela 16 — Decisões registradas, por origem**
+**Tabela 20 — Decisões registradas, por origem**
 
 | Origem | Quantidade |
 |---|---|
-| 🧑 Humana | 14 |
-| 🤝 Conjunta | 20 |
-| 🤖 IA | 19 |
+| 🧑 Humana | 15 |
+| 🤝 Conjunta | 22 |
+| 🤖 IA | 23 |
 | Mista (🧑 formato e 🤖 capa privada) | 1 |
-| **Total** | **54** |
+| **Total** | **61** |
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A), a partir de `docs/uso-de-ia/decisoes.md`.
 
-<!-- PENDENTE: atualizar a contagem da Tabela 16 na versão final, pois o log continua recebendo decisões; as decisões 🤖 ainda sem validação humana devem ser revistas pelo autor antes da entrega. -->
+<!-- PENDENTE (autor): contagem de 2026-11-22 (D-000 a D-060, 61 decisões). Antes da entrega, validar as decisões 🤖 ainda pendentes (D-011, D-013 a D-016, D-022, D-023, D-025, D-027, D-030 a D-032, D-058 a D-060) e recontar. -->
 
 Há registros em que o autor divergiu da recomendação da IA, como a opção por camadas explícitas em vez do monólito modular recomendado (D-007) e a opção por nomenclatura inteiramente em português em vez da combinação de API em português e dados em inglês (D-034).
 
 ## A.3 Prompts
 
-As transcrições completas das conversas, inclusive dos prompts enviados aos subagentes, são exportadas automaticamente por um hook do Claude Code e ficam em `docs/uso-de-ia/conversas/`, com redação automática de dados pessoais. A Tabela 17 traz três exemplos representativos de prompts do autor, parafraseados a partir do registro de decisões.
+As transcrições completas das conversas, inclusive dos prompts enviados aos subagentes, são exportadas automaticamente por um hook do Claude Code e ficam em `docs/uso-de-ia/conversas/`, com redação automática de dados pessoais. A Tabela 21 traz três exemplos representativos de prompts do autor, parafraseados a partir do registro de decisões.
 
-**Tabela 17 — Exemplos de prompts do autor (parafraseados)**
+**Tabela 21 — Exemplos de prompts do autor (parafraseados)**
 
 | Contexto | Prompt (paráfrase) | Resultado |
 |---|---|---|
@@ -2005,9 +2007,9 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A).
 
 ## A.4 Trechos aproveitados
 
-A Tabela 18 reproduz o inventário de artefatos produzidos com apoio de IA, com o responsável pela produção, quem especificou e o estado da revisão humana.
+A Tabela 22 reproduz o inventário de artefatos produzidos com apoio de IA, com o responsável pela produção, quem especificou e o estado da revisão humana.
 
-**Tabela 18 — Inventário de artefatos produzidos com apoio de IA**
+**Tabela 22 — Inventário de artefatos produzidos com apoio de IA**
 
 | Artefato | Produzido por | Especificado por | Revisão humana |
 |---|---|---|---|
@@ -2022,6 +2024,10 @@ A Tabela 18 reproduz o inventário de artefatos produzidos com apoio de IA, com 
 | `docs/requisitos/README.md` (RF/RNF com MoSCoW, regras de negócio, LGPD, pagamento mock e priorização) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Escopo pelo humano (D-038 a D-045); detalhes pela IA a pedido dele (D-046) | Pendente |
 | `docs/modelagem/der.md` (DER do banco transacional) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Estrutura pelo humano (D-047 a D-049); tipos e restrições pela IA (D-051, D-052) | Pendente |
 | `docs/entrega/` (esqueleto e rascunhos deste documento) | Opus 5.5 e subagentes | Humano (D-053) | Pendente |
+| `docs/modelagem/` (casos de uso, classes, sequência) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Opus 5.5, com as decisões do humano (D-050, D-054) | Pendente |
+| Implementação do fluxo A: migração, domínio, segurança, casos de uso, rotas, gateway mock, testes (`src/`, `migrations/`, `tests/`, `scripts/seed.py`) | Subagentes Sonnet 5.5 em worktrees paralelas, revisados e integrados pelo Opus 5.5 | Opus 5.5 (`docs/implementacao/plano-mvp.md`), com o recorte do humano (D-057) | Pendente |
+| Coleção Postman (`postman/`), plano de testes e evidências (`docs/testes/`) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Opus 5.5, a partir do roteiro | Pendente |
+| `docs/api/` e seções 3.1, 3.4, 3.5, 4.3, 6.3, 6.4 e 7 deste documento | Subagentes Sonnet 5.5 e Haiku 5.5, revisados pelo Opus 5.5 | Opus 5.5 | Pendente |
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A), a partir de `docs/uso-de-ia/README.md`.
 

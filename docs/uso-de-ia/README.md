@@ -52,3 +52,7 @@ Atualize a coluna **Revisão humana** à medida que revisar cada item.
 | `docs/requisitos/README.md` (RF/RNF com MoSCoW, regras de negócio, LGPD, pagamento mock, priorização) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Escopo pelo humano (D-038 a D-045); detalhes pela IA a pedido dele (D-046) | ⏳ pendente |
 | `docs/modelagem/der.md` (DER do OLTP: diagramas, dicionário físico, conceitos, rastreabilidade) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Estrutura pelo humano (D-047 a D-049); tipos e constraints pela IA (D-051, D-052) | ⏳ pendente |
 | `docs/entrega/` (esqueleto do documento principal, seção a seção com exigências do roteiro) | Opus 5.5 | Humano (D-053) | ⏳ pendente |
+| `docs/modelagem/` (casos de uso, classes, sequência) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Opus 5.5, com as decisões do humano (D-050, D-054) | ⏳ pendente |
+| Implementação do fluxo A: migração, domínio, segurança, casos de uso, rotas, gateway mock, testes (`src/`, `migrations/`, `tests/`, `scripts/seed.py`) | Subagentes Sonnet 5.5 em worktrees paralelas, revisados e integrados pelo Opus 5.5 | Opus 5.5 (`docs/implementacao/plano-mvp.md`), com o recorte do humano (D-057) | ⏳ pendente |
+| Coleção Postman (`postman/`), plano de testes e evidências (`docs/testes/`) | Subagente Sonnet 5.5, revisado pelo Opus 5.5 | Opus 5.5, a partir do roteiro | ⏳ pendente |
+| `docs/api/` e seções 3.1, 3.4, 3.5, 4.3, 6.3, 6.4 e 7 deste documento | Subagentes Sonnet 5.5 e Haiku 5.5, revisados pelo Opus 5.5 | Opus 5.5 | ⏳ pendente |
