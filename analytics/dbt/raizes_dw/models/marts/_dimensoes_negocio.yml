@@ -101,7 +101,7 @@ models:
 
   - name: dim_hora
     description: >
-      Dimensão de hora do dia, grão minuto (1440 linhas + membro -1), hora local de America/Recife. Limites de períodos e picos são definição de negócio a validar pelo autor (vars do dbt).
+      Dimensão de hora do dia, grão minuto (1440 linhas + membro -1), hora local de America/Recife. Limites de períodos e picos são definição de negócio validada pelo autor em 2026-11-22 (D-063) (vars do dbt).
     config:
       contract:
         enforced: true

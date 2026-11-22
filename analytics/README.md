@@ -86,7 +86,7 @@ e o esquema do bronze. Assim `stg_outbox_eventos` funciona (e retorna 0 linhas) 
 - Dimensões estáticas (gold, SCD 1, com membro -1): `dim_canal`, `dim_status_pedido`
   (valores do enum `OrderStatus`) e `dim_forma_pagamento` (valores de `PaymentMethod`).
 - `dim_hora` (gold): grão minuto (1440 linhas + membro -1), `sk_hora` = HHMM. Limites de
-  `periodo_dia` e janelas de `eh_pico` em `vars` do `dbt_project.yml` (**definição de negócio a validar pelo autor**).
+  `periodo_dia` e janelas de `eh_pico` em `vars` do `dbt_project.yml` (**definição de negócio validada pelo autor em 2026-11-22 (D-063)**).
 - `dim_unidade` (gold): mínima, só `id_unidade` dos eventos.
 - `int_cliente_pseudonimo` (silver, modelo Python) e `dim_cliente` (gold): cliente mínimo e
   pseudonimizado (HMAC-SHA256 com `ANALYTICS_PSEUDONYM_KEY`; o DuckDB não tem HMAC nativo, por

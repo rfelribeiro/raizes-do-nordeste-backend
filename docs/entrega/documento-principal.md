@@ -2047,15 +2047,13 @@ O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha
 
 | Origem | Quantidade |
 |---|---|
-| 🧑 Humana | 15 |
-| 🤝 Conjunta | 22 |
+| 🧑 Humana | 17 |
+| 🤝 Conjunta | 23 |
 | 🤖 IA | 23 |
 | Mista (🧑 formato e 🤖 capa privada) | 1 |
-| **Total** | **61** |
+| **Total** | **64** |
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A), a partir de `docs/uso-de-ia/decisoes.md`.
-
-<!-- PENDENTE (autor): contagem de 2026-11-22 (D-000 a D-060, 61 decisões). Antes da entrega, validar as decisões 🤖 ainda pendentes (D-011, D-013 a D-016, D-022, D-023, D-025, D-027, D-030 a D-032, D-058 a D-060) e recontar. -->
 
 Há registros em que o autor divergiu da recomendação da IA, como a opção por camadas explícitas em vez do monólito modular recomendado (D-007) e a opção por nomenclatura inteiramente em português em vez da combinação de API em português e dados em inglês (D-034).
 
@@ -2273,7 +2271,3 @@ Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A). Dados fictícios
 Os eventos atuais não trazem todos os atributos da matriz. Faltam o número legível do pedido, a quantidade de itens, a campanha e o colaborador no pedido; nome, cidade, região e formato da unidade; faixa etária e perfil do cliente; e a latência do gateway. A tentativa de pagamento que esgota o tempo também não gera evento. Essas lacunas estão listadas em `docs/dados/matriz-de-barramento.md` e definem o que os próximos eventos precisam carregar.
 
 Os demais processos estão modelados e dependem de a API publicar novos eventos: os itens do pedido no evento de criação (para o fato de itens e os produtos mais vendidos), as movimentações de estoque e de pontos, os consentimentos e os cancelamentos. Essa ordem é proposital. A modelagem de dados vem primeiro e orienta quais eventos a operação precisa registrar; a implementação acompanha a maturidade dos processos, um processo de negócio por vez.
-
-# Apêndice C — Diagramas complementares
-
-<!-- Diagramas UML extras (componentes, implantação), se necessários (roteiro geral, "Materiais suplementares"). -->

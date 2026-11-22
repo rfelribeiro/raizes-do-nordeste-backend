@@ -197,8 +197,8 @@ Hora do dia no grão minuto: 1440 linhas + membro -1, hora local de America/Reci
 | `sk_hora` | integer | não | Chave substituta HHMM | `1430`; -1 não identificado; única |
 | `hora` | integer | sim | Hora | 0 a 23; nulo no -1 |
 | `minuto` | integer | sim | Minuto | 0 a 59; nulo no -1 |
-| `periodo_dia` | varchar | não | Período do dia | `madrugada` (00:00), `café da manhã` (06:00), `almoço` (11:00), `tarde` (15:00), `noite` (18:00); vars `periodo_*_inicio`; **a validar pelo autor** |
-| `eh_pico` | boolean | não | Janela de pico | 11:30-14:00 e 18:00-20:30 (vars `pico_*`); **a validar pelo autor** |
+| `periodo_dia` | varchar | não | Período do dia | `madrugada` (00:00), `café da manhã` (06:00), `almoço` (11:00), `tarde` (15:00), `noite` (18:00); vars `periodo_*_inicio`; **validada pelo autor em 2026-11-22 (D-063)** |
+| `eh_pico` | boolean | não | Janela de pico | 11:30-14:00 e 18:00-20:30 (vars `pico_*`); **validada pelo autor em 2026-11-22 (D-063)** |
 
 ### `dim_unidade` (gold, DuckDB)
 

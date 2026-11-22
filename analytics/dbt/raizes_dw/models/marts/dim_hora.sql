@@ -1,6 +1,6 @@
 -- Gold: dimensão de hora do dia, grão minuto (1440 linhas + membro -1). sk_hora = HHMM (ex.: 1430).
 -- Hora local (America/Recife): os fatos convertem ocorrido_em antes de buscar a chave.
--- Limites dos períodos e janelas de pico: definição de negócio a validar pelo autor (vars em dbt_project.yml).
+-- Limites dos períodos e janelas de pico: definição de negócio validada pelo autor em 2026-11-22 (D-063) (vars em dbt_project.yml).
 with minutos as (
 
     select
