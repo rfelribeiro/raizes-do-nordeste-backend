@@ -2073,10 +2073,10 @@ O método seguido foi o de que o humano decide e a IA propõe. Para cada escolha
 | Origem | Quantidade |
 |---|---|
 | 🧑 Humana | 17 |
-| 🤝 Conjunta | 23 |
+| 🤝 Conjunta | 25 |
 | 🤖 IA | 23 |
 | Mista (🧑 formato e 🤖 capa privada) | 1 |
-| **Total** | **64** |
+| **Total** | **66** |
 
 Fonte: elaborado pelo autor, com apoio de IA (ver Apêndice A), a partir de `docs/uso-de-ia/decisoes.md`.
 
