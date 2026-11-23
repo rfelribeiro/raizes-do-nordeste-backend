@@ -14,6 +14,12 @@ gateway externo, relatórios para a matriz e alta disponibilidade em horário de
 > pagamento mock, status, auditoria, consentimento e outbox), por decisão do autor (D-057): o
 > diferencial do trabalho é a análise construir × comprar.
 
+## Vídeo de apresentação
+
+[![Vídeo de apresentação do projeto Raízes do Nordeste (clique para assistir no YouTube)](https://img.youtube.com/vi/PZGASGtOWQ0/maxresdefault.jpg)](https://youtu.be/PZGASGtOWQ0)
+
+▶️ Assistir no YouTube: https://youtu.be/PZGASGtOWQ0
+
 ## Visão geral em uma imagem
 
 <picture>
